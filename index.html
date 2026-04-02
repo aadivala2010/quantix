@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quantix – Math Mastery | Smart Explanations</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Quantix – Math Mastery | Haptic Feedback</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -157,7 +157,24 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
 <script>
-// ======================== RICH STEP-BY-STEP EXPLANATIONS (FULLY RESTORED) ========================
+// ======================== HAPTIC FEEDBACK (Vibration API) ========================
+function vibrateForCorrect() {
+  if (!window.navigator || typeof window.navigator.vibrate !== 'function') return;
+  try {
+    // Short single buzz for correct answer (gentle confirmation)
+    window.navigator.vibrate(50);
+  } catch(e) { /* silent fallback */ }
+}
+
+function vibrateForWrong() {
+  if (!window.navigator || typeof window.navigator.vibrate !== 'function') return;
+  try {
+    // Double buzz pattern for wrong answer (error feedback)
+    window.navigator.vibrate([80, 60, 80]);
+  } catch(e) { /* silent fallback */ }
+}
+
+// ======================== RICH STEP-BY-STEP EXPLANATIONS ========================
 function fallback(q,a){return{steps:[{text:"The question was:",math:q},{text:"The correct answer is:",math:a}],tip:"Review the concept and try a similar problem to build confidence."};}
 
 const explainers={
@@ -206,7 +223,6 @@ const curriculum={
 let progress=JSON.parse(localStorage.getItem('qx_progress_v3')||'{}');
 let currentSubject='Algebra 1';
 let quizState={};
-let subjectChosen=false; // track if user has explicitly chosen a subject
 
 function saveProgress(){localStorage.setItem('qx_progress_v3',JSON.stringify(progress));}
 function getUnitKey(s,i){return `${s}::unit_${i}`;}
@@ -247,6 +263,10 @@ function renderQuestion(){
 function checkAnswer(chosen,btn){
   const{currentA,currentQ,mode,unitName}=quizState;
   const isCorrect=chosen===currentA;
+  
+  // HAPTIC FEEDBACK: vibrate based on correctness
+  if(isCorrect){ vibrateForCorrect(); } else { vibrateForWrong(); }
+  
   document.querySelectorAll('.opt-btn').forEach(b=>b.disabled=true);
   const fb=document.getElementById('fb'),nb=document.getElementById('next-btn');
   if(isCorrect){btn.classList.add('correct');fb.className='feedback-bar show correct';fb.innerHTML=`<span class="fb-icon">✅</span><span class="fb-text correct">Correct! Well done.</span>`;quizState.correct++;}
@@ -333,7 +353,6 @@ function showSubjectSelector(){
 function closeSelectorAndStart(subject){
   const ov=document.getElementById('subject-selector');
   if(ov)ov.remove();
-  subjectChosen=true;
   localStorage.setItem('qx_subject_chosen','true');
   currentSubject=subject;
   document.querySelectorAll('.subject-btn').forEach(btn=>{
@@ -346,10 +365,8 @@ function closeSelectorAndStart(subject){
 window.addEventListener('load',()=>{
   const alreadyChosen = localStorage.getItem('qx_subject_chosen');
   if(alreadyChosen === 'true'){
-    // User previously selected a subject, show map directly
     showMap();
   } else {
-    // No subject selected yet — show selector every time until they pick one
     showSubjectSelector();
   }
 });
