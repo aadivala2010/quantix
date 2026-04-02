@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quantix - Math Mastery</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif}
+body{background:#f7f7f7;color:#333}
+.app{display:flex;min-height:100vh}
+.sidebar{width:200px;background:#58cc02;padding:16px 12px;display:flex;flex-direction:column;gap:8px;flex-shrink:0}
+.sidebar-logo{color:#fff;font-size:20px;font-weight:600;text-align:center;padding:8px 0 16px;border-bottom:1px solid rgba(255,255,255,0.3);margin-bottom:4px}
+.subject-btn{background:rgba(255,255,255,0.15);border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:500;padding:10px 8px;cursor:pointer;text-align:left;transition:background 0.15s}
+.subject-btn:hover{background:rgba(255,255,255,0.28)}
+.subject-btn.active{background:rgba(255,255,255,0.9);color:#3a7d00}
+/* Spacer to push reset button to bottom */
+.sidebar-spacer{flex:1}
+.reset-btn{background:#e74c3c;border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:600;padding:10px 8px;cursor:pointer;text-align:center;transition:background 0.15s;margin-top:12px;box-shadow:0 2px 0 #a82313}
+.reset-btn:hover{background:#c0392b}
+.reset-btn:active{transform:translateY(1px);box-shadow:none}
+.main{flex:1;padding:24px;overflow-y:auto}
+.screen{display:none}
+.screen.active{display:block}
+.top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.subject-title{font-size:22px;font-weight:600;color:#333}
+.trail{display:flex;flex-direction:column;align-items:center;gap:0}
+.checkpoint-wrap{display:flex;flex-direction:column;align-items:center;position:relative}
+.connector{width:4px;height:32px;background:#e5e5e5;border-radius:2px}
+.connector.done{background:#58cc02}
+.checkpoint-btn{width:72px;height:72px;border-radius:50%;border:4px solid transparent;font-size:22px;cursor:pointer;transition:transform 0.12s;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px}
+.checkpoint-btn.locked{background:#e5e5e5;border-color:#ccc;cursor:not-allowed}
+.checkpoint-btn.available{background:#fff;border-color:#58cc02;box-shadow:0 4px 0 #3a8f00}
+.checkpoint-btn.available:hover{transform:translateY(-2px)}
+.checkpoint-btn.available:active{transform:translateY(2px);box-shadow:0 1px 0 #3a8f00}
+.checkpoint-btn.complete{background:#58cc02;border-color:#3a8f00;box-shadow:0 4px 0 #2a6e00}
+.checkpoint-btn.perfect{background:#ffd700;border-color:#c9a000;box-shadow:0 4px 0 #9a7800}
+.cp-label{font-size:10px;font-weight:500;color:#888;margin-top:4px;text-align:center;max-width:88px}
+.checkpoint-icon{font-size:24px}
+.stars{font-size:10px;letter-spacing:1px;color:#fff}
+.unit-panel{background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:20px;margin-top:16px;max-width:400px;margin-left:auto;margin-right:auto}
+.unit-panel-title{font-size:18px;font-weight:600;color:#333;margin-bottom:4px}
+.unit-panel-sub{font-size:13px;color:#888;margin-bottom:16px}
+.panel-actions{display:flex;gap:10px}
+.btn-practice{background:#58cc02;color:#fff;border:none;border-radius:8px;padding:12px 20px;font-size:14px;font-weight:600;cursor:pointer;flex:1;border-bottom:4px solid #3a8f00;transition:all 0.1s}
+.btn-practice:active{border-bottom-width:1px;transform:translateY(3px)}
+.btn-test{background:#fff;color:#58cc02;border:2px solid #58cc02;border-radius:8px;padding:12px 20px;font-size:14px;font-weight:600;cursor:pointer;flex:1}
+.btn-test:hover{background:#f0fff0}
+.q-screen{max-width:520px;margin:0 auto}
+.hearts{display:flex;gap:6px;margin-bottom:20px}
+.heart{font-size:20px}
+.progress-bar-wrap{background:#e5e5e5;border-radius:8px;height:14px;margin-bottom:24px;overflow:hidden}
+.progress-bar{height:100%;background:#58cc02;border-radius:8px;transition:width 0.3s}
+.q-card{background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:24px;margin-bottom:20px}
+.q-text{font-size:20px;font-weight:600;color:#333;line-height:1.4;text-align:center}
+.options{display:flex;flex-direction:column;gap:10px}
+.opt-btn{background:#fff;border:2px solid #e5e5e5;border-radius:12px;padding:14px 20px;font-size:16px;font-weight:500;cursor:pointer;text-align:left;color:#333;transition:all 0.12s;display:flex;align-items:center;gap:12px}
+.opt-btn:hover:not(:disabled){border-color:#58cc02;background:#f0fff0}
+.opt-btn.correct{border-color:#58cc02;background:#f0fff0;color:#3a7d00}
+.opt-btn.wrong{border-color:#ff4b4b;background:#fff0f0;color:#c00}
+.opt-btn:disabled{cursor:not-allowed}
+.opt-letter{width:28px;height:28px;border-radius:6px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#888;flex-shrink:0}
+.feedback-bar{border-radius:8px;padding:16px 20px;margin-top:16px;display:none;align-items:center;gap:12px}
+.feedback-bar.show{display:flex}
+.feedback-bar.correct{background:#d7ffb8;border:1px solid #58cc02}
+.feedback-bar.wrong{background:#ffdfe0;border:1px solid #ff4b4b}
+.fb-icon{font-size:24px}
+.fb-text{font-size:15px;font-weight:600}
+.fb-text.correct{color:#3a7d00}
+.fb-text.wrong{color:#c00}
+.next-btn{display:none;margin-top:16px;width:100%;background:#58cc02;color:#fff;border:none;border-bottom:4px solid #3a8f00;border-radius:8px;padding:14px;font-size:16px;font-weight:600;cursor:pointer}
+.next-btn.show{display:block}
+.result-screen{text-align:center;padding:32px 20px;max-width:420px;margin:0 auto}
+.result-icon{font-size:64px;margin-bottom:16px}
+.result-title{font-size:26px;font-weight:700;color:#333;margin-bottom:8px}
+.result-sub{font-size:15px;color:#888;margin-bottom:24px}
+.result-stats{display:flex;gap:12px;justify-content:center;margin-bottom:28px}
+.stat-card{background:#f0f0f0;border-radius:8px;padding:12px 20px;min-width:90px}
+.stat-val{font-size:22px;font-weight:700;color:#333}
+.stat-label{font-size:12px;color:#888;margin-top:2px}
+.result-btn{background:#58cc02;color:#fff;border:none;border-bottom:4px solid #3a8f00;border-radius:8px;padding:14px 32px;font-size:16px;font-weight:600;cursor:pointer}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-logo">Quantix</div>
+    <button class="subject-btn active" onclick="switchSubject('Algebra 1')">Algebra 1</button>
+    <button class="subject-btn" onclick="switchSubject('Algebra 2')">Algebra 2</button>
+    <button class="subject-btn" onclick="switchSubject('Geometry')">Geometry</button>
+    <button class="subject-btn" onclick="switchSubject('Pre-Calc')">Pre-Calc</button>
+    <button class="subject-btn" onclick="switchSubject('Calculus')">Calculus</button>
+    <div class="sidebar-spacer"></div>
+    <button class="reset-btn" onclick="resetAllProgress()">🗑️ Reset Progress</button>
+  </div>
+  <div class="main" id="main">
+    <div id="map-screen" class="screen active"></div>
+    <div id="quiz-screen" class="screen"></div>
+    <div id="result-screen" class="screen"></div>
+  </div>
+</div>
+
+<script>
+const curriculum = {
+  "Algebra 1": [
+    {name:"Linear Equations", icon:"📐", gen:()=>{const a=r(1,10),b=r(0,10),x=r(1,10);return[`${a}x + ${b} = ${a*x+b}`,`${x}`]}},
+    {name:"Quadratics", icon:"📈", gen:()=>{const x=r(1,9);return[`x² = ${x*x}`,`${x}`]}},
+    {name:"Factoring", icon:"🔢", gen:()=>{const a=r(1,5),b=r(1,5);return[`Factor x² + ${a+b}x + ${a*b}`,`(x+${a})(x+${b})`]}},
+    {name:"Inequalities", icon:"⚖️", gen:()=>{const b=r(2,20);return[`2x > ${b}`,`x > ${b/2}`]}},
+    {name:"Functions", icon:"🎯", gen:()=>{const x=r(1,10);return[`f(x) = 2x + 3.  Find f(${x})`,`${2*x+3}`]}}
+  ],
+  "Algebra 2": [
+    {name:"Complex Quadratics", icon:"📊", gen:()=>{const a=r(1,5),b=r(1,5);return[`Solve x² - ${a+b}x + ${a*b} = 0`,`x=${a}, x=${b}`]}},
+    {name:"Polynomials", icon:"🌊", gen:()=>{const a=r(1,5),b=r(1,5);return[`Factor x² + ${a+b}x + ${a*b}`,`(x+${a})(x+${b})`]}},
+    {name:"Exponents", icon:"⚡", gen:()=>{const x=r(1,5);return[`2^${x} = ?`,`${Math.pow(2,x)}`]}},
+    {name:"Logarithms", icon:"🔬", gen:()=>{const x=r(2,8);return[`log₂(2^${x}) = ?`,`${x}`]}},
+    {name:"Rational Functions", icon:"🔄", gen:()=>{const a=r(1,5),b=r(1,10);return[`f(x) = x + ${a}. Find f(${b})`,`${b+a}`]}}
+  ],
+  "Geometry": [
+    {name:"Area", icon:"🟦", gen:()=>{const s=r(2,10);return[`Area of square with side ${s}?`,`${s*s}`]}},
+    {name:"Perimeter", icon:"📏", gen:()=>{const s=r(2,10);return[`Perimeter of square with side ${s}?`,`${4*s}`]}},
+    {name:"Angles", icon:"📐", gen:()=>{const a=r(30,80);return[`A triangle has angles ${a}° and 60°. Find the third angle.`,`${180-a-60}°`]}},
+    {name:"Triangles", icon:"🔺", gen:()=>{const b=r(2,12),h=r(2,10);return[`Triangle base ${b}, height ${h}. Area?`,`${b*h/2}`]}},
+    {name:"Circles", icon:"⭕", gen:()=>{const rr=r(2,8);return[`Circle radius ${rr}. Area? (use π≈3.14)`,`${Math.round(3.14*rr*rr)}`]}}
+  ],
+  "Pre-Calc": [
+    {name:"Trig Basics", icon:"📡", gen:()=>{return[["sin(90°)","1"],["cos(0°)","1"],["tan(45°)","1"],["sin(0°)","0"],["cos(90°)","0"]][r(0,4)]}},
+    {name:"Sequences", icon:"🔗", gen:()=>{const n=r(2,8);return[`1 + 2 + ... + ${n} = ?`,`${n*(n+1)/2}`]}},
+    {name:"Advanced Functions", icon:"🎢", gen:()=>{const x=r(1,10);return[`f(x) = x² + 2.  Find f(${x})`,`${x*x+2}`]}},
+    {name:"Exponentials", icon:"🚀", gen:()=>{const x=r(1,6);return[`3^${x} = ?`,`${Math.pow(3,x)}`]}},
+    {name:"Polar Coords", icon:"🧭", gen:()=>{const a=r(1,5);return[`Convert (${a},0) to polar form`,`(${a}, 0°)`]}}
+  ],
+  "Calculus": [
+    {name:"Limits", icon:"🎯", gen:()=>{const a=r(1,5),b=r(1,10);return[`lim x→${a} of (x + ${b})`,`${a+b}`]}},
+    {name:"Derivatives", icon:"📉", gen:()=>{const p=r(2,6);return[`d/dx of x^${p} = ?`,`${p}x^${p-1}`]}},
+    {name:"Chain Rule", icon:"⛓️", gen:()=>{const a=r(1,5),p=r(2,4);return[`d/dx of (x+${a})^${p}`,`${p}(x+${a})^${p-1}`]}},
+    {name:"Integrals", icon:"∫", gen:()=>{const p=r(1,4);return[`∫ x^${p} dx = ?`,`x^${p+1}/${p+1} + C`]}},
+    {name:"Applications", icon:"🏗️", gen:()=>{const x=r(1,6);return[`y = x². What is dy/dx at x = ${x}?`,`${2*x}`]}}
+  ]
+};
+
+function r(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+
+// Progress storage (only completion status, no XP)
+let progress = JSON.parse(localStorage.getItem('ml_progress_no_xp')||'{}');
+let currentSubject='Algebra 1';
+let quizState={};
+
+function saveProgress(){try{localStorage.setItem('ml_progress_no_xp',JSON.stringify(progress))}catch(e){}}
+function getKey(subj,idx){return subj+'::'+idx}
+function isUnlocked(subj,idx){if(idx===0)return true;return !!progress[getKey(subj,idx-1)]}
+function isComplete(subj,idx){return !!progress[getKey(subj,idx)]}
+function isPerfect(subj,idx){return progress[getKey(subj,idx)] === 'perfect'}
+
+// Reset all progress: clear localStorage and internal state, then refresh map
+function resetAllProgress(){
+  if(confirm("⚠️ Are you sure you want to reset ALL your progress? This will clear all completed units and stars for every subject. This action cannot be undone.")){
+    progress = {};
+    localStorage.removeItem('ml_progress_no_xp');
+    saveProgress();
+    // Re-render the current map to reflect cleared progress
+    showMap();
+    // Also remove any open unit panel if it exists to avoid confusion
+    const openPanel = document.getElementById('unit-panel');
+    if(openPanel) openPanel.remove();
+  }
+}
+
+function switchSubject(subj){
+  currentSubject=subj;
+  document.querySelectorAll('.subject-btn').forEach(b=>b.classList.toggle('active',b.textContent===subj));
+  showMap();
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showMap(){
+  const units=curriculum[currentSubject];
+  const ms=document.getElementById('map-screen');
+  // XP badge completely removed - top bar only shows subject title
+  ms.innerHTML=`
+    <div class="top-bar">
+      <div class="subject-title">${currentSubject}</div>
+    </div>
+    <div class="trail" id="trail"></div>
+  `;
+  const trail=document.getElementById('trail');
+  units.forEach((unit,i)=>{
+    const unlocked=isUnlocked(currentSubject,i);
+    const complete=isComplete(currentSubject,i);
+    const perfect=isPerfect(currentSubject,i);
+    let cls='locked';
+    if(perfect)cls='perfect';
+    else if(complete)cls='complete';
+    else if(unlocked)cls='available';
+    const stars=perfect?'★★★':complete?'★★☆':'';
+    const wrap=document.createElement('div');
+    wrap.className='checkpoint-wrap';
+    if(i>0){const c=document.createElement('div');c.className='connector'+(isComplete(currentSubject,i-1)?' done':'');wrap.appendChild(c)}
+    wrap.innerHTML+=`
+      <button class="checkpoint-btn ${cls}" ${unlocked?`onclick="openUnit(${i})"`:''}>
+        <span class="checkpoint-icon">${unit.icon}</span>
+        ${stars?`<span class="stars">${stars}</span>`:''}
+      </button>
+      <div class="cp-label">${unit.name}</div>
+    `;
+    trail.appendChild(wrap);
+  });
+  showScreen('map-screen');
+}
+
+function openUnit(idx){
+  const unit=curriculum[currentSubject][idx];
+  const complete=isComplete(currentSubject,idx);
+  const ms=document.getElementById('map-screen');
+  const old=document.getElementById('unit-panel');
+  if(old)old.remove();
+  const panel=document.createElement('div');
+  panel.id='unit-panel';
+  panel.className='unit-panel';
+  panel.innerHTML=`
+    <div class="unit-panel-title">${unit.icon} ${unit.name}</div>
+    <div class="unit-panel-sub">${complete?'Completed! Practice to earn perfect stars.':'Start practicing to unlock the next unit.'}</div>
+    <div class="panel-actions">
+      <button class="btn-practice" onclick="startQuiz(${idx},'practice')">Practice</button>
+      <button class="btn-test" onclick="startQuiz(${idx},'test')">Test (5 Qs)</button>
+    </div>
+  `;
+  ms.appendChild(panel);
+}
+
+function generateWrongAnswers(correct, count=3){
+  const wrongs=[];
+  const isNum=/^-?\d+\.?\d*$/.test(correct);
+  while(wrongs.length<count){
+    let w;
+    if(isNum){
+      const n=parseFloat(correct);
+      w=String(n+r(-5,5)||r(1,9));
+      if(w===correct||wrongs.includes(w))continue;
+    } else {
+      const variants=[correct+'²',correct.replace(/\d+/,m=>String(parseInt(m)+r(1,3))),'2'+correct,'None of these'];
+      w=variants[r(0,variants.length-1)];
+      if(w===correct||wrongs.includes(w))continue;
+    }
+    wrongs.push(w);
+    if(wrongs.length>=count)break;
+  }
+  return wrongs;
+}
+
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}return arr}
+
+function startQuiz(idx, mode){
+  const unit=curriculum[currentSubject][idx];
+  quizState={idx,mode,unitName:unit.name,icon:unit.icon,hearts:mode==='test'?3:999,correct:0,total:0,maxQ:mode==='test'?5:10,gen:unit.gen};
+  renderQuestion();
+  showScreen('quiz-screen');
+}
+
+function renderQuestion(){
+  const qs=document.getElementById('quiz-screen');
+  const {hearts,correct,total,maxQ,gen,mode}=quizState;
+  const prog=Math.round((total/maxQ)*100);
+  const result=gen();
+  const question=result[0];
+  const answer=result[1];
+  const opts=shuffle([answer,...generateWrongAnswers(answer)]);
+  quizState.currentQ=question;
+  quizState.currentA=answer;
+
+  const heartHTML=mode==='test'?Array.from({length:hearts},()=>'<span class="heart">❤️</span>').join(''):'';
+
+  qs.innerHTML=`
+    <div class="q-screen">
+      <div class="hearts">${heartHTML}</div>
+      <div class="progress-bar-wrap"><div class="progress-bar" style="width:${prog}%"></div></div>
+      <div class="q-card">
+        <div class="q-text">${question}</div>
+      </div>
+      <div class="options" id="opts"></div>
+      <div class="feedback-bar" id="fb"></div>
+      <button class="next-btn" id="next-btn" onclick="nextQ()">Continue</button>
+    </div>
+  `;
+  const optDiv=document.getElementById('opts');
+  opts.forEach((opt,i)=>{
+    const letters=['A','B','C','D'];
+    const b=document.createElement('button');
+    b.className='opt-btn';
+    b.innerHTML=`<span class="opt-letter">${letters[i]}</span> ${opt}`;
+    b.onclick=()=>checkAnswer(opt,b);
+    optDiv.appendChild(b);
+  });
+}
+
+function checkAnswer(chosen, btn){
+  const {currentA,mode}=quizState;
+  const correct=chosen===currentA;
+  document.querySelectorAll('.opt-btn').forEach(b=>b.disabled=true);
+  const fb=document.getElementById('fb');
+  const nb=document.getElementById('next-btn');
+  if(correct){
+    btn.classList.add('correct');
+    fb.className='feedback-bar show correct';
+    fb.innerHTML=`<span class="fb-icon">✓</span><span class="fb-text correct">Correct! Well done.</span>`;
+    quizState.correct++;
+  } else {
+    btn.classList.add('wrong');
+    document.querySelectorAll('.opt-btn').forEach(b=>{if(b.textContent.trim().slice(1).trim()===currentA)b.classList.add('correct')});
+    fb.className='feedback-bar show wrong';
+    fb.innerHTML=`<span class="fb-icon">✗</span><span class="fb-text wrong">Correct answer: ${currentA}</span>`;
+    if(mode==='test'){quizState.hearts--;if(quizState.hearts<=0)quizState.total=quizState.maxQ;}
+  }
+  quizState.total++;
+  nb.className='next-btn show';
+}
+
+function nextQ(){
+  const {total,maxQ,hearts}=quizState;
+  if(total>=maxQ||hearts<=0){showResult();return;}
+  renderQuestion();
+}
+
+function showResult(){
+  const {correct,maxQ,idx,mode}=quizState;
+  const pct=Math.round((correct/maxQ)*100);
+  const passed=pct>=60;
+  const perfect=pct>=90;
+  const rs=document.getElementById('result-screen');
+  const emoji=perfect?'🌟':passed?'🎉':'😅';
+  const title=perfect?'Perfect!':passed?'You passed!':'Keep practicing';
+  const sub=perfect?'Outstanding! You earned 3 stars.':passed?`Nice work! ${correct}/${maxQ} correct.`:`You got ${correct}/${maxQ}. Try again!`;
+  
+  // XP completely removed - no XP earnings or display
+  if(passed){
+    const key=getKey(currentSubject,idx);
+    if(perfect)progress[key]='perfect';
+    else if(!progress[key])progress[key]=true;
+    saveProgress();
+  }
+  
+  // Dynamic stat cards: only show correct count and score percentage (XP card removed)
+  rs.innerHTML=`
+    <div class="result-screen">
+      <div class="result-icon">${emoji}</div>
+      <div class="result-title">${title}</div>
+      <div class="result-sub">${sub}</div>
+      <div class="result-stats">
+        <div class="stat-card"><div class="stat-val">${correct}/${maxQ}</div><div class="stat-label">Correct</div></div>
+        <div class="stat-card"><div class="stat-val">${pct}%</div><div class="stat-label">Score</div></div>
+      </div>
+      <button class="result-btn" onclick="showMap()">Back to path</button>
+    </div>
+  `;
+  showScreen('result-screen');
+}
+
+// Initialize the map
+showMap();
+</script>
+</body>
+</html>
