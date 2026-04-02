@@ -3,382 +3,598 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quantix - Math Mastery</title>
+<title>Quantix – Math Mastery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif}
-body{background:#f7f7f7;color:#333}
-.app{display:flex;min-height:100vh;flex-direction:row;transition:all 0.3s}
-/* Sidebar */
-.sidebar{width:200px;background:#58cc02;padding:16px 12px;display:flex;flex-direction:column;gap:8px;flex-shrink:0;transition:all 0.3s}
-.sidebar-logo{color:#fff;font-size:20px;font-weight:600;text-align:center;padding:8px 0 16px;border-bottom:1px solid rgba(255,255,255,0.3);margin-bottom:4px}
-.subject-btn{background:rgba(255,255,255,0.15);border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:500;padding:10px 8px;cursor:pointer;text-align:left;transition:background 0.15s}
-.subject-btn:hover{background:rgba(255,255,255,0.28)}
-.subject-btn.active{background:rgba(255,255,255,0.9);color:#3a7d00}
-/* Spacer & Reset */
+:root{
+  --green:#58cc02;--green-dark:#3a8f00;--green-deeper:#2a6e00;
+  --red:#ff4b4b;--red-bg:#fff0f0;
+  --correct-bg:#f0fff0;
+  --blue:#2563eb;--blue-bg:#eff6ff;--blue-border:#bfdbfe;
+  --gold:#f59e0b;--gold-dark:#b45309;
+  --bg:#f0f4f0;--surface:#fff;--surface2:#f7f9f7;
+  --text:#1a2e1a;--text2:#4a6349;--text3:#7a9479;
+  --border:#dde8dd;--radius:14px;--radius-sm:9px;
+  --shadow:0 2px 12px rgba(0,0,0,0.07);
+  --font:'Nunito',system-ui,sans-serif;--mono:'DM Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
+.app{display:flex;min-height:100vh}
+.sidebar{width:210px;background:var(--green);display:flex;flex-direction:column;padding:20px 14px;gap:6px;flex-shrink:0;position:sticky;top:0;height:100vh}
+.logo{color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.5px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.25);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.logo-mark{width:32px;height:32px;background:rgba(255,255,255,0.2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.subject-btn{background:rgba(255,255,255,0.12);border:none;border-radius:var(--radius-sm);color:#fff;font-size:13px;font-weight:700;font-family:var(--font);padding:10px 12px;cursor:pointer;text-align:left;transition:background 0.15s;display:flex;align-items:center;gap:8px}
+.subject-btn:hover{background:rgba(255,255,255,0.25)}
+.subject-btn.active{background:rgba(255,255,255,0.95);color:var(--green-dark)}
 .sidebar-spacer{flex:1}
-.reset-btn{background:#e74c3c;border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:600;padding:10px 8px;cursor:pointer;text-align:center;transition:background 0.15s;margin-top:12px;box-shadow:0 2px 0 #a82313}
-.reset-btn:hover{background:#c0392b}
-.reset-btn:active{transform:translateY(1px);box-shadow:none}
-/* Main content */
-.main{flex:1;padding:24px;overflow-y:auto;transition:all 0.3s}
+.reset-btn{background:rgba(0,0,0,0.15);border:none;border-radius:var(--radius-sm);color:rgba(255,255,255,0.85);font-size:12px;font-weight:700;font-family:var(--font);padding:9px 12px;cursor:pointer;transition:background 0.15s}
+.reset-btn:hover{background:rgba(0,0,0,0.25)}
+.main{flex:1;padding:32px 28px;overflow-y:auto}
 .screen{display:none}
 .screen.active{display:block}
-/* Trail and checkpoints */
-.trail{display:flex;flex-direction:column;align-items:center;gap:0}
-.checkpoint-wrap{display:flex;flex-direction:column;align-items:center;position:relative}
-.connector{width:4px;height:32px;background:#e5e5e5;border-radius:2px}
-.connector.done{background:#58cc02}
-.checkpoint-btn{width:72px;height:72px;border-radius:50%;border:4px solid transparent;font-size:22px;cursor:pointer;transition:transform 0.12s;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px}
-.checkpoint-btn.locked{background:#e5e5e5;border-color:#ccc;cursor:not-allowed}
-.checkpoint-btn.available{background:#fff;border-color:#58cc02;box-shadow:0 4px 0 #3a8f00}
-.checkpoint-btn.available:hover{transform:translateY(-2px)}
-.checkpoint-btn.available:active{transform:translateY(2px);box-shadow:0 1px 0 #3a8f00}
-.checkpoint-btn.complete{background:#58cc02;border-color:#3a8f00;box-shadow:0 4px 0 #2a6e00}
-.checkpoint-btn.perfect{background:#ffd700;border-color:#c9a000;box-shadow:0 4px 0 #9a7800}
-.cp-label{font-size:10px;font-weight:500;color:#888;margin-top:4px;text-align:center;max-width:88px}
-/* Unit panel */
-.unit-panel{background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:20px;margin-top:16px;max-width:400px;margin-left:auto;margin-right:auto}
-.unit-panel-title{font-size:18px;font-weight:600;color:#333;margin-bottom:4px}
-.unit-panel-sub{font-size:13px;color:#888;margin-bottom:16px}
-.panel-actions{display:flex;gap:10px;flex-wrap:wrap}
-.btn-practice{background:#58cc02;color:#fff;border:none;border-radius:8px;padding:12px 20px;font-size:14px;font-weight:600;cursor:pointer;flex:1;border-bottom:4px solid #3a8f00;transition:all 0.1s}
+.map-header{margin-bottom:28px}
+.map-title{font-size:26px;font-weight:800;letter-spacing:-0.5px;color:var(--text)}
+.map-sub{font-size:14px;color:var(--text2);margin-top:4px}
+.trail{display:flex;flex-direction:column;align-items:center;gap:0;max-width:280px;margin:0 auto}
+.checkpoint-wrap{display:flex;flex-direction:column;align-items:center}
+.connector{width:4px;height:28px;background:var(--border);border-radius:2px}
+.connector.done{background:var(--green)}
+.checkpoint-btn{width:76px;height:76px;border-radius:50%;border:4px solid transparent;font-size:24px;cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;font-family:var(--font)}
+.checkpoint-btn.locked{background:#e8ede8;border-color:#c8d4c8;cursor:not-allowed;opacity:0.7}
+.checkpoint-btn.available{background:var(--surface);border-color:var(--green);box-shadow:0 5px 0 var(--green-dark)}
+.checkpoint-btn.available:hover{transform:translateY(-3px);box-shadow:0 8px 0 var(--green-dark)}
+.checkpoint-btn.available:active{transform:translateY(2px);box-shadow:0 2px 0 var(--green-dark)}
+.checkpoint-btn.complete{background:var(--green);border-color:var(--green-dark);box-shadow:0 5px 0 var(--green-deeper);color:#fff}
+.checkpoint-btn.perfect{background:var(--gold);border-color:var(--gold-dark);box-shadow:0 5px 0 #92400e}
+.cp-stars{font-size:10px;line-height:1}
+.cp-label{font-size:11px;font-weight:700;color:var(--text2);margin-top:6px;text-align:center;max-width:90px;line-height:1.3}
+.unit-panel{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:22px;margin-top:20px;max-width:360px;margin-left:auto;margin-right:auto;box-shadow:var(--shadow)}
+.unit-panel-title{font-size:18px;font-weight:800;color:var(--text);margin-bottom:4px}
+.unit-panel-sub{font-size:13px;color:var(--text2);margin-bottom:18px;line-height:1.5}
+.panel-actions{display:flex;gap:10px}
+.btn-practice{background:var(--green);color:#fff;border:none;border-radius:var(--radius-sm);padding:12px 18px;font-size:14px;font-weight:800;font-family:var(--font);cursor:pointer;flex:1;border-bottom:4px solid var(--green-dark);transition:all 0.1s}
 .btn-practice:active{border-bottom-width:1px;transform:translateY(3px)}
-.btn-test{background:#fff;color:#58cc02;border:2px solid #58cc02;border-radius:8px;padding:12px 20px;font-size:14px;font-weight:600;cursor:pointer;flex:1}
-.btn-test:hover{background:#f0fff0}
-/* Questions */
-.q-screen{max-width:520px;margin:0 auto}
-.hearts{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap}
-.heart{font-size:20px}
-.progress-bar-wrap{background:#e5e5e5;border-radius:8px;height:14px;margin-bottom:24px;overflow:hidden}
-.progress-bar{height:100%;background:#58cc02;border-radius:8px;transition:width 0.3s}
-.q-card{background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:24px;margin-bottom:20px}
-.q-text{font-size:20px;font-weight:600;color:#333;line-height:1.4;text-align:center}
+.btn-test{background:var(--surface);color:var(--green);border:2px solid var(--green);border-radius:var(--radius-sm);padding:12px 18px;font-size:14px;font-weight:800;font-family:var(--font);cursor:pointer;flex:1;transition:background 0.1s}
+.btn-test:hover{background:var(--correct-bg)}
+.q-screen{max-width:540px;margin:0 auto}
+.quiz-top{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.hearts{display:flex;gap:4px}
+.heart{font-size:22px}
+.heart.lost{filter:grayscale(1);opacity:0.35}
+.progress-bar-wrap{flex:1;background:var(--border);border-radius:99px;height:13px;overflow:hidden}
+.progress-bar{height:100%;background:var(--green);border-radius:99px;transition:width 0.4s cubic-bezier(.4,0,.2,1)}
+.q-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:28px 24px;margin-bottom:18px;box-shadow:var(--shadow)}
+.q-topic{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px}
+.q-text{font-size:21px;font-weight:800;color:var(--text);line-height:1.4;text-align:center;font-family:var(--mono)}
 .options{display:flex;flex-direction:column;gap:10px}
-.opt-btn{background:#fff;border:2px solid #e5e5e5;border-radius:12px;padding:14px 20px;font-size:16px;font-weight:500;cursor:pointer;text-align:left;color:#333;transition:all 0.12s;display:flex;align-items:center;gap:12px}
-.opt-btn:hover:not(:disabled){border-color:#58cc02;background:#f0fff0}
-.opt-btn.correct{border-color:#58cc02;background:#f0fff0;color:#3a7d00}
-.opt-btn.wrong{border-color:#ff4b4b;background:#fff0f0;color:#c00}
+.opt-btn{background:var(--surface);border:2px solid var(--border);border-radius:var(--radius-sm);padding:15px 20px;font-size:15px;font-weight:700;font-family:var(--font);cursor:pointer;text-align:left;color:var(--text);transition:all 0.12s;display:flex;align-items:center;gap:12px;box-shadow:0 2px 0 var(--border)}
+.opt-btn:hover:not(:disabled){border-color:var(--green);background:var(--correct-bg);box-shadow:0 2px 0 var(--green)}
+.opt-btn.correct{border-color:var(--green);background:var(--correct-bg);color:var(--green-dark);box-shadow:0 2px 0 var(--green)}
+.opt-btn.wrong{border-color:var(--red);background:var(--red-bg);color:#b00;box-shadow:0 2px 0 var(--red)}
 .opt-btn:disabled{cursor:not-allowed}
-.opt-letter{width:28px;height:28px;border-radius:6px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#888;flex-shrink:0}
-.feedback-bar{border-radius:8px;padding:16px 20px;margin-top:16px;display:none;align-items:center;gap:12px}
+.opt-letter{width:30px;height:30px;border-radius:7px;background:var(--surface2);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--text2);flex-shrink:0}
+.opt-btn.correct .opt-letter{background:var(--green);color:#fff;border-color:var(--green-dark)}
+.opt-btn.wrong .opt-letter{background:var(--red);color:#fff;border-color:#c00}
+.feedback-bar{border-radius:var(--radius-sm);padding:14px 18px;margin-top:14px;display:none;align-items:center;gap:12px}
 .feedback-bar.show{display:flex}
-.feedback-bar.correct{background:#d7ffb8;border:1px solid #58cc02}
-.feedback-bar.wrong{background:#ffdfe0;border:1px solid #ff4b4b}
-.fb-icon{font-size:24px}
-.fb-text{font-size:15px;font-weight:600}
-.fb-text.correct{color:#3a7d00}
-.fb-text.wrong{color:#c00}
-.next-btn{display:none;margin-top:16px;width:100%;background:#58cc02;color:#fff;border:none;border-bottom:4px solid #3a8f00;border-radius:8px;padding:14px;font-size:16px;font-weight:600;cursor:pointer}
+.feedback-bar.correct{background:#d7ffb8;border:1.5px solid var(--green)}
+.feedback-bar.wrong{background:var(--red-bg);border:1.5px solid var(--red)}
+.fb-icon{font-size:20px}
+.fb-text{font-size:15px;font-weight:800}
+.fb-text.correct{color:var(--green-dark)}
+.fb-text.wrong{color:#b00}
+.next-btn{display:none;margin-top:14px;width:100%;background:var(--green);color:#fff;border:none;border-bottom:4px solid var(--green-dark);border-radius:var(--radius-sm);padding:15px;font-size:15px;font-weight:800;font-family:var(--font);cursor:pointer;transition:all 0.1s}
+.next-btn:active{border-bottom-width:1px;transform:translateY(3px)}
 .next-btn.show{display:block}
-.result-screen{text-align:center;padding:32px 20px;max-width:420px;margin:0 auto}
-.result-icon{font-size:64px;margin-bottom:16px}
-.result-title{font-size:26px;font-weight:700;color:#333;margin-bottom:8px}
-.result-sub{font-size:15px;color:#888;margin-bottom:24px}
-.result-stats{display:flex;gap:12px;justify-content:center;margin-bottom:28px;flex-wrap:wrap}
-.stat-card{background:#f0f0f0;border-radius:8px;padding:12px 20px;min-width:90px}
-.stat-val{font-size:22px;font-weight:700;color:#333}
-.stat-label{font-size:12px;color:#888;margin-top:2px}
-.result-btn{background:#58cc02;color:#fff;border:none;border-bottom:4px solid #3a8f00;border-radius:8px;padding:14px 32px;font-size:16px;font-weight:600;cursor:pointer}
-
-/* --- MOBILE MEDIA QUERY --- */
-@media (max-width:768px){
+/* Explanation */
+.expl-panel{margin-top:14px;border-radius:var(--radius-sm);border:1.5px solid var(--blue-border);background:var(--blue-bg);overflow:hidden;animation:slideIn 0.3s cubic-bezier(.4,0,.2,1)}
+@keyframes slideIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+.expl-header{display:flex;align-items:center;gap:8px;padding:11px 16px;background:rgba(37,99,235,0.08);border-bottom:1px solid var(--blue-border)}
+.expl-badge{font-size:12px;font-weight:800;color:var(--blue);text-transform:uppercase;letter-spacing:0.08em}
+.expl-body{padding:14px 16px;font-size:14px;line-height:1.7;color:#1e3a5f}
+.step{display:flex;gap:12px;margin-bottom:12px;align-items:flex-start}
+.step-num{min-width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-text{flex:1;padding-top:3px}
+.math{font-family:var(--mono);font-size:13px;background:rgba(37,99,235,0.1);border-radius:5px;padding:2px 7px;display:inline-block;margin:3px 0}
+.expl-tip{margin-top:10px;padding:10px 14px;background:rgba(37,99,235,0.08);border-radius:var(--radius-sm);border-left:3px solid var(--blue);font-size:13px;color:#1e3a5f;font-weight:600}
+/* Result */
+.result-screen-inner{text-align:center;padding:40px 20px;max-width:420px;margin:0 auto}
+.result-icon{font-size:68px;margin-bottom:16px}
+.result-title{font-size:28px;font-weight:800;color:var(--text);margin-bottom:6px;letter-spacing:-0.5px}
+.result-sub{font-size:15px;color:var(--text2);margin-bottom:28px;line-height:1.5}
+.result-stats{display:flex;gap:12px;justify-content:center;margin-bottom:32px}
+.stat-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:14px 22px;min-width:100px;box-shadow:var(--shadow)}
+.stat-val{font-size:24px;font-weight:800;color:var(--text)}
+.stat-label{font-size:12px;color:var(--text2);margin-top:2px;font-weight:600}
+.result-btn{background:var(--green);color:#fff;border:none;border-bottom:4px solid var(--green-dark);border-radius:var(--radius-sm);padding:14px 36px;font-size:15px;font-weight:800;font-family:var(--font);cursor:pointer}
+@media(max-width:700px){
   .app{flex-direction:column}
-  .sidebar{width:100%;flex-direction:row;overflow-x:auto;padding:8px;gap:4px}
-  .subject-btn{font-size:12px;padding:8px;white-space:nowrap;flex:0 0 auto}
-  .reset-btn{margin-top:0;flex:0 0 auto;font-size:12px;padding:8px}
-  .main{padding:12px}
-  .q-text{font-size:18px}
-  .opt-btn{font-size:14px;padding:12px}
-  .unit-panel{max-width:95%}
-  .trail{flex-direction:row;overflow-x:auto;gap:12px;padding-bottom:12px}
-  .checkpoint-wrap{flex:0 0 auto}
-  .cp-label{font-size:9px;max-width:60px}
+  .sidebar{width:100%;height:auto;flex-direction:row;flex-wrap:nowrap;overflow-x:auto;padding:10px;gap:4px;position:static}
+  .logo{display:none}
+  .subject-btn{font-size:11px;padding:8px 10px;white-space:nowrap;flex:0 0 auto}
+  .reset-btn{flex:0 0 auto;font-size:11px;padding:8px 10px;margin-left:auto}
+  .main{padding:16px 12px}
+  .q-text{font-size:17px}
+  .opt-btn{font-size:13px;padding:12px 14px}
 }
 </style>
 </head>
 <body>
-
 <div class="app">
   <div class="sidebar">
-    <div class="sidebar-logo">Quantix</div>
-    <button class="subject-btn active" onclick="switchSubject('Algebra 1')">Algebra 1</button>
-    <button class="subject-btn" onclick="switchSubject('Algebra 2')">Algebra 2</button>
-    <button class="subject-btn" onclick="switchSubject('Geometry')">Geometry</button>
-    <button class="subject-btn" onclick="switchSubject('Pre-Calc')">Pre-Calc</button>
-    <button class="subject-btn" onclick="switchSubject('Calculus')">Calculus</button>
+    <div class="logo"><div class="logo-mark">Q</div>Quantix</div>
+    <button class="subject-btn active" onclick="switchSubject('Algebra 1')"><span>📐</span>Algebra 1</button>
+    <button class="subject-btn" onclick="switchSubject('Algebra 2')"><span>📊</span>Algebra 2</button>
+    <button class="subject-btn" onclick="switchSubject('Geometry')"><span>🔺</span>Geometry</button>
+    <button class="subject-btn" onclick="switchSubject('Pre-Calc')"><span>📡</span>Pre-Calc</button>
+    <button class="subject-btn" onclick="switchSubject('Calculus')"><span>∫</span>Calculus</button>
     <div class="sidebar-spacer"></div>
-    <button class="reset-btn" onclick="resetAllProgress()">🗑️ Reset Progress</button>
+    <button class="reset-btn" onclick="resetAllProgress()">🗑 Reset Progress</button>
   </div>
-  <div class="main" id="main">
+  <div class="main">
     <div id="map-screen" class="screen active"></div>
     <div id="quiz-screen" class="screen"></div>
     <div id="result-screen" class="screen"></div>
   </div>
 </div>
-
 <script>
-const curriculum = {
-  "Algebra 1": [
-    {name:"Linear Equations", icon:"📐", gen:()=>{const a=r(1,10),b=r(0,10),x=r(1,10);return[`${a}x + ${b} = ${a*x+b}`,`${x}`]}},
-    {name:"Quadratics", icon:"📈", gen:()=>{const x=r(1,9);return[`x² = ${x*x}`,`${x}`]}},
-    {name:"Factoring", icon:"🔢", gen:()=>{const a=r(1,5),b=r(1,5);return[`Factor x² + ${a+b}x + ${a*b}`,`(x+${a})(x+${b})`]}},
-    {name:"Inequalities", icon:"⚖️", gen:()=>{const b=r(2,20);return[`2x > ${b}`,`x > ${b/2}`]}},
-    {name:"Functions", icon:"🎯", gen:()=>{const x=r(1,10);return[`f(x) = 2x + 3.  Find f(${x})`,`${2*x+3}`]}}
+// ── Built-in step-by-step explainers (zero API calls) ─────────────────────
+function fallback(q,a){
+  return{steps:[{text:"The question was:",math:q},{text:"The correct answer is:",math:a}],tip:"Review the concept and try a similar problem to build confidence."};
+}
+const explainers={
+  "Linear Equations":(q,a)=>{
+    const m=q.match(/^(\d+)x \+ (\d+) = (\d+)$/);
+    if(!m)return fallback(q,a);
+    const[,av,b,c]=m.map(Number);
+    return{steps:[
+      {text:"Start with the equation:",math:`${av}x + ${b} = ${c}`},
+      {text:`Subtract ${b} from both sides:`,math:`${av}x = ${c} − ${b} = ${c-b}`},
+      {text:`Divide both sides by ${av}:`,math:`x = ${c-b} ÷ ${av} = ${a}`},
+    ],tip:"To isolate x, undo each operation in reverse: subtract first, then divide."};
+  },
+  "Quadratics":(q,a)=>{
+    const m=q.match(/x² = (\d+)/);if(!m)return fallback(q,a);
+    const n=Number(m[1]);
+    return{steps:[
+      {text:"Start with:",math:`x² = ${n}`},
+      {text:"Take the square root of both sides:",math:`x = √${n}`},
+      {text:"Evaluate:",math:`x = ${a}`},
+    ],tip:"√(x²) = x. Taking the square root is the inverse of squaring."};
+  },
+  "Factoring":(q,a)=>{
+    const m=q.match(/Factor x² \+ (\d+)x \+ (\d+)/);if(!m)return fallback(q,a);
+    const[,sum,product]=m.map(Number);
+    let fa=1,fb=1;
+    for(let i=1;i<=product;i++){if(product%i===0&&i+(product/i)===sum){fa=i;fb=product/i;break;}}
+    return{steps:[
+      {text:"Find two numbers that multiply to",math:`${product}`},
+      {text:"and add to",math:`${sum}`},
+      {text:`${fa} × ${fb} = ${product} ✓   ${fa} + ${fb} = ${sum} ✓`,math:`a = ${fa},  b = ${fb}`},
+      {text:"Write the factored form:",math:`(x + ${fa})(x + ${fb})`},
+    ],tip:"For x² + bx + c, find two numbers that multiply to c and add to b."};
+  },
+  "Inequalities":(q,a)=>{
+    const m=q.match(/2x > (\d+)/);if(!m)return fallback(q,a);
+    const n=Number(m[1]);
+    return{steps:[
+      {text:"Start with:",math:`2x > ${n}`},
+      {text:"Divide both sides by 2:",math:`x > ${n} ÷ 2`},
+      {text:"Simplify:",math:`x > ${n/2}`},
+    ],tip:"Dividing by a positive number keeps the inequality sign the same. Flip it only for negatives."};
+  },
+  "Functions":(q,a)=>{
+    const m=q.match(/f\(x\) = 2x \+ 3\.\s*Find f\((\d+)\)/);if(!m)return fallback(q,a);
+    const x=Number(m[1]);
+    return{steps:[
+      {text:"The function is:",math:"f(x) = 2x + 3"},
+      {text:`Substitute x = ${x}:`,math:`f(${x}) = 2(${x}) + 3`},
+      {text:"Multiply:",math:`= ${2*x} + 3`},
+      {text:"Add:",math:`= ${a}`},
+    ],tip:"Evaluating a function means replacing x with the given value and simplifying step by step."};
+  },
+  "Complex Quadratics":(q,a)=>{
+    const m=q.match(/Solve x² - (\d+)x \+ (\d+) = 0/);if(!m)return fallback(q,a);
+    const[,sum,product]=m.map(Number);
+    let fa=1,fb=1;
+    for(let i=1;i<=product;i++){if(product%i===0&&i+(product/i)===sum){fa=i;fb=product/i;break;}}
+    return{steps:[
+      {text:"Find two numbers that multiply to",math:`${product}`},
+      {text:"and add to",math:`${sum}`},
+      {text:`Found ${fa} and ${fb}. Factor:`,math:`(x − ${fa})(x − ${fb}) = 0`},
+      {text:"Set each factor to zero:",math:`x = ${fa}  or  x = ${fb}`},
+    ],tip:"If (x−a)(x−b) = 0, then x = a or x = b — zero-product property."};
+  },
+  "Polynomials":(q,a)=>explainers["Factoring"](q,a),
+  "Exponents":(q,a)=>{
+    const m=q.match(/2\^(\d+)/);if(!m)return fallback(q,a);
+    const p=Number(m[1]);
+    const mults=Array(p).fill(2);
+    return{steps:[
+      {text:"Start:",math:`2^${p}`},
+      {text:`Multiply ${p} twos together:`,math:mults.join(' × ')+` = ${a}`},
+    ],tip:`2^n means multiplying 2 by itself n times. 2^${p} = ${a}.`};
+  },
+  "Logarithms":(q,a)=>{
+    const m=q.match(/log₂\(2\^(\d+)\)/);if(!m)return fallback(q,a);
+    const p=Number(m[1]);
+    return{steps:[
+      {text:"Recall the log power rule:",math:"logₐ(aⁿ) = n"},
+      {text:"The base (2) matches the base inside:",math:`log₂(2^${p})`},
+      {text:"Apply the rule directly:",math:`= ${p}`},
+    ],tip:"logₐ(aⁿ) = n always. Logarithm and exponent of the same base cancel out."};
+  },
+  "Rational Functions":(q,a)=>{
+    const m=q.match(/f\(x\) = x \+ (\d+)\. Find f\((\d+)\)/);if(!m)return fallback(q,a);
+    const[,av,x]=m.map(Number);
+    return{steps:[
+      {text:"The function is:",math:`f(x) = x + ${av}`},
+      {text:`Substitute x = ${x}:`,math:`f(${x}) = ${x} + ${av}`},
+      {text:"Add:",math:`= ${a}`},
+    ],tip:"Plug in the input value for x and compute."};
+  },
+  "Area":(q,a)=>{
+    const m=q.match(/side (\d+)/);if(!m)return fallback(q,a);
+    const s=Number(m[1]);
+    return{steps:[
+      {text:"Formula for area of a square:",math:"Area = side²"},
+      {text:`Substitute side = ${s}:`,math:`Area = ${s}²`},
+      {text:"Calculate:",math:`= ${s} × ${s} = ${a}`},
+    ],tip:"Area of a square = s². All four sides are equal, so square one side."};
+  },
+  "Perimeter":(q,a)=>{
+    const m=q.match(/side (\d+)/);if(!m)return fallback(q,a);
+    const s=Number(m[1]);
+    return{steps:[
+      {text:"Formula for perimeter of a square:",math:"Perimeter = 4 × side"},
+      {text:`Substitute side = ${s}:`,math:`= 4 × ${s}`},
+      {text:"Calculate:",math:`= ${a}`},
+    ],tip:"A square has 4 equal sides. Perimeter = 4s."};
+  },
+  "Angles":(q,a)=>{
+    const m=q.match(/angles (\d+)° and 60°/);if(!m)return fallback(q,a);
+    const av=Number(m[1]),third=180-av-60;
+    return{steps:[
+      {text:"Triangle angles always add to:",math:"180°"},
+      {text:`Known angles: ${av}° and 60°. Set up:`,math:`${av}° + 60° + x = 180°`},
+      {text:"Add the known angles:",math:`${av+60}° + x = 180°`},
+      {text:"Subtract from 180°:",math:`x = 180° − ${av+60}° = ${third}°`},
+    ],tip:"The Triangle Angle Sum theorem: all three interior angles always total 180°."};
+  },
+  "Triangles":(q,a)=>{
+    const m=q.match(/base (\d+), height (\d+)/);if(!m)return fallback(q,a);
+    const[,b,h]=m.map(Number);
+    return{steps:[
+      {text:"Formula for area of a triangle:",math:"Area = ½ × base × height"},
+      {text:`Substitute base = ${b}, height = ${h}:`,math:`Area = ½ × ${b} × ${h}`},
+      {text:"Multiply:",math:`= ½ × ${b*h} = ${a}`},
+    ],tip:"A triangle is half a rectangle — that's why we multiply by ½."};
+  },
+  "Circles":(q,a)=>{
+    const m=q.match(/radius (\d+)/);if(!m)return fallback(q,a);
+    const rr=Number(m[1]);
+    return{steps:[
+      {text:"Formula for area of a circle:",math:"Area = π × r²"},
+      {text:`Substitute r = ${rr}, π ≈ 3.14:`,math:`Area = 3.14 × ${rr}²`},
+      {text:"Square the radius:",math:`${rr}² = ${rr*rr}`},
+      {text:"Multiply:",math:`3.14 × ${rr*rr} ≈ ${a}`},
+    ],tip:"Always square r first, then multiply by π. Don't square π!"};
+  },
+  "Trig Basics":(q,a)=>{
+    const tips={
+      "sin(90°)":"sin(90°) = 1. At 90°, the opposite side equals the hypotenuse.",
+      "cos(0°)":"cos(0°) = 1. At 0°, the adjacent side equals the hypotenuse.",
+      "tan(45°)":"tan(45°) = 1. At 45°, opposite = adjacent, so their ratio is 1.",
+      "sin(0°)":"sin(0°) = 0. At 0°, the opposite side has zero length.",
+      "cos(90°)":"cos(90°) = 0. At 90°, the adjacent side has zero length.",
+    };
+    return{steps:[
+      {text:"Look up the unit circle value for:",math:q.trim()},
+      {text:"The exact value is:",math:`${q.trim()} = ${a}`},
+    ],tip:tips[q.trim()]||"Memorise key angles: 0°, 30°, 45°, 60°, 90°."};
+  },
+  "Sequences":(q,a)=>{
+    const m=q.match(/1 \+ 2 \+ \.\.\. \+ (\d+)/);if(!m)return fallback(q,a);
+    const n=Number(m[1]);
+    return{steps:[
+      {text:"This is the sum of the first n natural numbers.",math:`1 + 2 + ... + ${n}`},
+      {text:"Use Gauss's formula:",math:"Sum = n(n+1) ÷ 2"},
+      {text:`Substitute n = ${n}:`,math:`= ${n} × ${n+1} ÷ 2`},
+      {text:"Calculate:",math:`= ${n*(n+1)} ÷ 2 = ${a}`},
+    ],tip:"Gauss's trick: pair first & last (they sum to n+1). There are n/2 such pairs."};
+  },
+  "Advanced Functions":(q,a)=>{
+    const m=q.match(/f\(x\) = x² \+ 2\.\s*Find f\((\d+)\)/);if(!m)return fallback(q,a);
+    const x=Number(m[1]);
+    return{steps:[
+      {text:"The function is:",math:"f(x) = x² + 2"},
+      {text:`Substitute x = ${x}:`,math:`f(${x}) = ${x}² + 2`},
+      {text:"Square first:",math:`= ${x*x} + 2`},
+      {text:"Add:",math:`= ${a}`},
+    ],tip:"Follow order of operations: exponents before addition."};
+  },
+  "Exponentials":(q,a)=>{
+    const m=q.match(/3\^(\d+)/);if(!m)return fallback(q,a);
+    const p=Number(m[1]);
+    return{steps:[
+      {text:"Start:",math:`3^${p}`},
+      {text:`Multiply ${p} threes together:`,math:Array(p).fill(3).join(' × ')+` = ${a}`},
+    ],tip:`3^n means multiplying 3 by itself n times. 3^${p} = ${a}.`};
+  },
+  "Polar Coords":(q,a)=>{
+    const m=q.match(/\((\d+),0\)/);if(!m)return fallback(q,a);
+    const av=Number(m[1]);
+    return{steps:[
+      {text:"Rectangular point:",math:`(${av}, 0)`},
+      {text:"Radius r = √(x²+y²):",math:`r = √(${av}² + 0²) = ${av}`},
+      {text:"Angle θ = arctan(y/x):",math:"θ = arctan(0) = 0°"},
+      {text:"Polar form (r, θ):",math:`(${av}, 0°)`},
+    ],tip:"Points on the x-axis always have θ = 0°. r is the distance from the origin."};
+  },
+  "Limits":(q,a)=>{
+    const m=q.match(/lim x→(\d+) of \(x \+ (\d+)\)/);if(!m)return fallback(q,a);
+    const[,av,b]=m.map(Number);
+    return{steps:[
+      {text:"This is a polynomial — use direct substitution:",math:`lim x→${av} (x + ${b})`},
+      {text:`Substitute x = ${av}:`,math:`= ${av} + ${b}`},
+      {text:"Calculate:",math:`= ${a}`},
+    ],tip:"For continuous functions (polynomials, etc.), just plug in x directly."};
+  },
+  "Derivatives":(q,a)=>{
+    const m=q.match(/d\/dx of x\^(\d+)/);if(!m)return fallback(q,a);
+    const p=Number(m[1]);
+    return{steps:[
+      {text:"Use the power rule:",math:"d/dx of xⁿ = n·xⁿ⁻¹"},
+      {text:`n = ${p}. Bring the exponent down:`,math:`= ${p}·x^(${p}−1)`},
+      {text:"Simplify:",math:`= ${a}`},
+    ],tip:"Power rule: multiply by the exponent, subtract 1 from it. Fast and essential!"};
+  },
+  "Chain Rule":(q,a)=>{
+    const m=q.match(/d\/dx of \(x\+(\d+)\)\^(\d+)/);if(!m)return fallback(q,a);
+    const[,av,p]=m.map(Number);
+    return{steps:[
+      {text:`Outer function: u^${p}   Inner function: u = x + ${av}`,math:`f(u) = u^${p}`},
+      {text:"Differentiate outer (power rule):",math:`f'(u) = ${p}·u^${p-1}`},
+      {text:"Differentiate inner:",math:"du/dx = 1"},
+      {text:"Multiply and substitute back:",math:`= ${a}`},
+    ],tip:"Chain rule: d/dx[f(g(x))] = f'(g(x))·g'(x). Outside × inside."};
+  },
+  "Integrals":(q,a)=>{
+    const m=q.match(/∫ x\^(\d+) dx/);if(!m)return fallback(q,a);
+    const p=Number(m[1]);
+    return{steps:[
+      {text:"Use the power rule for integration:",math:"∫ xⁿ dx = xⁿ⁺¹/(n+1) + C"},
+      {text:`n = ${p}. Add 1 to the exponent:`,math:`n + 1 = ${p+1}`},
+      {text:"Divide by the new exponent:",math:`= x^${p+1} / ${p+1} + C`},
+    ],tip:"Integration reverses differentiation: add 1 to the power, divide by the new power."};
+  },
+  "Applications":(q,a)=>{
+    const m=q.match(/at x = (\d+)/);if(!m)return fallback(q,a);
+    const x=Number(m[1]);
+    return{steps:[
+      {text:"Find the derivative of y = x²:",math:"dy/dx = 2x"},
+      {text:`Substitute x = ${x}:`,math:`dy/dx = 2 × ${x}`},
+      {text:"Calculate:",math:`= ${a}`},
+    ],tip:"The derivative gives the slope at any point. For y = x², dy/dx = 2x always."};
+  },
+};
+
+function getExplanation(unitName,q,a){
+  const fn=explainers[unitName];
+  if(!fn)return fallback(q,a);
+  try{return fn(q,a);}catch(e){return fallback(q,a);}
+}
+
+function renderExplanation(unitName,q,a){
+  const container=document.getElementById('expl-container');
+  if(!container)return;
+  const data=getExplanation(unitName,q,a);
+  const stepsHtml=data.steps.map((s,i)=>`
+    <div class="step">
+      <div class="step-num">${i+1}</div>
+      <div class="step-text">${esc(s.text)}${s.math?`<div class="math">${esc(s.math)}</div>`:''}</div>
+    </div>`).join('');
+  const tipHtml=data.tip?`<div class="expl-tip">💡 ${esc(data.tip)}</div>`:'';
+  container.innerHTML=`<div class="expl-panel">
+    <div class="expl-header"><span style="font-size:15px">🧠</span><span class="expl-badge">Step-by-step solution</span></div>
+    <div class="expl-body">${stepsHtml}${tipHtml}</div>
+  </div>`;
+}
+
+// ── Curriculum & App ───────────────────────────────────────────────────────
+const curriculum={
+  "Algebra 1":[
+    {name:"Linear Equations",icon:"📐",gen:()=>{const a=r(1,10),b=r(0,10),x=r(1,10);return[`${a}x + ${b} = ${a*x+b}`,`${x}`]}},
+    {name:"Quadratics",icon:"📈",gen:()=>{const x=r(1,9);return[`x² = ${x*x}`,`${x}`]}},
+    {name:"Factoring",icon:"🔢",gen:()=>{const a=r(1,5),b=r(1,5);return[`Factor x² + ${a+b}x + ${a*b}`,`(x+${a})(x+${b})`]}},
+    {name:"Inequalities",icon:"⚖️",gen:()=>{const b=r(2,20);return[`2x > ${b}`,`x > ${b/2}`]}},
+    {name:"Functions",icon:"🎯",gen:()=>{const x=r(1,10);return[`f(x) = 2x + 3. Find f(${x})`,`${2*x+3}`]}}
   ],
-  "Algebra 2": [
-    {name:"Complex Quadratics", icon:"📊", gen:()=>{const a=r(1,5),b=r(1,5);return[`Solve x² - ${a+b}x + ${a*b} = 0`,`x=${a}, x=${b}`]}},
-    {name:"Polynomials", icon:"🌊", gen:()=>{const a=r(1,5),b=r(1,5);return[`Factor x² + ${a+b}x + ${a*b}`,`(x+${a})(x+${b})`]}},
-    {name:"Exponents", icon:"⚡", gen:()=>{const x=r(1,5);return[`2^${x} = ?`,`${Math.pow(2,x)}`]}},
-    {name:"Logarithms", icon:"🔬", gen:()=>{const x=r(2,8);return[`log₂(2^${x}) = ?`,`${x}`]}},
-    {name:"Rational Functions", icon:"🔄", gen:()=>{const a=r(1,5),b=r(1,10);return[`f(x) = x + ${a}. Find f(${b})`,`${b+a}`]}}
+  "Algebra 2":[
+    {name:"Complex Quadratics",icon:"📊",gen:()=>{const a=r(1,5),b=r(1,5);return[`Solve x² - ${a+b}x + ${a*b} = 0`,`x=${a}, x=${b}`]}},
+    {name:"Polynomials",icon:"🌊",gen:()=>{const a=r(1,5),b=r(1,5);return[`Factor x² + ${a+b}x + ${a*b}`,`(x+${a})(x+${b})`]}},
+    {name:"Exponents",icon:"⚡",gen:()=>{const x=r(1,5);return[`2^${x} = ?`,`${Math.pow(2,x)}`]}},
+    {name:"Logarithms",icon:"🔬",gen:()=>{const x=r(2,8);return[`log₂(2^${x}) = ?`,`${x}`]}},
+    {name:"Rational Functions",icon:"🔄",gen:()=>{const a=r(1,5),b=r(1,10);return[`f(x) = x + ${a}. Find f(${b})`,`${b+a}`]}}
   ],
-  "Geometry": [
-    {name:"Area", icon:"🟦", gen:()=>{const s=r(2,10);return[`Area of square with side ${s}?`,`${s*s}`]}},
-    {name:"Perimeter", icon:"📏", gen:()=>{const s=r(2,10);return[`Perimeter of square with side ${s}?`,`${4*s}`]}},
-    {name:"Angles", icon:"📐", gen:()=>{const a=r(30,80);return[`A triangle has angles ${a}° and 60°. Find the third angle.`,`${180-a-60}°`]}},
-    {name:"Triangles", icon:"🔺", gen:()=>{const b=r(2,12),h=r(2,10);return[`Triangle base ${b}, height ${h}. Area?`,`${b*h/2}`]}},
-    {name:"Circles", icon:"⭕", gen:()=>{const rr=r(2,8);return[`Circle radius ${rr}. Area? (use π≈3.14)`,`${Math.round(3.14*rr*rr)}`]}}
+  "Geometry":[
+    {name:"Area",icon:"🟦",gen:()=>{const s=r(2,10);return[`Area of square with side ${s}?`,`${s*s}`]}},
+    {name:"Perimeter",icon:"📏",gen:()=>{const s=r(2,10);return[`Perimeter of square with side ${s}?`,`${4*s}`]}},
+    {name:"Angles",icon:"📐",gen:()=>{const a=r(30,80);return[`A triangle has angles ${a}° and 60°. Find the third angle.`,`${180-a-60}°`]}},
+    {name:"Triangles",icon:"🔺",gen:()=>{const b=r(2,12),h=r(2,10);return[`Triangle base ${b}, height ${h}. Area?`,`${b*h/2}`]}},
+    {name:"Circles",icon:"⭕",gen:()=>{const rr=r(2,8);return[`Circle radius ${rr}. Area? (use π≈3.14)`,`${Math.round(3.14*rr*rr)}`]}}
   ],
-  "Pre-Calc": [
-    {name:"Trig Basics", icon:"📡", gen:()=>{return[["sin(90°)","1"],["cos(0°)","1"],["tan(45°)","1"],["sin(0°)","0"],["cos(90°)","0"]][r(0,4)]}},
-    {name:"Sequences", icon:"🔗", gen:()=>{const n=r(2,8);return[`1 + 2 + ... + ${n} = ?`,`${n*(n+1)/2}`]}},
-    {name:"Advanced Functions", icon:"🎢", gen:()=>{const x=r(1,10);return[`f(x) = x² + 2.  Find f(${x})`,`${x*x+2}`]}},
-    {name:"Exponentials", icon:"🚀", gen:()=>{const x=r(1,6);return[`3^${x} = ?`,`${Math.pow(3,x)}`]}},
-    {name:"Polar Coords", icon:"🧭", gen:()=>{const a=r(1,5);return[`Convert (${a},0) to polar form`,`(${a}, 0°)`]}}
+  "Pre-Calc":[
+    {name:"Trig Basics",icon:"📡",gen:()=>{return[["sin(90°)","1"],["cos(0°)","1"],["tan(45°)","1"],["sin(0°)","0"],["cos(90°)","0"]][r(0,4)]}},
+    {name:"Sequences",icon:"🔗",gen:()=>{const n=r(2,8);return[`1 + 2 + ... + ${n} = ?`,`${n*(n+1)/2}`]}},
+    {name:"Advanced Functions",icon:"🎢",gen:()=>{const x=r(1,10);return[`f(x) = x² + 2. Find f(${x})`,`${x*x+2}`]}},
+    {name:"Exponentials",icon:"🚀",gen:()=>{const x=r(1,6);return[`3^${x} = ?`,`${Math.pow(3,x)}`]}},
+    {name:"Polar Coords",icon:"🧭",gen:()=>{const a=r(1,5);return[`Convert (${a},0) to polar form`,`(${a}, 0°)`]}}
   ],
-  "Calculus": [
-    {name:"Limits", icon:"🎯", gen:()=>{const a=r(1,5),b=r(1,10);return[`lim x→${a} of (x + ${b})`,`${a+b}`]}},
-    {name:"Derivatives", icon:"📉", gen:()=>{const p=r(2,6);return[`d/dx of x^${p} = ?`,`${p}x^${p-1}`]}},
-    {name:"Chain Rule", icon:"⛓️", gen:()=>{const a=r(1,5),p=r(2,4);return[`d/dx of (x+${a})^${p}`,`${p}(x+${a})^${p-1}`]}},
-    {name:"Integrals", icon:"∫", gen:()=>{const p=r(1,4);return[`∫ x^${p} dx = ?`,`x^${p+1}/${p+1} + C`]}},
-    {name:"Applications", icon:"🏗️", gen:()=>{const x=r(1,6);return[`y = x². What is dy/dx at x = ${x}?`,`${2*x}`]}}
+  "Calculus":[
+    {name:"Limits",icon:"🎯",gen:()=>{const a=r(1,5),b=r(1,10);return[`lim x→${a} of (x + ${b})`,`${a+b}`]}},
+    {name:"Derivatives",icon:"📉",gen:()=>{const p=r(2,6);return[`d/dx of x^${p} = ?`,`${p}x^${p-1}`]}},
+    {name:"Chain Rule",icon:"⛓️",gen:()=>{const a=r(1,5),p=r(2,4);return[`d/dx of (x+${a})^${p}`,`${p}(x+${a})^${p-1}`]}},
+    {name:"Integrals",icon:"∫",gen:()=>{const p=r(1,4);return[`∫ x^${p} dx = ?`,`x^${p+1}/${p+1} + C`]}},
+    {name:"Applications",icon:"🏗️",gen:()=>{const x=r(1,6);return[`y = x². What is dy/dx at x = ${x}?`,`${2*x}`]}}
   ]
 };
 
 function r(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 
-// Progress storage (only completion status, no XP)
-let progress = JSON.parse(localStorage.getItem('ml_progress_no_xp')||'{}');
+let progress=JSON.parse(localStorage.getItem('qx_v2')||'{}');
 let currentSubject='Algebra 1';
 let quizState={};
 
-function saveProgress(){try{localStorage.setItem('ml_progress_no_xp',JSON.stringify(progress))}catch(e){}}
-function getKey(subj,idx){return subj+'::'+idx}
-function isUnlocked(subj,idx){if(idx===0)return true;return !!progress[getKey(subj,idx-1)]}
-function isComplete(subj,idx){return !!progress[getKey(subj,idx)]}
-function isPerfect(subj,idx){return progress[getKey(subj,idx)] === 'perfect'}
+function saveProgress(){try{localStorage.setItem('qx_v2',JSON.stringify(progress))}catch(e){}}
+function getKey(s,i){return s+'::'+i}
+function isUnlocked(s,i){return i===0||!!progress[getKey(s,i-1)]}
+function isComplete(s,i){return!!progress[getKey(s,i)]}
+function isPerfect(s,i){return progress[getKey(s,i)]==='perfect'}
 
-// Reset all progress: clear localStorage and internal state, then refresh map
 function resetAllProgress(){
-  if(confirm("⚠️ Are you sure you want to reset ALL your progress? This will clear all completed units and stars for every subject. This action cannot be undone.")){
-    progress = {};
-    localStorage.removeItem('ml_progress_no_xp');
-    saveProgress();
-    // Re-render the current map to reflect cleared progress
-    showMap();
-    // Also remove any open unit panel if it exists to avoid confusion
-    const openPanel = document.getElementById('unit-panel');
-    if(openPanel) openPanel.remove();
+  if(confirm('Reset ALL progress across every subject? This cannot be undone.')){
+    progress={};localStorage.removeItem('qx_v2');saveProgress();
+    showMap();const p=document.getElementById('unit-panel');if(p)p.remove();
   }
 }
-
-function switchSubject(subj){
-  currentSubject=subj;
-  document.querySelectorAll('.subject-btn').forEach(b=>b.classList.toggle('active',b.textContent===subj));
+function switchSubject(s){
+  currentSubject=s;
+  document.querySelectorAll('.subject-btn').forEach(b=>b.classList.toggle('active',b.textContent.trim().endsWith(s)));
   showMap();
 }
-
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
-
 function showMap(){
   const units=curriculum[currentSubject];
   const ms=document.getElementById('map-screen');
-  // XP badge completely removed - top bar only shows subject title
-  ms.innerHTML=`
-    <div class="top-bar">
-      <div class="subject-title">${currentSubject}</div>
-    </div>
-    <div class="trail" id="trail"></div>
-  `;
+  ms.innerHTML=`<div class="map-header"><div class="map-title">${currentSubject}</div><div class="map-sub">Complete each unit to unlock the next</div></div><div class="trail" id="trail"></div>`;
   const trail=document.getElementById('trail');
   units.forEach((unit,i)=>{
-    const unlocked=isUnlocked(currentSubject,i);
-    const complete=isComplete(currentSubject,i);
-    const perfect=isPerfect(currentSubject,i);
+    const unlocked=isUnlocked(currentSubject,i),complete=isComplete(currentSubject,i),perfect=isPerfect(currentSubject,i);
     let cls='locked';
-    if(perfect)cls='perfect';
-    else if(complete)cls='complete';
-    else if(unlocked)cls='available';
+    if(perfect)cls='perfect';else if(complete)cls='complete';else if(unlocked)cls='available';
     const stars=perfect?'★★★':complete?'★★☆':'';
-    const wrap=document.createElement('div');
-    wrap.className='checkpoint-wrap';
-    if(i>0){const c=document.createElement('div');c.className='connector'+(isComplete(currentSubject,i-1)?' done':'');wrap.appendChild(c)}
-    wrap.innerHTML+=`
-      <button class="checkpoint-btn ${cls}" ${unlocked?`onclick="openUnit(${i})"`:''}>
-        <span class="checkpoint-icon">${unit.icon}</span>
-        ${stars?`<span class="stars">${stars}</span>`:''}
-      </button>
-      <div class="cp-label">${unit.name}</div>
-    `;
+    const wrap=document.createElement('div');wrap.className='checkpoint-wrap';
+    if(i>0){const c=document.createElement('div');c.className='connector'+(isComplete(currentSubject,i-1)?' done':'');wrap.appendChild(c);}
+    wrap.innerHTML+=`<button class="checkpoint-btn ${cls}" ${unlocked?`onclick="openUnit(${i})"`:''}>
+      <span>${unit.icon}</span>${stars?`<span class="cp-stars">${stars}</span>`:''}
+    </button><div class="cp-label">${unit.name}</div>`;
     trail.appendChild(wrap);
   });
   showScreen('map-screen');
 }
-
 function openUnit(idx){
-  const unit=curriculum[currentSubject][idx];
-  const complete=isComplete(currentSubject,idx);
+  const unit=curriculum[currentSubject][idx],complete=isComplete(currentSubject,idx);
   const ms=document.getElementById('map-screen');
-  const old=document.getElementById('unit-panel');
-  if(old)old.remove();
-  const panel=document.createElement('div');
-  panel.id='unit-panel';
-  panel.className='unit-panel';
-  panel.innerHTML=`
-    <div class="unit-panel-title">${unit.icon} ${unit.name}</div>
-    <div class="unit-panel-sub">${complete?'Completed! Practice to earn perfect stars.':'Start practicing to unlock the next unit.'}</div>
+  const old=document.getElementById('unit-panel');if(old)old.remove();
+  const panel=document.createElement('div');panel.id='unit-panel';panel.className='unit-panel';
+  panel.innerHTML=`<div class="unit-panel-title">${unit.icon} ${unit.name}</div>
+    <div class="unit-panel-sub">${complete?'Completed! Practice again to earn perfect stars.':'Finish this unit to unlock the next one.'}</div>
     <div class="panel-actions">
       <button class="btn-practice" onclick="startQuiz(${idx},'practice')">Practice</button>
       <button class="btn-test" onclick="startQuiz(${idx},'test')">Test (5 Qs)</button>
-    </div>
-  `;
+    </div>`;
   ms.appendChild(panel);
 }
-
-function generateWrongAnswers(correct, count=3){
-  const wrongs=[];
-  const isNum=/^-?\d+\.?\d*$/.test(correct);
+function generateWrongAnswers(correct,count=3){
+  const wrongs=[];const isNum=/^-?\d+\.?\d*$/.test(correct);
   while(wrongs.length<count){
     let w;
     if(isNum){
-      const n=parseFloat(correct);
-      w=String(n+r(-5,5)||r(1,9));
-      if(w===correct||wrongs.includes(w))continue;
-    } else {
-      const variants=[correct+'²',correct.replace(/\d+/,m=>String(parseInt(m)+r(1,3))),'2'+correct,'None of these'];
-      w=variants[r(0,variants.length-1)];
-      if(w===correct||wrongs.includes(w))continue;
+      const n=parseFloat(correct),delta=r(1,5)*(Math.random()<.5?1:-1);
+      w=String(n+delta);if(w===correct||wrongs.includes(w)||w==='0')continue;
+    }else{
+      const v=[correct+'²',correct.replace(/\d+/,m=>String(parseInt(m)+r(1,3))),'2'+correct,'None of these'];
+      w=v[r(0,v.length-1)];if(w===correct||wrongs.includes(w))continue;
     }
     wrongs.push(w);
-    if(wrongs.length>=count)break;
   }
   return wrongs;
 }
-
-function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}return arr}
-
-function startQuiz(idx, mode){
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function startQuiz(idx,mode){
   const unit=curriculum[currentSubject][idx];
-  quizState={idx,mode,unitName:unit.name,icon:unit.icon,hearts:mode==='test'?3:999,correct:0,total:0,maxQ:mode==='test'?5:10,gen:unit.gen};
-  renderQuestion();
-  showScreen('quiz-screen');
+  quizState={idx,mode,unitName:unit.name,hearts:mode==='test'?3:999,correct:0,total:0,maxQ:mode==='test'?5:10,gen:unit.gen};
+  renderQuestion();showScreen('quiz-screen');
 }
-
 function renderQuestion(){
   const qs=document.getElementById('quiz-screen');
-  const {hearts,correct,total,maxQ,gen,mode}=quizState;
+  const{hearts,total,maxQ,gen,mode,unitName}=quizState;
   const prog=Math.round((total/maxQ)*100);
-  const result=gen();
-  const question=result[0];
-  const answer=result[1];
+  const[question,answer]=gen();
+  quizState.currentQ=question;quizState.currentA=answer;
   const opts=shuffle([answer,...generateWrongAnswers(answer)]);
-  quizState.currentQ=question;
-  quizState.currentA=answer;
-
-  const heartHTML=mode==='test'?Array.from({length:hearts},()=>'<span class="heart">❤️</span>').join(''):'';
-
-  qs.innerHTML=`
-    <div class="q-screen">
-      <div class="hearts">${heartHTML}</div>
+  const heartHTML=mode==='test'?Array.from({length:3},(_,i)=>`<span class="heart${i>=hearts?' lost':''}">❤️</span>`).join(''):'';
+  qs.innerHTML=`<div class="q-screen">
+    <div class="quiz-top"><div class="hearts">${heartHTML}</div>
       <div class="progress-bar-wrap"><div class="progress-bar" style="width:${prog}%"></div></div>
-      <div class="q-card">
-        <div class="q-text">${question}</div>
-      </div>
-      <div class="options" id="opts"></div>
-      <div class="feedback-bar" id="fb"></div>
-      <button class="next-btn" id="next-btn" onclick="nextQ()">Continue</button>
     </div>
-  `;
+    <div class="q-card"><div class="q-topic">${unitName}</div><div class="q-text">${esc(question)}</div></div>
+    <div class="options" id="opts"></div>
+    <div class="feedback-bar" id="fb"></div>
+    <div id="expl-container"></div>
+    <button class="next-btn" id="next-btn" onclick="nextQ()">Continue →</button>
+  </div>`;
   const optDiv=document.getElementById('opts');
   opts.forEach((opt,i)=>{
     const letters=['A','B','C','D'];
-    const b=document.createElement('button');
-    b.className='opt-btn';
-    b.innerHTML=`<span class="opt-letter">${letters[i]}</span> ${opt}`;
-    b.onclick=()=>checkAnswer(opt,b);
-    optDiv.appendChild(b);
+    const b=document.createElement('button');b.className='opt-btn';
+    b.innerHTML=`<span class="opt-letter">${letters[i]}</span>${esc(opt)}`;
+    b.onclick=()=>checkAnswer(opt,b);optDiv.appendChild(b);
   });
 }
-
-function checkAnswer(chosen, btn){
-  const {currentA,mode}=quizState;
-  const correct=chosen===currentA;
+function checkAnswer(chosen,btn){
+  const{currentA,currentQ,mode,unitName}=quizState;
+  const isCorrect=chosen===currentA;
   document.querySelectorAll('.opt-btn').forEach(b=>b.disabled=true);
-  const fb=document.getElementById('fb');
-  const nb=document.getElementById('next-btn');
-  if(correct){
+  const fb=document.getElementById('fb'),nb=document.getElementById('next-btn');
+  if(isCorrect){
     btn.classList.add('correct');
     fb.className='feedback-bar show correct';
-    fb.innerHTML=`<span class="fb-icon">✓</span><span class="fb-text correct">Correct! Well done.</span>`;
+    fb.innerHTML=`<span class="fb-icon">✅</span><span class="fb-text correct">Correct! Well done.</span>`;
     quizState.correct++;
-  } else {
+  }else{
     btn.classList.add('wrong');
-    document.querySelectorAll('.opt-btn').forEach(b=>{if(b.textContent.trim().slice(1).trim()===currentA)b.classList.add('correct')});
+    document.querySelectorAll('.opt-btn').forEach(b=>{if(b.textContent.trim().slice(1).trim()===currentA)b.classList.add('correct');});
     fb.className='feedback-bar show wrong';
-    fb.innerHTML=`<span class="fb-icon">✗</span><span class="fb-text wrong">Correct answer: ${currentA}</span>`;
+    fb.innerHTML=`<span class="fb-icon">✗</span><span class="fb-text wrong">Correct answer: ${esc(currentA)}</span>`;
     if(mode==='test'){quizState.hearts--;if(quizState.hearts<=0)quizState.total=quizState.maxQ;}
+    renderExplanation(unitName,currentQ,currentA);
   }
-  quizState.total++;
-  nb.className='next-btn show';
+  quizState.total++;nb.className='next-btn show';
 }
-
 function nextQ(){
-  const {total,maxQ,hearts}=quizState;
+  const{total,maxQ,hearts}=quizState;
   if(total>=maxQ||hearts<=0){showResult();return;}
   renderQuestion();
 }
-
 function showResult(){
-  const {correct,maxQ,idx,mode}=quizState;
+  const{correct,maxQ,idx}=quizState;
   const pct=Math.round((correct/maxQ)*100);
-  const passed=pct>=60;
-  const perfect=pct>=90;
-  const rs=document.getElementById('result-screen');
+  const passed=pct>=60,perfect=pct>=90;
   const emoji=perfect?'🌟':passed?'🎉':'😅';
   const title=perfect?'Perfect!':passed?'You passed!':'Keep practicing';
-  const sub=perfect?'Outstanding! You earned 3 stars.':passed?`Nice work! ${correct}/${maxQ} correct.`:`You got ${correct}/${maxQ}. Try again!`;
-  
-  // XP completely removed - no XP earnings or display
-  if(passed){
-    const key=getKey(currentSubject,idx);
-    if(perfect)progress[key]='perfect';
-    else if(!progress[key])progress[key]=true;
-    saveProgress();
-  }
-  
-  // Dynamic stat cards: only show correct count and score percentage (XP card removed)
-  rs.innerHTML=`
-    <div class="result-screen">
-      <div class="result-icon">${emoji}</div>
-      <div class="result-title">${title}</div>
-      <div class="result-sub">${sub}</div>
-      <div class="result-stats">
-        <div class="stat-card"><div class="stat-val">${correct}/${maxQ}</div><div class="stat-label">Correct</div></div>
-        <div class="stat-card"><div class="stat-val">${pct}%</div><div class="stat-label">Score</div></div>
-      </div>
-      <button class="result-btn" onclick="showMap()">Back to path</button>
+  const sub=perfect?'Outstanding! You earned 3 stars.':passed?`Great work — ${correct}/${maxQ} correct.`:`You got ${correct}/${maxQ}. Try again to improve!`;
+  if(passed){const key=getKey(currentSubject,idx);if(perfect)progress[key]='perfect';else if(!progress[key])progress[key]=true;saveProgress();}
+  document.getElementById('result-screen').innerHTML=`<div class="result-screen-inner">
+    <div class="result-icon">${emoji}</div>
+    <div class="result-title">${title}</div>
+    <div class="result-sub">${sub}</div>
+    <div class="result-stats">
+      <div class="stat-card"><div class="stat-val">${correct}/${maxQ}</div><div class="stat-label">Correct</div></div>
+      <div class="stat-card"><div class="stat-val">${pct}%</div><div class="stat-label">Score</div></div>
     </div>
-  `;
+    <button class="result-btn" onclick="showMap()">Back to path</button>
+  </div>`;
   showScreen('result-screen');
 }
-
-// Initialize the map
 showMap();
 </script>
 </body>
 </html>
-
-updated for mobile compatibility
