@@ -25,6 +25,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .sidebar{width:210px;background:var(--green);display:flex;flex-direction:column;padding:20px 14px;gap:6px;flex-shrink:0;position:sticky;top:0;height:100vh}
 .logo{color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.5px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.25);margin-bottom:8px;display:flex;align-items:center;gap:8px}
 .logo-mark{width:32px;height:32px;background:rgba(255,255,255,0.2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.streak-badge{background:rgba(255,255,255,0.2);border-radius:20px;padding:4px 10px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:5px;margin-top:8px;margin-bottom:4px;color:#fff;}
+.streak-badge span{font-size:14px;}
 .subject-btn{background:rgba(255,255,255,0.12);border:none;border-radius:var(--radius-sm);color:#fff;font-size:13px;font-weight:700;font-family:var(--font);padding:10px 12px;cursor:pointer;text-align:left;transition:background 0.15s;display:flex;align-items:center;gap:8px}
 .subject-btn:hover{background:rgba(255,255,255,0.25)}
 .subject-btn.active{background:rgba(255,255,255,0.95);color:var(--green-dark)}
@@ -148,6 +150,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 <div class="app">
   <div class="sidebar">
     <div class="logo"><div class="logo-mark">Q</div>Quantix</div>
+    <div class="streak-badge" id="streak-display">🔥 <span id="streak-count">0</span> day streak</div>
     <button class="subject-btn active" onclick="switchSubject('Algebra 1')"><span>📐</span>Algebra 1</button>
     <button class="subject-btn" onclick="switchSubject('Algebra 2')"><span>📊</span>Algebra 2</button>
     <button class="subject-btn" onclick="switchSubject('Geometry')"><span>🔺</span>Geometry</button>
@@ -163,6 +166,78 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
 <script>
+// ======================== DAILY STREAK SYSTEM (24-hour cooldown) ========================
+function updateStreakDisplay() {
+  const streakCount = document.getElementById('streak-count');
+  if(streakCount) streakCount.textContent = getCurrentStreak();
+}
+function getCurrentStreak() {
+  const lastActive = localStorage.getItem('qx_last_active');
+  const currentStreak = parseInt(localStorage.getItem('qx_streak') || '0');
+  if(!lastActive) return 0;
+  const last = new Date(parseInt(lastActive));
+  const now = new Date();
+  const hoursDiff = (now - last) / (1000 * 60 * 60);
+  if(hoursDiff >= 24 && hoursDiff < 48) return currentStreak + 1;
+  else if(hoursDiff < 24) return currentStreak;
+  else return 0;
+}
+function updateStreakOnActivity() {
+  const lastActive = localStorage.getItem('qx_last_active');
+  const now = Date.now();
+  let newStreak = parseInt(localStorage.getItem('qx_streak') || '0');
+  if(!lastActive) newStreak = 1;
+  else {
+    const hoursDiff = (now - parseInt(lastActive)) / (1000 * 60 * 60);
+    if(hoursDiff >= 24 && hoursDiff < 48) newStreak++;
+    else if(hoursDiff >= 48) newStreak = 1;
+  }
+  localStorage.setItem('qx_streak', newStreak);
+  localStorage.setItem('qx_last_active', now);
+  updateStreakDisplay();
+}
+function recordActivity() { updateStreakOnActivity(); }
+
+// ======================== KEYBOARD SHORTCUTS ========================
+let currentActiveOptions = [];
+function updateActiveOptions() {
+  currentActiveOptions = Array.from(document.querySelectorAll('.opt-btn:not(:disabled)'));
+}
+function selectAnswerByIndex(index) {
+  updateActiveOptions();
+  if(currentActiveOptions[index] && !currentActiveOptions[index].disabled) {
+    currentActiveOptions[index].click();
+  }
+}
+function triggerContinue() {
+  const nextBtn = document.getElementById('next-btn');
+  if(nextBtn && nextBtn.classList.contains('show')) {
+    nextBtn.click();
+  }
+}
+function quitQuizKeyboard() {
+  const quitBtn = document.querySelector('.quit-quiz-btn');
+  if(quitBtn) quitBtn.click();
+  else showMap();
+}
+document.addEventListener('keydown', (e) => {
+  const activeScreen = document.querySelector('.screen.active');
+  if(activeScreen && activeScreen.id === 'quiz-screen') {
+    // Number keys 1-4
+    if(e.key === '1') { e.preventDefault(); selectAnswerByIndex(0); }
+    else if(e.key === '2') { e.preventDefault(); selectAnswerByIndex(1); }
+    else if(e.key === '3') { e.preventDefault(); selectAnswerByIndex(2); }
+    else if(e.key === '4') { e.preventDefault(); selectAnswerByIndex(3); }
+    // Letter keys A,B,C,D
+    else if(e.key === 'a' || e.key === 'A') { e.preventDefault(); selectAnswerByIndex(0); }
+    else if(e.key === 'b' || e.key === 'B') { e.preventDefault(); selectAnswerByIndex(1); }
+    else if(e.key === 'c' || e.key === 'C') { e.preventDefault(); selectAnswerByIndex(2); }
+    else if(e.key === 'd' || e.key === 'D') { e.preventDefault(); selectAnswerByIndex(3); }
+    else if(e.key === 'Enter') { e.preventDefault(); triggerContinue(); }
+    else if(e.key === 'Escape') { e.preventDefault(); quitQuizKeyboard(); }
+  }
+});
+
 // ======================== RICH STEP-BY-STEP EXPLANATIONS ========================
 function r(a,b){return Math.floor(Math.random()*(b-a+1))+a}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -193,6 +268,18 @@ function getDetailedExplanation(unitName, question, answer, difficulty) {
     const match = question.match(/d\/dx of x\^(\d+)/);
     if(match) { const p = parseInt(match[1]); return { steps: [{ text: "Power rule:", math: "d/dx xⁿ = n·xⁿ⁻¹" }, { text: `Bring down ${p}:`, math: `${p}x^${p-1}` }], tip: "Multiply by exponent, subtract 1." }; }
   }
+  if(unitName === "Limits") {
+    return { steps: [{ text: "This is a limit problem.", math: question }, { text: "Substitute the value of x:", math: answer }], tip: "For continuous functions, plug in the x value directly." };
+  }
+  if(unitName === "Chain Rule") {
+    return { steps: [{ text: "Apply the chain rule:", math: "d/dx[f(g(x))] = f'(g(x)) * g'(x)" }, { text: "Result:", math: answer }], tip: "Differentiate outer, then multiply by derivative of inner." };
+  }
+  if(unitName === "Integrals") {
+    return { steps: [{ text: "Apply the power rule for integration:", math: "∫ xⁿ dx = xⁿ⁺¹/(n+1) + C" }, { text: "Result:", math: answer }], tip: "Add 1 to exponent, divide by new exponent." };
+  }
+  if(unitName === "Applications") {
+    return { steps: [{ text: "Find the derivative:", math: "dy/dx = 2x" }, { text: "Substitute the given x value:", math: answer }], tip: "Derivative gives slope at a point." };
+  }
   return { steps: [{ text: "Problem:", math: question }, { text: "Correct answer:", math: answer }], tip: `Practice more ${unitName} problems.` };
 }
 
@@ -205,9 +292,10 @@ function renderExplanation(unitName, question, answer, difficulty) {
   container.innerHTML = `<div class="expl-panel"><div class="expl-header"><span>🧠</span><span class="expl-badge">Step-by-step (${difficulty})</span></div><div class="expl-body">${stepsHtml}${tipHtml}</div></div>`;
 }
 
-// ======================== QUESTION GENERATORS ========================
+// ======================== COMPLETE QUESTION GENERATORS (ALL UNITS FIXED) ========================
 function generateQuestion(unitName, difficulty) {
   const generators = {
+    // Algebra 1
     "Linear Equations": (diff) => {
       if(diff === 'easy'){ const a=r(1,5), b=r(0,8), x=r(1,8); return [`${a}x + ${b} = ${a*x+b}`, `${x}`]; }
       if(diff === 'medium'){ const a=r(2,8), b=r(3,15), x=r(3,12); return [`${a}x + ${b} = ${a*x+b}`, `${x}`]; }
@@ -233,18 +321,119 @@ function generateQuestion(unitName, difficulty) {
       if(diff === 'medium'){ const x=r(3,12); return [`f(x) = 3x - 5. Find f(${x})`, `${3*x-5}`]; }
       const x=r(5,18); return [`f(x) = 4x² + 2. Find f(${x})`, `${4*x*x+2}`];
     },
+    // Algebra 2
+    "Complex Quadratics": (diff) => {
+      if(diff === 'easy'){ const a=r(1,3), b=r(2,4); return [`Solve x² - ${a+b}x + ${a*b} = 0`, `x = ${a}, ${b}`]; }
+      if(diff === 'medium'){ const a=r(2,5), b=r(3,6); return [`Solve x² - ${a+b}x + ${a*b} = 0`, `x = ${a}, ${b}`]; }
+      const a=r(4,8), b=r(5,9); return [`Solve x² - ${a+b}x + ${a*b} = 0`, `x = ${a}, ${b}`];
+    },
+    "Polynomials": (diff) => {
+      if(diff === 'easy'){ const a=r(1,3), b=r(1,4); return [`Factor x² + ${a+b}x + ${a*b}`, `(x+${a})(x+${b})`]; }
+      if(diff === 'medium'){ const a=r(2,5), b=r(3,6); return [`Factor x² + ${a+b}x + ${a*b}`, `(x+${a})(x+${b})`]; }
+      const a=r(4,8), b=r(5,9); return [`Factor x² + ${a+b}x + ${a*b}`, `(x+${a})(x+${b})`];
+    },
+    "Exponents": (diff) => {
+      if(diff === 'easy'){ const p=r(2,4); return [`2^${p} = ?`, `${Math.pow(2,p)}`]; }
+      if(diff === 'medium'){ const p=r(3,6); return [`3^${p} = ?`, `${Math.pow(3,p)}`]; }
+      const p=r(4,8); return [`5^${p} = ?`, `${Math.pow(5,p)}`];
+    },
+    "Logarithms": (diff) => {
+      if(diff === 'easy'){ const p=r(2,5); return [`log₂(2^${p}) = ?`, `${p}`]; }
+      if(diff === 'medium'){ const p=r(3,7); return [`log₃(3^${p}) = ?`, `${p}`]; }
+      return [`log₅(5^${r(4,9)}) = ?`, `${r(4,9)}`];
+    },
+    "Rational Functions": (diff) => {
+      if(diff === 'easy'){ const a=r(1,5), x=r(1,8); return [`f(x) = x + ${a}. Find f(${x})`, `${x+a}`]; }
+      if(diff === 'medium'){ const a=r(2,7), x=r(4,12); return [`f(x) = 2x - ${a}. Find f(${x})`, `${2*x-a}`]; }
+      const a=r(3,10), x=r(5,15); return [`f(x) = x² + ${a}. Find f(${x})`, `${x*x+a}`];
+    },
+    // Geometry
     "Area": (diff) => {
       if(diff === 'easy'){ const s=r(3,8); return [`Area of square with side ${s}?`, `${s*s}`]; }
       if(diff === 'medium'){ const l=r(4,10), w=r(3,8); return [`Area of rectangle ${l}x${w}?`, `${l*w}`]; }
       const s=r(7,15); return [`Area of square with side ${s}?`, `${s*s}`];
     },
+    "Perimeter": (diff) => {
+      if(diff === 'easy'){ const s=r(3,8); return [`Perimeter of square with side ${s}?`, `${4*s}`]; }
+      if(diff === 'medium'){ const l=r(5,12), w=r(4,10); return [`Perimeter of rectangle ${l}x${w}?`, `${2*(l+w)}`]; }
+      const s=r(8,18); return [`Perimeter of square with side ${s}?`, `${4*s}`];
+    },
+    "Angles": (diff) => {
+      if(diff === 'easy'){ const a=r(40,70); return [`Triangle angles: ${a}° and 50°. Find third.`, `${180-a-50}°`]; }
+      if(diff === 'medium'){ const a=r(30,65), b=r(35,70); return [`Triangle angles: ${a}° and ${b}°. Find third.`, `${180-a-b}°`]; }
+      const a=r(25,60), b=r(30,65); return [`Triangle angles: ${a}° and ${b}°. Find third.`, `${180-a-b}°`];
+    },
+    "Triangles": (diff) => {
+      if(diff === 'easy'){ const b=r(3,8), h=r(2,6); return [`Triangle base ${b}, height ${h}. Area?`, `${b*h/2}`]; }
+      if(diff === 'medium'){ const b=r(5,12), h=r(4,10); return [`Triangle base ${b}, height ${h}. Area?`, `${b*h/2}`]; }
+      const b=r(8,15), h=r(6,12); return [`Triangle base ${b}, height ${h}. Area?`, `${b*h/2}`];
+    },
+    "Circles": (diff) => {
+      if(diff === 'easy'){ const rVal=r(2,5); return [`Circle radius ${rVal}. Area? (π≈3.14)`, `${Math.round(3.14*rVal*rVal)}`]; }
+      if(diff === 'medium'){ const rVal=r(4,8); return [`Circle radius ${rVal}. Area? (π≈3.14)`, `${Math.round(3.14*rVal*rVal)}`]; }
+      const rVal=r(6,12); return [`Circle radius ${rVal}. Area? (π≈3.14)`, `${Math.round(3.14*rVal*rVal)}`];
+    },
+    // Pre-Calc
+    "Trig Basics": (diff) => {
+      const easy = [["sin(30°)","0.5"],["cos(60°)","0.5"],["tan(45°)","1"]];
+      const medium = [["sin(60°)","0.866"],["cos(30°)","0.866"],["tan(30°)","0.577"]];
+      const hard = [["sin(90°)","1"],["cos(0°)","1"],["tan(60°)","1.732"]];
+      if(diff === 'easy') return easy[r(0,2)];
+      if(diff === 'medium') return medium[r(0,2)];
+      return hard[r(0,2)];
+    },
+    "Sequences": (diff) => {
+      if(diff === 'easy'){ const n=r(3,6); return [`1 + 2 + ... + ${n} = ?`, `${n*(n+1)/2}`]; }
+      if(diff === 'medium'){ const n=r(5,10); return [`1 + 2 + ... + ${n} = ?`, `${n*(n+1)/2}`]; }
+      const n=r(8,15); return [`1 + 2 + ... + ${n} = ?`, `${n*(n+1)/2}`];
+    },
+    "Advanced Functions": (diff) => {
+      if(diff === 'easy'){ const x=r(1,8); return [`f(x) = x² + 2. Find f(${x})`, `${x*x+2}`]; }
+      if(diff === 'medium'){ const x=r(3,12); return [`f(x) = 2x² - 3. Find f(${x})`, `${2*x*x-3}`]; }
+      const x=r(5,15); return [`f(x) = 3x² + 4x - 1. Find f(${x})`, `${3*x*x+4*x-1}`];
+    },
+    "Exponentials": (diff) => {
+      if(diff === 'easy'){ const p=r(2,4); return [`3^${p} = ?`, `${Math.pow(3,p)}`]; }
+      if(diff === 'medium'){ const p=r(3,5); return [`4^${p} = ?`, `${Math.pow(4,p)}`]; }
+      const p=r(4,7); return [`2^${p} = ?`, `${Math.pow(2,p)}`];
+    },
+    "Polar Coords": (diff) => {
+      if(diff === 'easy'){ const a=r(2,6); return [`Convert (${a},0) to polar form`, `(${a}, 0°)`]; }
+      if(diff === 'medium'){ const a=r(3,8); return [`Convert (0,${a}) to polar form`, `(${a}, 90°)`]; }
+      const a=r(4,10); return [`Convert (${a},${a}) to polar form`, `(${Math.round(a*1.414)}, 45°)`];
+    },
+    // Calculus - FIXED!
+    "Limits": (diff) => {
+      if(diff === 'easy'){ const a=r(1,5), b=r(1,10); return [`lim x→${a} of (x + ${b})`, `${a+b}`]; }
+      if(diff === 'medium'){ const a=r(2,6), b=r(2,8); return [`lim x→${a} of (2x + ${b})`, `${2*a+b}`]; }
+      const a=r(3,8), b=r(3,12); return [`lim x→${a} of (x² + ${b})`, `${a*a+b}`];
+    },
     "Derivatives": (diff) => {
       if(diff === 'easy'){ const p=r(2,4); return [`d/dx of x^${p}`, `${p}x^${p-1}`]; }
       if(diff === 'medium'){ const p=r(3,6); return [`d/dx of ${p}x^3`, `${3*p}x^2`]; }
       return [`d/dx of 5x^4 - 2x`, `20x^3 - 2`];
+    },
+    "Chain Rule": (diff) => {
+      if(diff === 'easy'){ const a=r(1,3), p=r(2,3); return [`d/dx of (x+${a})^${p}`, `${p}(x+${a})^${p-1}`]; }
+      if(diff === 'medium'){ const a=r(2,4), p=r(3,4); return [`d/dx of (x+${a})^${p}`, `${p}(x+${a})^${p-1}`]; }
+      return [`d/dx of (2x+1)^4`, `8(2x+1)^3`];
+    },
+    "Integrals": (diff) => {
+      if(diff === 'easy'){ const p=r(1,3); return [`∫ x^${p} dx`, `x^${p+1}/${p+1} + C`]; }
+      if(diff === 'medium'){ const p=r(2,4); return [`∫ ${p}x^2 dx`, `${p/3}x^3 + C`]; }
+      return [`∫ (3x² + 2) dx`, `x³ + 2x + C`];
+    },
+    "Applications": (diff) => {
+      if(diff === 'easy'){ const x=r(1,5); return [`y = x². What is dy/dx at x = ${x}?`, `${2*x}`]; }
+      if(diff === 'medium'){ const x=r(2,7); return [`y = 2x². What is dy/dx at x = ${x}?`, `${4*x}`]; }
+      const x=r(3,9); return [`y = 3x² - 2x. What is dy/dx at x = ${x}?`, `${6*x-2}`];
     }
   };
-  const fn = generators[unitName] || ((d) => [`2 + 3 = ?`, `5`]);
+  const fn = generators[unitName];
+  if(!fn) {
+    console.warn(`No generator for ${unitName}, using fallback`);
+    return [`2 + 3 = ?`, `5`];
+  }
   return fn(difficulty);
 }
 
@@ -257,11 +446,11 @@ const curriculum = {
   "Calculus": [{name:"Limits", icon:"🎯"},{name:"Derivatives", icon:"📉"},{name:"Chain Rule", icon:"⛓️"},{name:"Integrals", icon:"∫"},{name:"Applications", icon:"🏗️"}]
 };
 
-let progress = JSON.parse(localStorage.getItem('qx_progress_v7')||'{}');
+let progress = JSON.parse(localStorage.getItem('qx_progress_v8')||'{}');
 let currentSubject = 'Algebra 1';
 let quizState = {};
 
-function saveProgress(){ localStorage.setItem('qx_progress_v7', JSON.stringify(progress)); }
+function saveProgress(){ localStorage.setItem('qx_progress_v8', JSON.stringify(progress)); }
 function getUnitKey(s,i){ return `${s}::unit_${i}`; }
 function getUnitStatus(s,i){ return progress[getUnitKey(s,i)] || null; }
 function setUnitStatus(s,i,status){ progress[getUnitKey(s,i)] = status; saveProgress(); }
@@ -270,14 +459,15 @@ function isUnlocked(s,i){ if(i===0) return true; return isUnitComplete(s,i-1); }
 function getStarCount(s,i){ const st = getUnitStatus(s,i); if(st==='testPass') return 3; if(st==='practicePass') return 2; return 0; }
 function isPracticePassed(s,i){ return getUnitStatus(s,i)==='practicePass' || getUnitStatus(s,i)==='testPass'; }
 
-function resetAllProgress(){ if(confirm('Reset ALL progress?')){ progress={}; localStorage.removeItem('qx_progress_v7'); saveProgress(); showMap(); const p=document.getElementById('unit-panel'); if(p)p.remove(); }}
+function resetAllProgress(){ if(confirm('Reset ALL progress?')){ progress={}; localStorage.removeItem('qx_progress_v8'); saveProgress(); showMap(); const p=document.getElementById('unit-panel'); if(p)p.remove(); }}
 function switchSubject(s){ currentSubject=s; document.querySelectorAll('.subject-btn').forEach(b=>b.classList.toggle('active',b.textContent.trim().endsWith(s))); showMap(); }
 function showScreen(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 function generateWrongAnswers(correct, count=3){ const wrongs=[]; const isNum=/^-?\d+\.?\d*$/.test(correct) || /^[±]?\d+/.test(correct); while(wrongs.length<count){ let w; if(isNum){ let n=parseFloat(correct); if(isNaN(n)) n=correct.length; const delta=r(1,5)*(Math.random()<.5?1:-1); w=String(n+delta); if(w===correct||wrongs.includes(w)) continue; } else { const v=[correct+'²', correct.replace(/\d+/,m=>String(parseInt(m)+r(1,3))), '2'+correct, 'None']; w=v[r(0,v.length-1)]; if(w===correct||wrongs.includes(w)) continue; } wrongs.push(w); } return wrongs; }
 function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
-function quitQuiz(){ showMap(); }
+function quitQuiz(){ showMap(); recordActivity(); }
 
 function startQuiz(idx, mode){
+  recordActivity();
   const unit = curriculum[currentSubject][idx];
   if(mode==='test' && !isPracticePassed(currentSubject,idx) && getStarCount(currentSubject,idx) < 2){ 
     alert("⚠️ You must pass Practice (70% or more) before attempting the Test!"); 
@@ -314,7 +504,7 @@ function renderQuestion(){
   const difficultyLabel = current.difficulty === 'easy' ? '🌱 EASY' : (current.difficulty === 'medium' ? '⚡ MEDIUM' : '🔥 HARD');
   const heartHTML = mode==='test' ? Array.from({length:3},(_,i)=>`<span class="heart${i>=hearts?' lost':''}">❤️</span>`).join('') : '';
   qs.innerHTML = `<div class="q-screen">
-    <div class="quiz-header-actions"><div class="quiz-stats">Q${currentIndex+1}/${maxQ} • ${mode==='practice'?'Practice':'Test'}</div><button class="quit-quiz-btn" onclick="quitQuiz()">✕ Quit</button></div>
+    <div class="quiz-header-actions"><div class="quiz-stats">Q${currentIndex+1}/${maxQ} • ${mode==='practice'?'Practice':'Test'}</div><button class="quit-quiz-btn" onclick="quitQuiz()">✕ Quit (Esc)</button></div>
     <div class="quiz-top"><div class="hearts">${heartHTML}</div><div class="progress-bar-wrap"><div class="progress-bar" style="width:${prog}%"></div></div></div>
     <div class="q-card"><div class="difficulty-badge ${difficultyClass}">${difficultyLabel}</div><div class="q-topic">${unitName}</div><div class="q-text">${esc(current.question)}</div></div>
     <div class="options" id="opts"></div><div class="feedback-bar" id="fb"></div><div id="expl-container"></div>
@@ -329,9 +519,11 @@ function renderQuestion(){
     btn.onclick = () => checkAnswer(opt, btn);
     optDiv.appendChild(btn);
   });
+  updateActiveOptions();
 }
 
 function checkAnswer(chosen, btn){
+  recordActivity();
   const { questions, currentIndex, mode, unitName } = quizState;
   const current = questions[currentIndex];
   const isCorrect = chosen === current.answer;
@@ -365,6 +557,7 @@ function nextQ(){
 }
 
 function showResult(){
+  recordActivity();
   const { correct, maxQ, mode, passThreshold, idx } = quizState;
   const pct = Math.round((correct/maxQ)*100);
   const passed = pct >= passThreshold;
@@ -409,7 +602,6 @@ function showResult(){
   showScreen('result-screen');
 }
 
-// FIXED: showMap now makes completed units clickable for replay
 function showMap(){
   const units = curriculum[currentSubject];
   const ms = document.getElementById('map-screen');
@@ -425,19 +617,19 @@ function showMap(){
     const starsDisplay = starCount===3 ? '★★★' : (starCount===2 ? '★★☆' : '☆☆☆');
     const wrap = document.createElement('div'); wrap.className='checkpoint-wrap';
     if(i>0){ const c=document.createElement('div'); c.className='connector'+(isUnitComplete(currentSubject,i-1)?' done':''); wrap.appendChild(c); }
-    // FIX: Make unit clickable if unlocked OR already has stars (completed) OR is first unit
     const isClickable = unlocked || starCount > 0 || i === 0;
     wrap.innerHTML += `<button class="checkpoint-btn ${cls}" ${isClickable ? `onclick="openUnit(${i})"` : ''}><span>${unit.icon}</span>${starCount>0?`<span class="cp-stars">${starsDisplay}</span>`:''}</button><div class="cp-label">${unit.name}</div>`;
     trail.appendChild(wrap);
   });
   showScreen('map-screen');
   const oldPanel = document.getElementById('unit-panel'); if(oldPanel) oldPanel.remove();
+  updateStreakDisplay();
 }
 
 function scrollToPanelSmoothly(){ const panel=document.getElementById('unit-panel'); if(panel){ panel.scrollIntoView({behavior:'smooth',block:'start'}); panel.style.transition='box-shadow 0.2s'; panel.style.boxShadow='0 0 0 3px var(--green)'; setTimeout(()=>{ if(panel) panel.style.boxShadow=''; },800); } }
 
-// FIXED: openUnit always allows practice, test enabled based on practice pass
 function openUnit(idx){
+  recordActivity();
   const unit = curriculum[currentSubject][idx];
   const practicePassed = isPracticePassed(currentSubject,idx);
   const testPassed = isUnitComplete(currentSubject,idx);
@@ -449,7 +641,6 @@ function openUnit(idx){
   if(practicePassed) badgeHtml+=`<span class="status-badge practice-pass">✅ Practice Passed (2★)</span>`; else badgeHtml+=`<span class="status-badge locked">📘 Practice needed (70%)</span>`;
   if(testPassed) badgeHtml+=`<span class="status-badge test-pass">🏆 Test Passed (3★)</span>`; else if(practicePassed) badgeHtml+=`<span class="status-badge locked">🎯 Take Test (75%) for 3rd star</span>`; else badgeHtml+=`<span class="status-badge locked">🔒 Test requires Practice first</span>`;
   badgeHtml+=`</div>`;
-  // Always allow practice replay, test only disabled if no practice pass AND no stars
   let testDisabled = (!practicePassed && starCount === 0);
   const subText = testPassed ? '⭐ Unit complete! You have 3 stars. Replay anytime for practice!' : (practicePassed ? '✨ Practice passed! Take the test to earn the 3rd star.' : '📖 Complete 30-question practice (70% to unlock test).');
   panel.innerHTML = `<div class="unit-panel-title">${unit.icon} ${unit.name}</div><div class="unit-panel-sub">${subText}</div>${badgeHtml}<div class="panel-actions"><button class="btn-practice" onclick="startQuiz(${idx},'practice')">📝 Practice (30 Qs • 70%)</button><button class="btn-test ${testDisabled?'disabled':''}" ${testDisabled?'disabled':`onclick="startQuiz(${idx},'test')"`}>🎯 Test (10 Qs • 75%)</button></div>${testPassed?'<div class="locked-message" style="color:var(--gold-dark);">★ 3 stars earned! Replay to keep skills sharp.</div>':(practicePassed?'<div class="locked-message">🎯 Pass the test (75%) to earn the final star!</div>':'<div class="locked-message">⚠️ Pass Practice first (70% correct) to unlock Test.</div>')}`;
@@ -468,7 +659,11 @@ function showSubjectSelector(){
     grid.appendChild(btn);
   });
 }
-window.addEventListener('load',()=>{ if(localStorage.getItem('qx_subject_chosen') === 'true') showMap(); else showSubjectSelector(); });
+window.addEventListener('load',()=>{ 
+  if(localStorage.getItem('qx_subject_chosen') === 'true') showMap(); 
+  else showSubjectSelector();
+  updateStreakDisplay();
+});
 </script>
 </body>
 </html>
