@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>Quantix | Math Mastery 1-12</title>
+<title>Quantix | Math Mastery K-12</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -178,16 +178,9 @@ const levelSubjects = {
 let currentLevel = localStorage.getItem('qx_current_level') || null;
 let currentSubject = localStorage.getItem('qx_current_subject') || "1st Grade";
 
-// Progress stored per level: qx_progress_elem, qx_progress_middle, qx_progress_high
 function getProgressKey() { return `qx_progress_${currentLevel ? currentLevel.toLowerCase() : 'elem'}`; }
-function loadProgress() { 
-  const key = getProgressKey();
-  return JSON.parse(localStorage.getItem(key) || '{}');
-}
-function saveProgressToLevel(progressObj) {
-  const key = getProgressKey();
-  localStorage.setItem(key, JSON.stringify(progressObj));
-}
+function loadProgress() { return JSON.parse(localStorage.getItem(getProgressKey()) || '{}'); }
+function saveProgressToLevel(progressObj) { localStorage.setItem(getProgressKey(), JSON.stringify(progressObj)); }
 let progress = loadProgress();
 
 function rebuildSidebar() {
@@ -196,11 +189,11 @@ function rebuildSidebar() {
   container.innerHTML = '';
   if(!currentLevel) return;
   const subjects = levelSubjects[currentLevel];
+  const icons = {'1st Grade':'🌟','2nd Grade':'🐧','3rd Grade':'🦊','4th Grade':'🦁','5th Grade':'🚀','6th Grade':'⚡','7th Grade':'🔬','8th Grade':'🎯','Algebra 1':'📐','Algebra 2':'📊','Geometry':'🔺','Pre-Calc':'📡','Calculus':'∫'};
   subjects.forEach(sub => {
     const btn = document.createElement('button');
     btn.className = 'subject-btn';
     if(currentSubject === sub) btn.classList.add('active');
-    const icons = {'1st Grade':'🌟','2nd Grade':'🐧','3rd Grade':'🦊','4th Grade':'🦁','5th Grade':'🚀','6th Grade':'⚡','7th Grade':'🔬','8th Grade':'🎯','Algebra 1':'📐','Algebra 2':'📊','Geometry':'🔺','Pre-Calc':'📡','Calculus':'∫'};
     btn.innerHTML = `<span>${icons[sub] || '📚'}</span>${sub}`;
     btn.onclick = () => { switchSubject(sub); };
     container.appendChild(btn);
@@ -216,12 +209,9 @@ function showLevelSelector() {
       const level = btn.getAttribute('data-level');
       currentLevel = level;
       localStorage.setItem('qx_current_level', level);
-      // Set default subject for this level
       currentSubject = levelSubjects[level][0];
       localStorage.setItem('qx_current_subject', currentSubject);
-      // Reload progress for this level
       progress = loadProgress();
-      // Remove overlay
       const ov = document.getElementById('level-selector');
       if(ov) ov.remove();
       rebuildSidebar();
@@ -231,57 +221,241 @@ function showLevelSelector() {
   });
 }
 
-// ======================== DETAILED STEP-BY-STEP EXPLANATIONS ========================
-function getDetailedExplanation(unitName, question, answer, difficulty, gradeLevel) {
-  // Addition
-  if(unitName === "Addition" && question.match(/(\d+) \+ (\d+)/)) {
-    const m = question.match(/(\d+) \+ (\d+)/);
-    const a = parseInt(m[1]), b = parseInt(m[2]);
-    return { steps: [{ text: "Start with the first number:", math: `${a}` }, { text: `Count up ${b} more:`, math: `${a} → ${a+1} → ... → ${a+b}` }, { text: "The sum is:", math: `${a+b}` }], tip: "Addition means putting numbers together. Count up from the first number." };
+// ======================== DETAILED EXPLANATION GENERATOR (ALL LEVELS) ========================
+function getDetailedExplanation(unitName, question, answer, difficulty) {
+  // ---------- ELEMENTARY ----------
+  if(unitName === "Addition") {
+    const match = question.match(/(\d+)\s*\+\s*(\d+)/);
+    if(match) {
+      const a = parseInt(match[1]), b = parseInt(match[2]);
+      return { steps: [
+        { text: "Start with the first number:", math: `${a}` },
+        { text: `Count up ${b} more:`, math: `${a} → ${a+1} → ${a+2} → ... → ${a+b}` },
+        { text: "The sum is:", math: `${a+b}` }
+      ], tip: "Addition means putting numbers together. Count up from the first number." };
+    }
   }
-  // Subtraction
-  if(unitName === "Subtraction" && question.match(/(\d+) - (\d+)/)) {
-    const m = question.match(/(\d+) - (\d+)/);
-    const a = parseInt(m[1]), b = parseInt(m[2]);
-    return { steps: [{ text: "Start with:", math: `${a}` }, { text: `Count down ${b} steps:`, math: `${a} → ${a-1} → ... → ${a-b}` }, { text: "The difference is:", math: `${a-b}` }], tip: "Subtraction means taking away. Count backwards." };
+  if(unitName === "Subtraction") {
+    const match = question.match(/(\d+)\s*-\s*(\d+)/);
+    if(match) {
+      const a = parseInt(match[1]), b = parseInt(match[2]);
+      return { steps: [
+        { text: "Start with:", math: `${a}` },
+        { text: `Count down ${b} steps:`, math: `${a} → ${a-1} → ${a-2} → ... → ${a-b}` },
+        { text: "The difference is:", math: `${a-b}` }
+      ], tip: "Subtraction means taking away. Count backwards." };
+    }
   }
-  // Multiplication
-  if(unitName === "Multiplication" && question.match(/(\d+) × (\d+)/)) {
-    const m = question.match(/(\d+) × (\d+)/);
-    const a = parseInt(m[1]), b = parseInt(m[2]);
-    return { steps: [{ text: "Multiplication is repeated addition:", math: `${a} × ${b} = ${a} + ${a} + ... (${b} times)` }, { text: `Add ${a} to itself ${b} times:`, math: Array(b).fill(a).join(' + ') + ` = ${a*b}` }, { text: "The product is:", math: `${a*b}` }], tip: "Think of multiplication as adding the same number over and over." };
+  if(unitName === "Multiplication") {
+    const match = question.match(/(\d+)\s*[×x]\s*(\d+)/);
+    if(match) {
+      const a = parseInt(match[1]), b = parseInt(match[2]);
+      const repeated = Array(b).fill(a).join(' + ');
+      return { steps: [
+        { text: "Multiplication is repeated addition:", math: `${a} × ${b} = ${repeated}` },
+        { text: `Add ${a} to itself ${b} times:`, math: `${repeated} = ${a*b}` },
+        { text: "The product is:", math: `${a*b}` }
+      ], tip: "Think of multiplication as adding the same number over and over." };
+    }
   }
-  // Division
-  if(unitName === "Division" && question.match(/(\d+) ÷ (\d+)/)) {
-    const m = question.match(/(\d+) ÷ (\d+)/);
-    const a = parseInt(m[1]), b = parseInt(m[2]);
-    return { steps: [{ text: `How many groups of ${b} fit into ${a}?`, math: `${b} × ? = ${a}` }, { text: `Since ${b} × ${a/b} = ${a}`, math: `? = ${a/b}` }, { text: "The quotient is:", math: `${a/b}` }], tip: "Division splits a number into equal groups." };
+  if(unitName === "Division") {
+    const match = question.match(/(\d+)\s*÷\s*(\d+)/);
+    if(match) {
+      const a = parseInt(match[1]), b = parseInt(match[2]);
+      return { steps: [
+        { text: `How many groups of ${b} fit into ${a}?`, math: `${b} × ? = ${a}` },
+        { text: `Since ${b} × ${a/b} = ${a}`, math: `? = ${a/b}` },
+        { text: "The quotient is:", math: `${a/b}` }
+      ], tip: "Division splits a number into equal groups." };
+    }
   }
-  // Linear Equations
+  if(unitName === "Percentages") {
+    const match = question.match(/(\d+)% of (\d+)/);
+    if(match) {
+      const p = parseInt(match[1]), total = parseInt(match[2]);
+      const result = (p/100)*total;
+      return { steps: [
+        { text: `To find ${p}% of ${total}:`, math: `${p}% = ${p}/100 = ${p/100}` },
+        { text: `Multiply:`, math: `${p/100} × ${total} = ${result}` }
+      ], tip: "Percent means 'per hundred'. Divide by 100 first, then multiply." };
+    }
+  }
+  if(unitName === "Integers") {
+    const match = question.match(/(-?\d+)\s*\+\s*(-?\d+)/);
+    if(match) {
+      const a = parseInt(match[1]), b = parseInt(match[2]);
+      return { steps: [
+        { text: "Start with:", math: `${a}` },
+        { text: `Add ${b}:`, math: `Move ${b>0 ? 'right' : 'left'} ${Math.abs(b)} steps on number line` },
+        { text: "Result:", math: `${a+b}` }
+      ], tip: "On a number line, adding positive moves right, negative moves left." };
+    }
+  }
+  if(unitName === "Equations") {
+    const match = question.match(/(\d+)x\s*=\s*(\d+)/);
+    if(match) {
+      const a = parseInt(match[1]), b = parseInt(match[2]);
+      return { steps: [
+        { text: "Start with:", math: `${a}x = ${b}` },
+        { text: `Divide both sides by ${a}:`, math: `x = ${b} ÷ ${a} = ${b/a}` }
+      ], tip: "To solve for x, divide both sides by the coefficient." };
+    }
+  }
+  // ---------- HIGH SCHOOL (already detailed, but add more) ----------
   if(unitName === "Linear Equations" && question.match(/(\d+)x \+ (\d+) = (\d+)/)) {
     const m = question.match(/(\d+)x \+ (\d+) = (\d+)/);
     const a = parseInt(m[1]), b = parseInt(m[2]), c = parseInt(m[3]);
-    const xVal = (c - b) / a;
-    return { steps: [{ text: "Start with:", math: `${a}x + ${b} = ${c}` }, { text: `Subtract ${b} from both sides:`, math: `${a}x = ${c-b}` }, { text: `Divide both sides by ${a}:`, math: `x = ${xVal}` }], tip: "Isolate x by undoing addition first, then division." };
+    return { steps: [
+      { text: "Start with the equation:", math: `${a}x + ${b} = ${c}` },
+      { text: `Subtract ${b} from both sides:`, math: `${a}x = ${c-b}` },
+      { text: `Divide both sides by ${a}:`, math: `x = ${(c-b)/a}` }
+    ], tip: "Isolate x by undoing addition first, then division." };
   }
-  // Default detailed fallback
-  return { steps: [{ text: "Problem:", math: question }, { text: "Solution:", math: answer }], tip: `Practice makes perfect with ${unitName}!` };
+  if(unitName === "Quadratics" && question.match(/x² = (\d+)/)) {
+    const m = question.match(/x² = (\d+)/);
+    const val = parseInt(m[1]);
+    return { steps: [
+      { text: "Start with:", math: `x² = ${val}` },
+      { text: "Take square root of both sides:", math: `x = ±√${val}` },
+      { text: "Simplify:", math: `x = ±${Math.sqrt(val)}` }
+    ], tip: "Remember: square roots can be positive or negative." };
+  }
+  if(unitName === "Trig Basics") {
+    const val = answer;
+    let explanation = "";
+    if(question.includes("sin(30°)")) explanation = "sin(30°) = opposite/hypotenuse = 1/2 = 0.5";
+    else if(question.includes("cos(60°)")) explanation = "cos(60°) = adjacent/hypotenuse = 1/2 = 0.5";
+    else if(question.includes("tan(45°)")) explanation = "tan(45°) = opposite/adjacent = 1/1 = 1";
+    else if(question.includes("sin(90°)")) explanation = "sin(90°) = opposite/hypotenuse = 1/1 = 1";
+    else if(question.includes("cos(0°)")) explanation = "cos(0°) = adjacent/hypotenuse = 1/1 = 1";
+    else if(question.includes("sin(60°)")) explanation = "sin(60°) = √3/2 ≈ 0.866";
+    else if(question.includes("cos(30°)")) explanation = "cos(30°) = √3/2 ≈ 0.866";
+    else explanation = `The value of ${question} is ${val}`;
+    return { steps: [
+      { text: "Recall the unit circle value:", math: question },
+      { text: explanation, math: `= ${val}` }
+    ], tip: "Memorize the unit circle for common angles: 0°, 30°, 45°, 60°, 90°." };
+  }
+  if(unitName === "Limits") {
+    return { steps: [
+      { text: "This is a limit problem - direct substitution works:", math: question },
+      { text: "Substitute the x value:", math: `= ${answer}` }
+    ], tip: "For continuous functions, just plug in the x value directly." };
+  }
+  if(unitName === "Derivatives") {
+    return { steps: [
+      { text: "Apply the power rule:", math: "d/dx[xⁿ] = n·xⁿ⁻¹" },
+      { text: "Simplify:", math: answer }
+    ], tip: "Power rule: multiply by the exponent, then subtract 1 from the exponent." };
+  }
+  if(unitName === "Chain Rule") {
+    return { steps: [
+      { text: "Use the chain rule:", math: "d/dx[f(g(x))] = f'(g(x)) · g'(x)" },
+      { text: "Differentiate outer function, then inner:", math: answer }
+    ], tip: "Chain rule: derivative of outside × derivative of inside." };
+  }
+  if(unitName === "Integrals") {
+    return { steps: [
+      { text: "Use the power rule for integration:", math: "∫ xⁿ dx = xⁿ⁺¹/(n+1) + C" },
+      { text: "Result:", math: answer }
+    ], tip: "Add 1 to exponent, divide by new exponent, add +C." };
+  }
+  // Fallback for any other unit
+  return { steps: [
+    { text: "Problem:", math: question },
+    { text: "Solution:", math: answer }
+  ], tip: "Practice makes perfect!" };
 }
 
-function renderExplanation(unitName, question, answer, difficulty, gradeLevel) {
+function renderExplanation(unitName, question, answer, difficulty) {
   const container = document.getElementById('expl-container');
   if(!container) return;
-  const data = getDetailedExplanation(unitName, question, answer, difficulty, gradeLevel);
+  const data = getDetailedExplanation(unitName, question, answer, difficulty);
   const stepsHtml = data.steps.map((s, i) => `<div class="step"><div class="step-num">${i+1}</div><div class="step-text">${esc(s.text)}${s.math ? `<div class="math">${esc(s.math)}</div>` : ''}</div></div>`).join('');
   const tipHtml = data.tip ? `<div class="expl-tip">💡 ${esc(data.tip)}</div>` : '';
   container.innerHTML = `<div class="expl-panel"><div class="expl-header"><span>🧠</span><span class="expl-badge">Step-by-step (${difficulty})</span></div><div class="expl-body">${stepsHtml}${tipHtml}</div></div>`;
 }
 
-// ======================== HELPER FUNCTIONS ========================
-function r(a,b){return Math.floor(Math.random()*(b-a+1))+a}
-function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function r(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
 
-// ======================== COMPLETE CURRICULUM ========================
+// ======================== QUESTION GENERATORS (UNCHANGED - KEEP AS IS) ========================
+function generateQuestionForGrade(grade, unitName, difficulty) {
+  // Elementary
+  if(grade === "1st Grade") {
+    if(unitName === "Addition") { const a=r(1,8), b=r(1,8); return [`${a} + ${b} = ?`, `${a+b}`]; }
+    if(unitName === "Subtraction") { const a=r(5,15), b=r(1,5); return [`${a} - ${b} = ?`, `${a-b}`]; }
+    return [`3 + 4 = ?`, `7`];
+  }
+  if(grade === "2nd Grade") {
+    if(unitName === "Addition") { const a=r(10,40), b=r(5,30); return [`${a} + ${b} = ?`, `${a+b}`]; }
+    if(unitName === "Multiplication") { const t=[2,5,10][r(0,2)], m=r(2,8); return [`${t} × ${m} = ?`, `${t*m}`]; }
+    return [`15 + 7 = ?`, `22`];
+  }
+  if(grade === "3rd Grade") {
+    if(unitName === "Multiplication") { const a=r(2,9), b=r(2,9); return [`${a} × ${b} = ?`, `${a*b}`]; }
+    if(unitName === "Division") { const b=r(2,8), a=b*r(2,10); return [`${a} ÷ ${b} = ?`, `${a/b}`]; }
+    return [`6 × 7 = ?`, `42`];
+  }
+  if(grade === "4th Grade") {
+    if(unitName === "Multiplication") { const a=r(10,50), b=r(2,12); return [`${a} × ${b} = ?`, `${a*b}`]; }
+    return [`25 × 4 = ?`, `100`];
+  }
+  if(grade === "5th Grade") {
+    if(unitName === "Multiplication") { const a=r(20,100), b=r(3,15); return [`${a} × ${b} = ?`, `${a*b}`]; }
+    return [`36 × 5 = ?`, `180`];
+  }
+  // Middle
+  if(grade === "6th Grade") {
+    if(unitName === "Percentages") { return [`What is 50% of 200?`, `100`]; }
+    if(unitName === "Integers") { const a=r(-10,10), b=r(-5,5); return [`${a} + ${b} = ?`, `${a+b}`]; }
+    return [`25% of 80 = ?`, `20`];
+  }
+  if(grade === "7th Grade") {
+    if(unitName === "Equations") { const x=r(2,8); return [`2x = ${2*x}`, `${x}`]; }
+    return [`x + 5 = 12`, `7`];
+  }
+  if(grade === "8th Grade") {
+    if(unitName === "Linear Equations") { const x=r(2,10); return [`2x + 3 = ${2*x+3}`, `${x}`]; }
+    if(unitName === "Pythagorean Theorem") { return [`3² + 4² = c², find c`, `5`]; }
+    return [`3x = 15`, `5`];
+  }
+  // High School
+  if(grade === "Algebra 1") {
+    if(unitName === "Linear Equations") { const a=r(2,5), b=r(3,12), x=r(2,8); return [`${a}x + ${b} = ${a*x+b}`, `${x}`]; }
+    if(unitName === "Quadratics") { const x=r(3,8); return [`x² = ${x*x}`, `${x}`]; }
+    if(unitName === "Factoring") { const a=r(1,4), b=r(2,6); return [`Factor x² + ${a+b}x + ${a*b}`, `(x+${a})(x+${b})`]; }
+    return [`2x + 4 = 10`, `3`];
+  }
+  if(grade === "Algebra 2") {
+    if(unitName === "Complex Quadratics") { const a=r(2,5), b=r(3,7); return [`Solve x² - ${a+b}x + ${a*b} = 0`, `x = ${a}, ${b}`]; }
+    if(unitName === "Exponents") { const p=r(2,5); return [`2^${p} = ?`, `${Math.pow(2,p)}`]; }
+    if(unitName === "Logarithms") { const p=r(2,6); return [`log₂(2^${p}) = ?`, `${p}`]; }
+    return [`2^4 = ?`, `16`];
+  }
+  if(grade === "Geometry") {
+    if(unitName === "Area") { const s=r(3,12); return [`Area of square with side ${s}?`, `${s*s}`]; }
+    if(unitName === "Angles") { const a=r(40,80); return [`Triangle has angles ${a}° and 50°, find third?`, `${180-a-50}°`]; }
+    if(unitName === "Circles") { const rad=r(2,8); return [`Area of circle with radius ${rad}? (use π≈3.14)`, `${Math.round(3.14*rad*rad)}`]; }
+    return [`Area of square side 5`, `25`];
+  }
+  if(grade === "Pre-Calc") {
+    if(unitName === "Trig Basics") { const trigs = [["sin(30°)","0.5"],["cos(60°)","0.5"],["tan(45°)","1"],["sin(90°)","1"],["cos(0°)","1"],["sin(60°)","0.866"],["cos(30°)","0.866"]]; return trigs[r(0,6)]; }
+    if(unitName === "Sequences") { const n=r(5,15); return [`1 + 2 + ... + ${n} = ?`, `${n*(n+1)/2}`]; }
+    if(unitName === "Exponentials") { const p=r(2,5); return [`3^${p} = ?`, `${Math.pow(3,p)}`]; }
+    return [`sin(30°) = ?`, `0.5`];
+  }
+  if(grade === "Calculus") {
+    if(unitName === "Limits") { const a=r(2,8), b=r(1,10); return [`lim x→${a} of (x + ${b})`, `${a+b}`]; }
+    if(unitName === "Derivatives") { const p=r(2,5); return [`d/dx of x^${p}`, `${p}x^${p-1}`]; }
+    if(unitName === "Chain Rule") { const a=r(1,3), p=r(2,4); return [`d/dx of (x+${a})^${p}`, `${p}(x+${a})^${p-1}`]; }
+    if(unitName === "Integrals") { const p=r(1,4); return [`∫ x^${p} dx`, `x^${p+1}/${p+1} + C`]; }
+    return [`d/dx of x^3`, `3x^2`];
+  }
+  return [`2 + 3 = ?`, `5`];
+}
+
+// ======================== CURRICULUM ========================
 const curriculum = {
   "1st Grade": [{name:"Addition", icon:"➕"},{name:"Subtraction", icon:"➖"},{name:"Counting", icon:"🔢"},{name:"Number Bonds", icon:"🔄"},{name:"Word Problems", icon:"📖"}],
   "2nd Grade": [{name:"Addition", icon:"➕"},{name:"Subtraction", icon:"➖"},{name:"Multiplication", icon:"✖️"},{name:"Place Value", icon:"🏠"},{name:"Measurement", icon:"📏"}],
@@ -298,77 +472,20 @@ const curriculum = {
   "Calculus": [{name:"Limits", icon:"🎯"},{name:"Derivatives", icon:"📉"},{name:"Chain Rule", icon:"⛓️"},{name:"Integrals", icon:"∫"},{name:"Applications", icon:"🏗️"}]
 };
 
-function generateQuestionForGrade(grade, unitName, difficulty) {
-  const gradeNum = parseInt(grade.split(' ')[0]) || 0;
-  // Elementary questions
-  if(grade === "1st Grade") {
-    if(unitName === "Addition") { const a=r(1,8), b=r(1,8); return [`${a} + ${b}`, `${a+b}`]; }
-    if(unitName === "Subtraction") { const a=r(5,15), b=r(1,5); return [`${a} - ${b}`, `${a-b}`]; }
-    return [`3 + 4 = ?`, `7`];
-  }
-  if(grade === "2nd Grade") {
-    if(unitName === "Addition") { const a=r(10,40), b=r(5,30); return [`${a} + ${b}`, `${a+b}`]; }
-    if(unitName === "Multiplication") { const t=[2,5,10][r(0,2)], m=r(2,8); return [`${t} × ${m}`, `${t*m}`]; }
-    return [`15 + 7 = ?`, `22`];
-  }
-  if(grade === "3rd Grade") {
-    if(unitName === "Multiplication") { const a=r(2,9), b=r(2,9); return [`${a} × ${b}`, `${a*b}`]; }
-    if(unitName === "Division") { const b=r(2,8), a=b*r(2,10); return [`${a} ÷ ${b}`, `${a/b}`]; }
-    return [`6 × 7 = ?`, `42`];
-  }
-  if(grade === "4th Grade") {
-    if(unitName === "Multiplication") { const a=r(10,50), b=r(2,12); return [`${a} × ${b}`, `${a*b}`]; }
-    return [`25 × 4 = ?`, `100`];
-  }
-  if(grade === "5th Grade") {
-    if(unitName === "Multiplication") { const a=r(20,100), b=r(3,15); return [`${a} × ${b}`, `${a*b}`]; }
-    return [`36 × 5 = ?`, `180`];
-  }
-  if(grade === "6th Grade") {
-    if(unitName === "Percentages") { return [`50% of 200`, `100`]; }
-    if(unitName === "Integers") { const a=r(-10,10), b=r(-5,5); return [`${a} + ${b}`, `${a+b}`]; }
-    return [`25% of 80`, `20`];
-  }
-  if(grade === "7th Grade") {
-    if(unitName === "Equations") { const x=r(2,8); return [`2x = ${2*x}`, `${x}`]; }
-    return [`x + 5 = 12`, `7`];
-  }
-  if(grade === "8th Grade") {
-    if(unitName === "Linear Equations") { const x=r(2,10); return [`2x + 3 = ${2*x+3}`, `${x}`]; }
-    return [`3x = 15`, `5`];
-  }
-  // High School
-  if(grade === "Algebra 1") {
-    if(unitName === "Linear Equations") { const a=r(2,8), b=r(2,15), x=r(2,12); return [`${a}x + ${b} = ${a*x+b}`, `${x}`]; }
-    if(unitName === "Quadratics") { const x=r(2,9); return [`x² = ${x*x}`, `${x}`]; }
-    return [`2x + 4 = 10`, `3`];
-  }
-  if(grade === "Geometry") {
-    if(unitName === "Area") { const s=r(3,12); return [`Area of square side ${s}`, `${s*s}`]; }
-    return [`Area of square side 5`, `25`];
-  }
-  if(grade === "Calculus") {
-    if(unitName === "Derivatives") { return [`d/dx of x^3`, `3x^2`]; }
-    return [`d/dx of x^2`, `2x`];
-  }
-  return [`2 + 3 = ?`, `5`];
-}
-
 let quizState = {};
 
-function saveProgressWrapper() { saveProgressToLevel(progress); }
 function getUnitKey(s,i){ return `${s}::unit_${i}`; }
 function getUnitStatus(s,i){ return progress[getUnitKey(s,i)] || null; }
-function setUnitStatus(s,i,status){ progress[getUnitKey(s,i)] = status; saveProgressWrapper(); }
+function setUnitStatus(s,i,status){ progress[getUnitKey(s,i)] = status; saveProgressToLevel(progress); }
 function isUnitComplete(s,i){ return getUnitStatus(s,i) === 'testPass'; }
 function isUnlocked(s,i){ if(i===0) return true; return isUnitComplete(s,i-1); }
 function getStarCount(s,i){ const st = getUnitStatus(s,i); if(st==='testPass') return 3; if(st==='practicePass') return 2; return 0; }
 function isPracticePassed(s,i){ return getUnitStatus(s,i)==='practicePass' || getUnitStatus(s,i)==='testPass'; }
 
-function resetAllProgress(){ if(confirm('Reset ALL progress for current level?')){ progress={}; saveProgressWrapper(); showMap(); updateStreakDisplay(); } }
+function resetAllProgress(){ if(confirm('Reset ALL progress for current level?')){ progress={}; saveProgressToLevel(progress); showMap(); updateStreakDisplay(); } }
 function switchSubject(s){ currentSubject=s; localStorage.setItem('qx_current_subject', s); document.querySelectorAll('.subject-btn').forEach(b=>b.classList.toggle('active',b.textContent.trim().endsWith(s))); showMap(); }
 function showScreen(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
-function generateWrongAnswers(correct, count=3){ const wrongs=[]; const isNum=/^-?\d+\.?\d*$/.test(correct); while(wrongs.length<count){ if(isNum){ let n=parseFloat(correct); if(isNaN(n)) n=5; const delta=r(1,3)*(Math.random()<0.5?1:-1); let w=n+delta; if(w===n) w=n+1; wrongs.push(String(w)); } else { wrongs.push(correct+'?'); } } return wrongs; }
+function generateWrongAnswers(correct, count=3){ const wrongs=[]; const isNum=/^-?\d+\.?\d*$/.test(String(correct)); while(wrongs.length<count){ if(isNum){ let n=parseFloat(correct); if(isNaN(n)) n=5; const delta=r(1,3)*(Math.random()<0.5?1:-1); let w=n+delta; if(w===n) w=n+1; if(w>0) wrongs.push(String(w)); else wrongs.push(String(n+2)); } else { wrongs.push(correct+'?'); } } return wrongs; }
 function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
 function quitQuiz(){ showMap(); }
 
@@ -400,13 +517,14 @@ function renderQuestion(){
   const optDiv = document.getElementById('opts');
   const letters = ['A', 'B', 'C', 'D'];
   opts.forEach((opt, idx) => { const btn = document.createElement('button'); btn.className = 'opt-btn'; btn.innerHTML = `<span class="opt-letter">${letters[idx]}</span><span>${esc(opt)}</span>`; btn.onclick = () => checkAnswer(opt, btn); optDiv.appendChild(btn); });
+  updateActiveOptions();
 }
 
 function checkAnswer(chosen, btn){
   const { questions, currentIndex, mode, unitName } = quizState;
   const current = questions[currentIndex];
   const isCorrect = chosen === current.answer;
-  if(isCorrect){ btn.classList.add('correct'); quizState.correct++; } else { btn.classList.add('wrong'); document.querySelectorAll('.opt-btn').forEach(b=>{ if(b.querySelector('span:last-child')?.innerText.trim() === current.answer) b.classList.add('correct'); }); if(mode==='test'){ quizState.hearts--; } renderExplanation(unitName, current.question, current.answer, current.difficulty, currentSubject); }
+  if(isCorrect){ btn.classList.add('correct'); quizState.correct++; } else { btn.classList.add('wrong'); document.querySelectorAll('.opt-btn').forEach(b=>{ if(b.querySelector('span:last-child')?.innerText.trim() === current.answer) b.classList.add('correct'); }); if(mode==='test'){ quizState.hearts--; } renderExplanation(unitName, current.question, current.answer, current.difficulty); }
   document.querySelectorAll('.opt-btn').forEach(b=>b.disabled=true);
   const fb = document.getElementById('fb');
   if(isCorrect){ fb.className='feedback-bar show correct'; fb.innerHTML=`<span class="fb-icon">✅</span><span class="fb-text correct">Correct!</span>`; } else { fb.className='feedback-bar show wrong'; fb.innerHTML=`<span class="fb-icon">✗</span><span class="fb-text wrong">Correct: ${esc(current.answer)}</span>`; }
@@ -437,7 +555,7 @@ function showResult(){
 function showMap(){
   const units = curriculum[currentSubject];
   const ms = document.getElementById('map-screen');
-  ms.innerHTML = `<div class="map-header"><div class="map-title">${currentSubject}</div><div class="map-sub">⭐ Practice (30 Qs, 70%) → 2 stars | 🏆 Test (10 Qs, 70%) → 3 stars | Click any completed unit to replay</div></div><div class="trail" id="trail"></div>`;
+  ms.innerHTML = `<div class="map-header"><div class="map-title">${currentSubject}</div><div class="map-sub">⭐ Practice (30 Qs, 70%) → 2 stars | 🏆 Test (10 Qs, 70%) → 3 stars</div></div><div class="trail" id="trail"></div>`;
   const trail = document.getElementById('trail');
   units.forEach((unit,i)=>{
     const unlocked = isUnlocked(currentSubject,i);
@@ -470,45 +588,37 @@ function openUnit(idx){
   ms.appendChild(panel); scrollToPanelSmoothly();
 }
 
-// Streak functions
-function updateStreakDisplay() {
-  const streakCount = document.getElementById('streak-count');
-  if(streakCount) streakCount.textContent = getCurrentStreak();
-}
+// Streak & Keyboard functions
+function updateStreakDisplay() { const sc = document.getElementById('streak-count'); if(sc) sc.textContent = getCurrentStreak(); }
 function getCurrentStreak() {
-  const lastStreakDate = localStorage.getItem('qx_streak_last_date');
-  const currentStreak = parseInt(localStorage.getItem('qx_streak') || '0');
-  if(!lastStreakDate) return 0;
-  const last = new Date(parseInt(lastStreakDate));
-  const now = new Date();
-  const hoursDiff = (now - last) / (1000 * 60 * 60);
+  const last = localStorage.getItem('qx_streak_last_date');
+  const streak = parseInt(localStorage.getItem('qx_streak') || '0');
+  if(!last) return 0;
+  const hoursDiff = (Date.now() - parseInt(last)) / (1000*60*60);
   if(hoursDiff > 48) return 0;
-  return currentStreak;
+  return streak;
 }
 function recordStreakOnPass() {
   const now = Date.now();
-  const lastStreakDate = localStorage.getItem('qx_streak_last_date');
-  const currentStreak = parseInt(localStorage.getItem('qx_streak') || '0');
-  if(!lastStreakDate) { localStorage.setItem('qx_streak', '1'); localStorage.setItem('qx_streak_last_date', now); }
+  const last = localStorage.getItem('qx_streak_last_date');
+  const current = parseInt(localStorage.getItem('qx_streak') || '0');
+  if(!last) { localStorage.setItem('qx_streak', '1'); localStorage.setItem('qx_streak_last_date', now); }
   else {
-    const last = parseInt(lastStreakDate);
-    const hoursDiff = (now - last) / (1000 * 60 * 60);
-    if(hoursDiff >= 24 && hoursDiff < 48) { localStorage.setItem('qx_streak', currentStreak + 1); localStorage.setItem('qx_streak_last_date', now); }
+    const hoursDiff = (now - parseInt(last)) / (1000*60*60);
+    if(hoursDiff >= 24 && hoursDiff < 48) { localStorage.setItem('qx_streak', current+1); localStorage.setItem('qx_streak_last_date', now); }
     else if(hoursDiff < 24) { localStorage.setItem('qx_streak_last_date', now); }
     else if(hoursDiff >= 48) { localStorage.setItem('qx_streak', '1'); localStorage.setItem('qx_streak_last_date', now); }
   }
   updateStreakDisplay();
 }
 
-// Keyboard shortcuts
 let currentActiveOptions = [];
 function updateActiveOptions() { currentActiveOptions = Array.from(document.querySelectorAll('.opt-btn:not(:disabled)')); }
-function selectAnswerByIndex(index) { updateActiveOptions(); if(currentActiveOptions[index] && !currentActiveOptions[index].disabled) currentActiveOptions[index].click(); }
-function triggerContinue() { const nextBtn = document.getElementById('next-btn'); if(nextBtn && nextBtn.classList.contains('show')) nextBtn.click(); }
-function quitQuizKeyboard() { const quitBtn = document.querySelector('.quit-quiz-btn'); if(quitBtn) quitBtn.click(); else showMap(); }
+function selectAnswerByIndex(i) { updateActiveOptions(); if(currentActiveOptions[i] && !currentActiveOptions[i].disabled) currentActiveOptions[i].click(); }
+function triggerContinue() { const btn = document.getElementById('next-btn'); if(btn && btn.classList.contains('show')) btn.click(); }
 document.addEventListener('keydown', (e) => {
-  const activeScreen = document.querySelector('.screen.active');
-  if(activeScreen && activeScreen.id === 'quiz-screen') {
+  const active = document.querySelector('.screen.active');
+  if(active && active.id === 'quiz-screen') {
     if(e.key === '1') { e.preventDefault(); selectAnswerByIndex(0); }
     else if(e.key === '2') { e.preventDefault(); selectAnswerByIndex(1); }
     else if(e.key === '3') { e.preventDefault(); selectAnswerByIndex(2); }
@@ -518,15 +628,11 @@ document.addEventListener('keydown', (e) => {
     else if(e.key === 'c' || e.key === 'C') { e.preventDefault(); selectAnswerByIndex(2); }
     else if(e.key === 'd' || e.key === 'D') { e.preventDefault(); selectAnswerByIndex(3); }
     else if(e.key === 'Enter') { e.preventDefault(); triggerContinue(); }
-    else if(e.key === 'Escape') { e.preventDefault(); quitQuizKeyboard(); }
+    else if(e.key === 'Escape') { e.preventDefault(); const qb = document.querySelector('.quit-quiz-btn'); if(qb) qb.click(); else showMap(); }
   }
 });
 
-// Initialize
-window.addEventListener('load', () => {
-  if(!currentLevel) { showLevelSelector(); }
-  else { rebuildSidebar(); showMap(); updateStreakDisplay(); }
-});
+window.addEventListener('load', () => { if(!currentLevel) showLevelSelector(); else { rebuildSidebar(); showMap(); updateStreakDisplay(); } });
 </script>
 </body>
 </html>
