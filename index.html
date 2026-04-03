@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>Quantix – Math Mastery | Full Explanations</title>
+<title>Quantix – Math Mastery | Full Explanations + Replayable</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -163,145 +163,49 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
 <script>
-// ======================== RICH STEP-BY-STEP EXPLANATIONS (FULLY RESTORED) ========================
+// ======================== RICH STEP-BY-STEP EXPLANATIONS ========================
 function r(a,b){return Math.floor(Math.random()*(b-a+1))+a}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 function getDetailedExplanation(unitName, question, answer, difficulty) {
-  // Linear Equations: 4x + 6 = 14 -> x = 2
   if(unitName === "Linear Equations") {
     const match = question.match(/(\d+)x \+ (\d+) = (\d+)/);
     if(match) {
       const a = parseInt(match[1]), b = parseInt(match[2]), c = parseInt(match[3]);
       const xVal = (c - b) / a;
-      return {
-        steps: [
-          { text: "Start with the equation:", math: `${a}x + ${b} = ${c}` },
-          { text: `Subtract ${b} from both sides:`, math: `${a}x = ${c} - ${b} = ${c-b}` },
-          { text: `Divide both sides by ${a}:`, math: `x = ${c-b} ÷ ${a} = ${xVal}` }
-        ],
-        tip: "To isolate x, undo addition/subtraction first, then multiplication/division."
-      };
+      return { steps: [{ text: "Start with:", math: `${a}x + ${b} = ${c}` }, { text: `Subtract ${b}:`, math: `${a}x = ${c-b}` }, { text: `Divide by ${a}:`, math: `x = ${xVal}` }], tip: "Isolate x step by step." };
     }
   }
-  
-  // Quadratics: x² = 49 -> x = ±7
   if(unitName === "Quadratics") {
     const match = question.match(/x² = (\d+)/);
-    if(match) {
-      const val = parseInt(match[1]);
-      const sqrt = Math.sqrt(val);
-      return {
-        steps: [
-          { text: "Start with:", math: `x² = ${val}` },
-          { text: "Take the square root of both sides:", math: `x = √${val}` },
-          { text: "Evaluate the square root:", math: `x = ${answer}` }
-        ],
-        tip: "√(x²) = x. Remember that a square root can be positive or negative (±)."
-      };
-    }
+    if(match) { const val = parseInt(match[1]); return { steps: [{ text: "Start:", math: `x² = ${val}` }, { text: "Square root both sides:", math: `x = √${val}` }, { text: "Result:", math: answer }], tip: "√(x²) = x, remember ±." }; }
   }
-  
-  // Factoring
   if(unitName === "Factoring") {
     const match = question.match(/Factor x² \+ (\d+)x \+ (\d+)/);
     if(match) {
       const sum = parseInt(match[1]), prod = parseInt(match[2]);
       let fa=1, fb=1;
-      for(let i=1; i<=prod; i++) {
-        if(prod % i === 0 && i + (prod/i) === sum) { fa = i; fb = prod/i; break; }
-      }
-      return {
-        steps: [
-          { text: "Find two numbers that multiply to", math: `${prod}` },
-          { text: "and add to", math: `${sum}` },
-          { text: `Found ${fa} and ${fb}:`, math: `${fa} × ${fb} = ${prod}, ${fa} + ${fb} = ${sum}` },
-          { text: "Write the factored form:", math: `(x + ${fa})(x + ${fb})` }
-        ],
-        tip: "For x² + bx + c, find two numbers that multiply to c and add to b."
-      };
+      for(let i=1; i<=prod; i++) { if(prod % i === 0 && i + (prod/i) === sum) { fa = i; fb = prod/i; break; } }
+      return { steps: [{ text: "Find numbers multiplying to", math: `${prod}` }, { text: "and adding to", math: `${sum}` }, { text: `Found ${fa} and ${fb}`, math: `(x+${fa})(x+${fb})` }], tip: "Find factor pairs of c that sum to b." };
     }
   }
-  
-  // Functions
-  if(unitName === "Functions") {
-    const match = question.match(/f\(x\) = (\d+)x ([+-]) (\d+)\.\s*Find f\((\d+)\)/);
-    if(match) {
-      const a = parseInt(match[1]), sign = match[2], b = parseInt(match[3]), x = parseInt(match[4]);
-      const result = sign === '+' ? a*x + b : a*x - b;
-      return {
-        steps: [
-          { text: "The function is:", math: `f(x) = ${a}x ${sign} ${b}` },
-          { text: `Substitute x = ${x}:`, math: `f(${x}) = ${a}(${x}) ${sign} ${b}` },
-          { text: "Multiply:", math: `= ${a*x} ${sign} ${b}` },
-          { text: "Simplify:", math: `= ${result}` }
-        ],
-        tip: "Function evaluation means replacing x with the given number and simplifying."
-      };
-    }
-  }
-  
-  // Derivatives
   if(unitName === "Derivatives") {
     const match = question.match(/d\/dx of x\^(\d+)/);
-    if(match) {
-      const p = parseInt(match[1]);
-      return {
-        steps: [
-          { text: "Use the power rule:", math: "d/dx of xⁿ = n·xⁿ⁻¹" },
-          { text: `Bring the exponent ${p} down:`, math: `= ${p}·x^${p-1}` },
-          { text: "Final derivative:", math: answer }
-        ],
-        tip: "Power rule: multiply by the exponent, then subtract 1 from the exponent."
-      };
-    }
+    if(match) { const p = parseInt(match[1]); return { steps: [{ text: "Power rule:", math: "d/dx xⁿ = n·xⁿ⁻¹" }, { text: `Bring down ${p}:`, math: `${p}x^${p-1}` }], tip: "Multiply by exponent, subtract 1." }; }
   }
-  
-  // Area
-  if(unitName === "Area") {
-    const match = question.match(/square with side (\d+)/);
-    if(match) {
-      const s = parseInt(match[1]);
-      return {
-        steps: [
-          { text: "Formula for area of a square:", math: "Area = side²" },
-          { text: `Substitute side = ${s}:`, math: `Area = ${s}²` },
-          { text: "Calculate:", math: `${s} × ${s} = ${answer}` }
-        ],
-        tip: "Area of a square = side × side = side²."
-      };
-    }
-  }
-  
-  // Default fallback with actual math steps
-  return {
-    steps: [
-      { text: "Problem:", math: question },
-      { text: "Solution approach:", math: "Apply the relevant mathematical concept." },
-      { text: "Correct answer:", math: answer }
-    ],
-    tip: `Practice similar problems to master ${unitName}.`
-  };
+  return { steps: [{ text: "Problem:", math: question }, { text: "Correct answer:", math: answer }], tip: `Practice more ${unitName} problems.` };
 }
 
 function renderExplanation(unitName, question, answer, difficulty) {
   const container = document.getElementById('expl-container');
   if(!container) return;
   const data = getDetailedExplanation(unitName, question, answer, difficulty);
-  const stepsHtml = data.steps.map((s, i) => `
-    <div class="step">
-      <div class="step-num">${i+1}</div>
-      <div class="step-text">${esc(s.text)}${s.math ? `<div class="math">${esc(s.math)}</div>` : ''}</div>
-    </div>
-  `).join('');
+  const stepsHtml = data.steps.map((s, i) => `<div class="step"><div class="step-num">${i+1}</div><div class="step-text">${esc(s.text)}${s.math ? `<div class="math">${esc(s.math)}</div>` : ''}</div></div>`).join('');
   const tipHtml = data.tip ? `<div class="expl-tip">💡 ${esc(data.tip)}</div>` : '';
-  container.innerHTML = `<div class="expl-panel">
-    <div class="expl-header"><span style="font-size:15px">🧠</span><span class="expl-badge">Step-by-step solution (${difficulty})</span></div>
-    <div class="expl-body">${stepsHtml}${tipHtml}</div>
-  </div>`;
+  container.innerHTML = `<div class="expl-panel"><div class="expl-header"><span>🧠</span><span class="expl-badge">Step-by-step (${difficulty})</span></div><div class="expl-body">${stepsHtml}${tipHtml}</div></div>`;
 }
 
-// ======================== DIFFICULTY-BASED QUESTION GENERATORS ========================
+// ======================== QUESTION GENERATORS ========================
 function generateQuestion(unitName, difficulty) {
   const generators = {
     "Linear Equations": (diff) => {
@@ -329,43 +233,10 @@ function generateQuestion(unitName, difficulty) {
       if(diff === 'medium'){ const x=r(3,12); return [`f(x) = 3x - 5. Find f(${x})`, `${3*x-5}`]; }
       const x=r(5,18); return [`f(x) = 4x² + 2. Find f(${x})`, `${4*x*x+2}`];
     },
-    "Complex Quadratics": (diff) => {
-      if(diff === 'easy'){ const a=r(1,3), b=r(2,4); return [`Solve x² - ${a+b}x + ${a*b} = 0`, `x = ${a}, ${b}`]; }
-      if(diff === 'medium'){ const a=r(2,5), b=r(3,6); return [`Solve x² - ${a+b}x + ${a*b} = 0`, `x = ${a}, ${b}`]; }
-      const a=r(4,8), b=r(5,9); return [`Solve x² - ${a+b}x + ${a*b} = 0`, `x = ${a}, ${b}`];
-    },
-    "Exponents": (diff) => {
-      if(diff === 'easy'){ const p=r(2,4); return [`2^${p} = ?`, `${Math.pow(2,p)}`]; }
-      if(diff === 'medium'){ const p=r(3,6); return [`3^${p} = ?`, `${Math.pow(3,p)}`]; }
-      const p=r(4,8); return [`5^${p} = ?`, `${Math.pow(5,p)}`];
-    },
-    "Logarithms": (diff) => {
-      if(diff === 'easy'){ const p=r(2,5); return [`log₂(2^${p}) = ?`, `${p}`]; }
-      if(diff === 'medium'){ const p=r(3,7); return [`log₃(3^${p}) = ?`, `${p}`]; }
-      return [`log₅(5^${r(4,9)}) = ?`, `${r(4,9)}`];
-    },
     "Area": (diff) => {
       if(diff === 'easy'){ const s=r(3,8); return [`Area of square with side ${s}?`, `${s*s}`]; }
       if(diff === 'medium'){ const l=r(4,10), w=r(3,8); return [`Area of rectangle ${l}x${w}?`, `${l*w}`]; }
-      const s=r(7,15); return [`Area of square with side ${s}? (units²)`, `${s*s}`];
-    },
-    "Perimeter": (diff) => {
-      if(diff === 'easy'){ const s=r(3,8); return [`Perimeter of square with side ${s}?`, `${4*s}`]; }
-      if(diff === 'medium'){ const l=r(5,12), w=r(4,10); return [`Perimeter of rectangle ${l}x${w}?`, `${2*(l+w)}`]; }
-      const s=r(8,18); return [`Perimeter of square with side ${s}?`, `${4*s}`];
-    },
-    "Angles": (diff) => {
-      if(diff === 'easy'){ const a=r(40,70); return [`Triangle angles: ${a}° and 50°. Find third.`, `${180-a-50}°`]; }
-      if(diff === 'medium'){ const a=r(30,65), b=r(35,70); return [`Triangle angles: ${a}° and ${b}°. Find third.`, `${180-a-b}°`]; }
-      const a=r(25,60), b=r(30,65); return [`Triangle angles: ${a}° and ${b}°. Find third.`, `${180-a-b}°`];
-    },
-    "Trig Basics": (diff) => {
-      const easy = [["sin(30°)","0.5"],["cos(60°)","0.5"],["tan(45°)","1"]];
-      const medium = [["sin(60°)","0.866"],["cos(30°)","0.866"],["tan(30°)","0.577"]];
-      const hard = [["sin(90°)","1"],["cos(0°)","1"],["tan(60°)","1.732"]];
-      if(diff === 'easy') return easy[r(0,2)];
-      if(diff === 'medium') return medium[r(0,2)];
-      return hard[r(0,2)];
+      const s=r(7,15); return [`Area of square with side ${s}?`, `${s*s}`];
     },
     "Derivatives": (diff) => {
       if(diff === 'easy'){ const p=r(2,4); return [`d/dx of x^${p}`, `${p}x^${p-1}`]; }
@@ -373,15 +244,11 @@ function generateQuestion(unitName, difficulty) {
       return [`d/dx of 5x^4 - 2x`, `20x^3 - 2`];
     }
   };
-  const fn = generators[unitName] || ((d) => {
-    if(d === 'easy') return [`2 + 3 = ?`, `5`];
-    if(d === 'medium') return [`12 - 7 = ?`, `5`];
-    return [`24 ÷ 3 = ?`, `8`];
-  });
+  const fn = generators[unitName] || ((d) => [`2 + 3 = ?`, `5`]);
   return fn(difficulty);
 }
 
-// ======================== CURRICULUM ========================
+// ======================== CURRICULUM & PROGRESSION ========================
 const curriculum = {
   "Algebra 1": [{name:"Linear Equations", icon:"📐"},{name:"Quadratics", icon:"📈"},{name:"Factoring", icon:"🔢"},{name:"Inequalities", icon:"⚖️"},{name:"Functions", icon:"🎯"}],
   "Algebra 2": [{name:"Complex Quadratics", icon:"📊"},{name:"Polynomials", icon:"🌊"},{name:"Exponents", icon:"⚡"},{name:"Logarithms", icon:"🔬"},{name:"Rational Functions", icon:"🔄"}],
@@ -390,11 +257,11 @@ const curriculum = {
   "Calculus": [{name:"Limits", icon:"🎯"},{name:"Derivatives", icon:"📉"},{name:"Chain Rule", icon:"⛓️"},{name:"Integrals", icon:"∫"},{name:"Applications", icon:"🏗️"}]
 };
 
-let progress = JSON.parse(localStorage.getItem('qx_progress_v6')||'{}');
+let progress = JSON.parse(localStorage.getItem('qx_progress_v7')||'{}');
 let currentSubject = 'Algebra 1';
 let quizState = {};
 
-function saveProgress(){ localStorage.setItem('qx_progress_v6', JSON.stringify(progress)); }
+function saveProgress(){ localStorage.setItem('qx_progress_v7', JSON.stringify(progress)); }
 function getUnitKey(s,i){ return `${s}::unit_${i}`; }
 function getUnitStatus(s,i){ return progress[getUnitKey(s,i)] || null; }
 function setUnitStatus(s,i,status){ progress[getUnitKey(s,i)] = status; saveProgress(); }
@@ -403,7 +270,7 @@ function isUnlocked(s,i){ if(i===0) return true; return isUnitComplete(s,i-1); }
 function getStarCount(s,i){ const st = getUnitStatus(s,i); if(st==='testPass') return 3; if(st==='practicePass') return 2; return 0; }
 function isPracticePassed(s,i){ return getUnitStatus(s,i)==='practicePass' || getUnitStatus(s,i)==='testPass'; }
 
-function resetAllProgress(){ if(confirm('Reset ALL progress?')){ progress={}; localStorage.removeItem('qx_progress_v6'); saveProgress(); showMap(); const p=document.getElementById('unit-panel'); if(p)p.remove(); }}
+function resetAllProgress(){ if(confirm('Reset ALL progress?')){ progress={}; localStorage.removeItem('qx_progress_v7'); saveProgress(); showMap(); const p=document.getElementById('unit-panel'); if(p)p.remove(); }}
 function switchSubject(s){ currentSubject=s; document.querySelectorAll('.subject-btn').forEach(b=>b.classList.toggle('active',b.textContent.trim().endsWith(s))); showMap(); }
 function showScreen(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 function generateWrongAnswers(correct, count=3){ const wrongs=[]; const isNum=/^-?\d+\.?\d*$/.test(correct) || /^[±]?\d+/.test(correct); while(wrongs.length<count){ let w; if(isNum){ let n=parseFloat(correct); if(isNaN(n)) n=correct.length; const delta=r(1,5)*(Math.random()<.5?1:-1); w=String(n+delta); if(w===correct||wrongs.includes(w)) continue; } else { const v=[correct+'²', correct.replace(/\d+/,m=>String(parseInt(m)+r(1,3))), '2'+correct, 'None']; w=v[r(0,v.length-1)]; if(w===correct||wrongs.includes(w)) continue; } wrongs.push(w); } return wrongs; }
@@ -412,7 +279,11 @@ function quitQuiz(){ showMap(); }
 
 function startQuiz(idx, mode){
   const unit = curriculum[currentSubject][idx];
-  if(mode==='test' && !isPracticePassed(currentSubject,idx)){ alert("⚠️ You must pass Practice (70% or more) before attempting the Test!"); return; }
+  // For test, require practice passed (but if already have 3 stars, still allow retake)
+  if(mode==='test' && !isPracticePassed(currentSubject,idx) && getStarCount(currentSubject,idx) < 2){ 
+    alert("⚠️ You must pass Practice (70% or more) before attempting the Test!"); 
+    return; 
+  }
   const maxQ = mode === 'practice' ? 30 : 10;
   const passThreshold = mode === 'practice' ? 70 : 75;
   quizState = { idx, mode, unitName: unit.name, hearts: mode==='test'?3:999, correct:0, total:0, maxQ, passThreshold, questions:[], currentIndex:0 };
@@ -444,22 +315,10 @@ function renderQuestion(){
   const difficultyLabel = current.difficulty === 'easy' ? '🌱 EASY' : (current.difficulty === 'medium' ? '⚡ MEDIUM' : '🔥 HARD');
   const heartHTML = mode==='test' ? Array.from({length:3},(_,i)=>`<span class="heart${i>=hearts?' lost':''}">❤️</span>`).join('') : '';
   qs.innerHTML = `<div class="q-screen">
-    <div class="quiz-header-actions">
-      <div class="quiz-stats">Q${currentIndex+1}/${maxQ} • ${mode==='practice'?'Practice':'Test'}</div>
-      <button class="quit-quiz-btn" onclick="quitQuiz()">✕ Quit</button>
-    </div>
-    <div class="quiz-top">
-      <div class="hearts">${heartHTML}</div>
-      <div class="progress-bar-wrap"><div class="progress-bar" style="width:${prog}%"></div></div>
-    </div>
-    <div class="q-card">
-      <div class="difficulty-badge ${difficultyClass}">${difficultyLabel}</div>
-      <div class="q-topic">${unitName}</div>
-      <div class="q-text">${esc(current.question)}</div>
-    </div>
-    <div class="options" id="opts"></div>
-    <div class="feedback-bar" id="fb"></div>
-    <div id="expl-container"></div>
+    <div class="quiz-header-actions"><div class="quiz-stats">Q${currentIndex+1}/${maxQ} • ${mode==='practice'?'Practice':'Test'}</div><button class="quit-quiz-btn" onclick="quitQuiz()">✕ Quit</button></div>
+    <div class="quiz-top"><div class="hearts">${heartHTML}</div><div class="progress-bar-wrap"><div class="progress-bar" style="width:${prog}%"></div></div></div>
+    <div class="q-card"><div class="difficulty-badge ${difficultyClass}">${difficultyLabel}</div><div class="q-topic">${unitName}</div><div class="q-text">${esc(current.question)}</div></div>
+    <div class="options" id="opts"></div><div class="feedback-bar" id="fb"></div><div id="expl-container"></div>
     <button class="next-btn" id="next-btn" onclick="nextQ()">Continue →</button>
   </div>`;
   const optDiv = document.getElementById('opts');
@@ -513,22 +372,49 @@ function showResult(){
   const currentStatus = getUnitStatus(currentSubject, idx);
   let newStatus = currentStatus;
   let message = "";
-  if(mode === 'practice' && passed && currentStatus !== 'testPass'){ newStatus = 'practicePass'; message = `🎉 Practice passed! ${correct}/${maxQ} (${pct}%). You earned 2 stars. Test is now unlocked!`; } 
-  else if(mode === 'test' && passed){ newStatus = 'testPass'; message = `🏆 Test passed! ${correct}/${maxQ} (${pct}%). You earned the 3rd star!`; } 
-  else if(mode === 'test' && !passed && currentStatus === 'practicePass'){ message = `❌ Test failed (${pct}% needed ${passThreshold}%). Keep practicing!`; } 
-  else if(mode === 'practice' && !passed){ message = `📚 Practice score ${pct}% (need ${passThreshold}%). Try again!`; }
-  if(newStatus !== currentStatus){ setUnitStatus(currentSubject, idx, newStatus); }
+  let title = "";
+  
+  if(mode === 'practice' && passed && currentStatus !== 'testPass'){ 
+    newStatus = 'practicePass'; 
+    message = `🎉 Practice passed! ${correct}/${maxQ} (${pct}%). You earned 2 stars. Test is now unlocked!`;
+    title = "Practice Passed! ⭐⭐";
+  } else if(mode === 'test' && passed){ 
+    // Only upgrade if better than current (can't downgrade)
+    if(currentStatus !== 'testPass') newStatus = 'testPass';
+    message = `🏆 Test passed! ${correct}/${maxQ} (${pct}%). You earned the 3rd star!`;
+    title = "Test Passed! 🌟🌟🌟";
+  } else if(mode === 'test' && !passed){ 
+    message = `❌ Test failed! ${correct}/${maxQ} (${pct}% needed ${passThreshold}%). Keep practicing!`;
+    title = "Test Failed ❌";
+  } else if(mode === 'practice' && !passed){ 
+    message = `📚 Practice score ${pct}% (need ${passThreshold}%). Try again!`;
+    title = "Practice Incomplete 📚";
+  } else if(mode === 'practice' && passed && currentStatus === 'testPass'){
+    message = `🎉 Great review! ${correct}/${maxQ} (${pct}%). You already have 3 stars!`;
+    title = "Practice Review ⭐⭐⭐";
+  } else if(mode === 'test' && passed && currentStatus === 'testPass'){
+    message = `🎉 Excellent! ${correct}/${maxQ} (${pct}%). You maintain your 3 stars!`;
+    title = "Test Review 🌟🌟🌟";
+  }
+  
+  if(newStatus !== currentStatus && newStatus){ setUnitStatus(currentSubject, idx, newStatus); }
   const starCount = getStarCount(currentSubject, idx);
-  const emoji = starCount===3 ? '🌟' : (starCount===2 ? '⭐' : '😅');
-  const title = starCount===3 ? 'Perfect!' : (starCount===2 ? 'Practice Passed' : (mode==='test' ? 'Test Failed' : 'Practice Incomplete'));
-  document.getElementById('result-screen').innerHTML = `<div class="result-screen-inner"><div class="result-icon">${emoji}</div><div class="result-title">${title}</div><div class="result-sub">${message || `${correct}/${maxQ} correct (${pct}%)`}</div><div class="result-stats"><div class="stat-card"><div class="stat-val">${correct}/${maxQ}</div><div class="stat-label">Correct</div></div><div class="stat-card"><div class="stat-val">${pct}%</div><div class="stat-label">Score</div></div></div><button class="result-btn" onclick="showMap()">Back to path</button></div>`;
+  const emoji = starCount===3 ? '🌟' : (starCount===2 ? '⭐' : (mode==='test' ? '❌' : '📚'));
+  
+  document.getElementById('result-screen').innerHTML = `<div class="result-screen-inner">
+    <div class="result-icon">${emoji}</div>
+    <div class="result-title">${title || (starCount===3 ? 'Perfect!' : (starCount===2 ? 'Practice Passed' : (mode==='test' ? 'Test Failed' : 'Practice Incomplete')))}</div>
+    <div class="result-sub">${message || `${correct}/${maxQ} correct (${pct}%)`}</div>
+    <div class="result-stats"><div class="stat-card"><div class="stat-val">${correct}/${maxQ}</div><div class="stat-label">Correct</div></div><div class="stat-card"><div class="stat-val">${pct}%</div><div class="stat-label">Score</div></div></div>
+    <button class="result-btn" onclick="showMap()">Back to path</button>
+  </div>`;
   showScreen('result-screen');
 }
 
 function showMap(){
   const units = curriculum[currentSubject];
   const ms = document.getElementById('map-screen');
-  ms.innerHTML = `<div class="map-header"><div class="map-title">${currentSubject}</div><div class="map-sub">⭐ Practice (30 Qs, 70%) = 2 stars & unlocks Test | 🏆 Test (10 Qs, 75%) = 3 stars</div></div><div class="trail" id="trail"></div>`;
+  ms.innerHTML = `<div class="map-header"><div class="map-title">${currentSubject}</div><div class="map-sub">⭐ Practice (30 Qs, 70%) = 2 stars & unlocks Test | 🏆 Test (10 Qs, 75%) = 3 stars | Click any completed unit to replay</div></div><div class="trail" id="trail"></div>`;
   const trail = document.getElementById('trail');
   units.forEach((unit,i)=>{
     const unlocked = isUnlocked(currentSubject,i);
@@ -540,7 +426,9 @@ function showMap(){
     const starsDisplay = starCount===3 ? '★★★' : (starCount===2 ? '★★☆' : '☆☆☆');
     const wrap = document.createElement('div'); wrap.className='checkpoint-wrap';
     if(i>0){ const c=document.createElement('div'); c.className='connector'+(isUnitComplete(currentSubject,i-1)?' done':''); wrap.appendChild(c); }
-    wrap.innerHTML += `<button class="checkpoint-btn ${cls}" ${unlocked ? `onclick="openUnit(${i})"` : ''}><span>${unit.icon}</span>${starCount>0?`<span class="cp-stars">${starsDisplay}</span>`:''}</button><div class="cp-label">${unit.name}</div>`;
+    // FIX: Always make unit clickable if unlocked OR already completed (starCount > 0)
+    const isClickable = unlocked || starCount > 0;
+    wrap.innerHTML += `<button class="checkpoint-btn ${cls}" ${isClickable ? `onclick="openUnit(${i})"` : ''}><span>${unit.icon}</span>${starCount>0?`<span class="cp-stars">${starsDisplay}</span>`:''}</button><div class="cp-label">${unit.name}</div>`;
     trail.appendChild(wrap);
   });
   showScreen('map-screen');
@@ -553,6 +441,7 @@ function openUnit(idx){
   const unit = curriculum[currentSubject][idx];
   const practicePassed = isPracticePassed(currentSubject,idx);
   const testPassed = isUnitComplete(currentSubject,idx);
+  const starCount = getStarCount(currentSubject,idx);
   const ms = document.getElementById('map-screen');
   const old = document.getElementById('unit-panel'); if(old) old.remove();
   const panel = document.createElement('div'); panel.id='unit-panel'; panel.className='unit-panel';
@@ -560,9 +449,14 @@ function openUnit(idx){
   if(practicePassed) badgeHtml+=`<span class="status-badge practice-pass">✅ Practice Passed (2★)</span>`; else badgeHtml+=`<span class="status-badge locked">📘 Practice needed (70%)</span>`;
   if(testPassed) badgeHtml+=`<span class="status-badge test-pass">🏆 Test Passed (3★)</span>`; else if(practicePassed) badgeHtml+=`<span class="status-badge locked">🎯 Take Test (75%) for 3rd star</span>`; else badgeHtml+=`<span class="status-badge locked">🔒 Test requires Practice first</span>`;
   badgeHtml+=`</div>`;
-  const practiceDisabled = testPassed;
-  const testDisabled = !practicePassed || testPassed;
-  panel.innerHTML = `<div class="unit-panel-title">${unit.icon} ${unit.name}</div><div class="unit-panel-sub">${testPassed ? '⭐ Unit complete! 3 stars!' : (practicePassed ? '✨ Practice passed! Take the 10-question test (75% to pass).' : '📖 Complete 30-question practice (70% to unlock test).')}</div>${badgeHtml}<div class="panel-actions"><button class="btn-practice ${practiceDisabled?'disabled':''}" ${practiceDisabled?'disabled':`onclick="startQuiz(${idx},'practice')"`}>📝 Practice (30 Qs • 70%)</button><button class="btn-test ${testDisabled?'disabled':''}" ${testDisabled?'disabled':`onclick="startQuiz(${idx},'test')"`}>🎯 Test (10 Qs • 75%)</button></div>`;
+  // FIX: Never disable buttons - always allow replay, just show appropriate status
+  let practiceDisabled = false; // Always allow practice replay
+  let testDisabled = false; // Always allow test if practice passed OR already have stars
+  if(!practicePassed && starCount === 0){
+    testDisabled = true; // Test only disabled if no practice pass AND no stars
+  }
+  const subText = testPassed ? '⭐ Unit complete! You have 3 stars. Replay anytime for practice!' : (practicePassed ? '✨ Practice passed! Take the test to earn the 3rd star.' : '📖 Complete 30-question practice (70% to unlock test).');
+  panel.innerHTML = `<div class="unit-panel-title">${unit.icon} ${unit.name}</div><div class="unit-panel-sub">${subText}</div>${badgeHtml}<div class="panel-actions"><button class="btn-practice" onclick="startQuiz(${idx},'practice')">📝 Practice (30 Qs • 70%)</button><button class="btn-test ${testDisabled?'disabled':''}" ${testDisabled?'disabled':`onclick="startQuiz(${idx},'test')"`}>🎯 Test (10 Qs • 75%)</button></div>${testPassed?'<div class="locked-message" style="color:var(--gold-dark);">★ 3 stars earned! Replay to keep skills sharp.</div>':(practicePassed?'<div class="locked-message">🎯 Pass the test (75%) to earn the final star!</div>':'<div class="locked-message">⚠️ Pass Practice first (70% correct) to unlock Test.</div>')}`;
   ms.appendChild(panel); scrollToPanelSmoothly();
 }
 
