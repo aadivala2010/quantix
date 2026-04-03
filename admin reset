@@ -1,0 +1,6 @@
+// COMPLETE RESET - Clears ALL progress for ALL subjects
+localStorage.removeItem('qx_progress_v7');
+localStorage.removeItem('qx_subject_chosen');
+progress = {};
+saveProgress();
+location.reload();
