@@ -599,7 +599,7 @@ function renderQuestion(){
   const difficultyLabel = current.difficulty === 'easy' ? '🌱 EASY' : (current.difficulty === 'medium' ? '⚡ MEDIUM' : '🔥 HARD');
   const heartHTML = mode==='test' ? Array.from({length:3},(_,i)=>`<span class="heart${i>=hearts?' lost':''}">❤️</span>`).join('') : '';
   qs.innerHTML = `<div class="q-screen">
-    <div class="quiz-header-actions"><div class="quiz-stats">Q${currentIndex+1}/${maxQ} • ${mode==='practice'?'Practice':'Test'}</div><button class="quit-quiz-btn" onclick="quitQuiz()">✕ Quit (Esc)</button></div>
+    <div class="quiz-header-actions"><div class="quiz-stats">Q${currentIndex+1}/${maxQ} • ${mode==='practice'?'Practice':'Test'}</div><button class="quit-quiz-btn" onclick="quitQuiz()">✕ Quit</button></div>
     <div class="quiz-top"><div class="hearts">${heartHTML}</div><div class="progress-bar-wrap"><div class="progress-bar" style="width:${prog}%"></div></div></div>
     <div class="q-card"><div class="difficulty-badge ${difficultyClass}">${difficultyLabel}</div><div class="q-topic">${unitName}</div><div class="q-text">${esc(current.question)}</div></div>
     <div class="options" id="opts"></div><div class="feedback-bar" id="fb"></div><div id="expl-container"></div>
