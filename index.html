@@ -279,7 +279,6 @@ function quitQuiz(){ showMap(); }
 
 function startQuiz(idx, mode){
   const unit = curriculum[currentSubject][idx];
-  // For test, require practice passed (but if already have 3 stars, still allow retake)
   if(mode==='test' && !isPracticePassed(currentSubject,idx) && getStarCount(currentSubject,idx) < 2){ 
     alert("⚠️ You must pass Practice (70% or more) before attempting the Test!"); 
     return; 
@@ -379,7 +378,6 @@ function showResult(){
     message = `🎉 Practice passed! ${correct}/${maxQ} (${pct}%). You earned 2 stars. Test is now unlocked!`;
     title = "Practice Passed! ⭐⭐";
   } else if(mode === 'test' && passed){ 
-    // Only upgrade if better than current (can't downgrade)
     if(currentStatus !== 'testPass') newStatus = 'testPass';
     message = `🏆 Test passed! ${correct}/${maxQ} (${pct}%). You earned the 3rd star!`;
     title = "Test Passed! 🌟🌟🌟";
@@ -411,6 +409,7 @@ function showResult(){
   showScreen('result-screen');
 }
 
+// FIXED: showMap now makes completed units clickable for replay
 function showMap(){
   const units = curriculum[currentSubject];
   const ms = document.getElementById('map-screen');
@@ -426,8 +425,8 @@ function showMap(){
     const starsDisplay = starCount===3 ? '★★★' : (starCount===2 ? '★★☆' : '☆☆☆');
     const wrap = document.createElement('div'); wrap.className='checkpoint-wrap';
     if(i>0){ const c=document.createElement('div'); c.className='connector'+(isUnitComplete(currentSubject,i-1)?' done':''); wrap.appendChild(c); }
-    // FIX: Always make unit clickable if unlocked OR already completed (starCount > 0)
-    const isClickable = unlocked || starCount > 0;
+    // FIX: Make unit clickable if unlocked OR already has stars (completed) OR is first unit
+    const isClickable = unlocked || starCount > 0 || i === 0;
     wrap.innerHTML += `<button class="checkpoint-btn ${cls}" ${isClickable ? `onclick="openUnit(${i})"` : ''}><span>${unit.icon}</span>${starCount>0?`<span class="cp-stars">${starsDisplay}</span>`:''}</button><div class="cp-label">${unit.name}</div>`;
     trail.appendChild(wrap);
   });
@@ -437,6 +436,7 @@ function showMap(){
 
 function scrollToPanelSmoothly(){ const panel=document.getElementById('unit-panel'); if(panel){ panel.scrollIntoView({behavior:'smooth',block:'start'}); panel.style.transition='box-shadow 0.2s'; panel.style.boxShadow='0 0 0 3px var(--green)'; setTimeout(()=>{ if(panel) panel.style.boxShadow=''; },800); } }
 
+// FIXED: openUnit always allows practice, test enabled based on practice pass
 function openUnit(idx){
   const unit = curriculum[currentSubject][idx];
   const practicePassed = isPracticePassed(currentSubject,idx);
@@ -449,12 +449,8 @@ function openUnit(idx){
   if(practicePassed) badgeHtml+=`<span class="status-badge practice-pass">✅ Practice Passed (2★)</span>`; else badgeHtml+=`<span class="status-badge locked">📘 Practice needed (70%)</span>`;
   if(testPassed) badgeHtml+=`<span class="status-badge test-pass">🏆 Test Passed (3★)</span>`; else if(practicePassed) badgeHtml+=`<span class="status-badge locked">🎯 Take Test (75%) for 3rd star</span>`; else badgeHtml+=`<span class="status-badge locked">🔒 Test requires Practice first</span>`;
   badgeHtml+=`</div>`;
-  // FIX: Never disable buttons - always allow replay, just show appropriate status
-  let practiceDisabled = false; // Always allow practice replay
-  let testDisabled = false; // Always allow test if practice passed OR already have stars
-  if(!practicePassed && starCount === 0){
-    testDisabled = true; // Test only disabled if no practice pass AND no stars
-  }
+  // Always allow practice replay, test only disabled if no practice pass AND no stars
+  let testDisabled = (!practicePassed && starCount === 0);
   const subText = testPassed ? '⭐ Unit complete! You have 3 stars. Replay anytime for practice!' : (practicePassed ? '✨ Practice passed! Take the test to earn the 3rd star.' : '📖 Complete 30-question practice (70% to unlock test).');
   panel.innerHTML = `<div class="unit-panel-title">${unit.icon} ${unit.name}</div><div class="unit-panel-sub">${subText}</div>${badgeHtml}<div class="panel-actions"><button class="btn-practice" onclick="startQuiz(${idx},'practice')">📝 Practice (30 Qs • 70%)</button><button class="btn-test ${testDisabled?'disabled':''}" ${testDisabled?'disabled':`onclick="startQuiz(${idx},'test')"`}>🎯 Test (10 Qs • 75%)</button></div>${testPassed?'<div class="locked-message" style="color:var(--gold-dark);">★ 3 stars earned! Replay to keep skills sharp.</div>':(practicePassed?'<div class="locked-message">🎯 Pass the test (75%) to earn the final star!</div>':'<div class="locked-message">⚠️ Pass Practice first (70% correct) to unlock Test.</div>')}`;
   ms.appendChild(panel); scrollToPanelSmoothly();
