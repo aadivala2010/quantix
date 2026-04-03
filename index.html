@@ -1,474 +1,368 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>Quantix | Math Mastery</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-:root{
-  --green:#58cc02;--green-dark:#3a8f00;--green-deeper:#2a6e00;
-  --red:#ff4b4b;--red-bg:#fff0f0;
-  --correct-bg:#f0fff0;
-  --blue:#2563eb;--blue-bg:#eff6ff;--blue-border:#bfdafe;
-  --gold:#f59e0b;--gold-dark:#b45309;
-  --bg:#f0f4f0;--surface:#fff;--surface2:#f7f9f7;
-  --text:#1a2e1a;--text2:#4a6349;--text3:#7a9479;
-  --border:#dde8dd;--radius:14px;--radius-sm:9px;
-  --shadow:0 2px 12px rgba(0,0,0,0.07);
-  --font:'Nunito',system-ui,sans-serif;--mono:'DM Mono',monospace;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
-.app{display:flex;min-height:100vh}
-.sidebar{width:210px;background:var(--green);display:flex;flex-direction:column;padding:20px 14px;gap:6px;flex-shrink:0;position:sticky;top:0;height:100vh}
-.logo{color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.5px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.25);margin-bottom:8px;display:flex;align-items:center;gap:8px}
-.logo-mark{width:32px;height:32px;background:rgba(255,255,255,0.2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
-.subject-btn{background:rgba(255,255,255,0.12);border:none;border-radius:var(--radius-sm);color:#fff;font-size:13px;font-weight:700;font-family:var(--font);padding:10px 12px;cursor:pointer;text-align:left;transition:background 0.15s;display:flex;align-items:center;gap:8px}
-.subject-btn:hover{background:rgba(255,255,255,0.25)}
-.subject-btn.active{background:rgba(255,255,255,0.95);color:var(--green-dark)}
-.sidebar-spacer{flex:1}
-.reset-btn{background:rgba(0,0,0,0.15);border:none;border-radius:var(--radius-sm);color:rgba(255,255,255,0.85);font-size:12px;font-weight:700;font-family:var(--font);padding:9px 12px;cursor:pointer;transition:background 0.15s}
-.reset-btn:hover{background:rgba(0,0,0,0.25)}
-.main{flex:1;padding:32px 28px;overflow-y:auto}
-.screen{display:none}
-.screen.active{display:block}
-.map-header{margin-bottom:28px}
-.map-title{font-size:26px;font-weight:800;letter-spacing:-0.5px;color:var(--text)}
-.map-sub{font-size:14px;color:var(--text2);margin-top:4px}
-.trail{display:flex;flex-direction:column;align-items:center;gap:0;max-width:280px;margin:0 auto}
-.checkpoint-wrap{display:flex;flex-direction:column;align-items:center}
-.connector{width:4px;height:28px;background:var(--border);border-radius:2px}
-.connector.done{background:var(--green)}
-.checkpoint-btn{width:76px;height:76px;border-radius:50%;border:4px solid transparent;font-size:24px;cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;font-family:var(--font)}
-.checkpoint-btn.locked{background:#e8ede8;border-color:#c8d4c8;cursor:not-allowed;opacity:0.7}
-.checkpoint-btn.available{background:var(--surface);border-color:var(--green);box-shadow:0 5px 0 var(--green-dark)}
-.checkpoint-btn.available:hover{transform:translateY(-3px);box-shadow:0 8px 0 var(--green-dark)}
-.checkpoint-btn.available:active{transform:translateY(2px);box-shadow:0 2px 0 var(--green-dark)}
-.checkpoint-btn.complete{background:var(--green);border-color:var(--green-dark);box-shadow:0 5px 0 var(--green-deeper);color:#fff}
-.checkpoint-btn.perfect{background:var(--gold);border-color:var(--gold-dark);box-shadow:0 5px 0 #92400e;color:#fff}
-.cp-stars{font-size:10px;line-height:1}
-.cp-label{font-size:11px;font-weight:700;color:var(--text2);margin-top:6px;text-align:center;max-width:90px;line-height:1.3}
-.unit-panel{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:22px;margin-top:20px;max-width:400px;margin-left:auto;margin-right:auto;box-shadow:var(--shadow)}
-.unit-panel-title{font-size:18px;font-weight:800;color:var(--text);margin-bottom:4px}
-.unit-panel-sub{font-size:13px;color:var(--text2);margin-bottom:18px;line-height:1.5}
-.badge-container{display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap}
-.status-badge{background:var(--surface2);border-radius:40px;padding:6px 12px;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:6px}
-.status-badge.practice-pass{background:#d7ffb8;color:var(--green-dark)}
-.status-badge.test-pass{background:#fef3c7;color:var(--gold-dark)}
-.status-badge.locked{background:#f3f4f6;color:#9ca3af}
-.panel-actions{display:flex;gap:10px}
-.btn-practice{background:var(--green);color:#fff;border:none;border-radius:var(--radius-sm);padding:12px 18px;font-size:14px;font-weight:800;font-family:var(--font);cursor:pointer;flex:1;border-bottom:4px solid var(--green-dark);transition:all 0.1s}
-.btn-practice:active{border-bottom-width:1px;transform:translateY(3px)}
-.btn-practice.disabled{opacity:0.5;cursor:not-allowed;pointer-events:none}
-.btn-test{background:var(--surface);color:var(--green);border:2px solid var(--green);border-radius:var(--radius-sm);padding:12px 18px;font-size:14px;font-weight:800;font-family:var(--font);cursor:pointer;flex:1;transition:background 0.1s}
-.btn-test:hover:not(.disabled){background:var(--correct-bg)}
-.btn-test.disabled{opacity:0.5;cursor:not-allowed;background:#f3f4f6;border-color:#d1d5db;color:#9ca3af;pointer-events:none}
-.locked-message{font-size:11px;color:var(--red);margin-top:8px;text-align:center}
-.q-screen{max-width:620px;margin:0 auto}
-.difficulty-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:800;margin-bottom:12px}
-.difficulty-easy{background:#d7ffb8;color:var(--green-dark)}
-.difficulty-medium{background:#fef3c7;color:var(--gold-dark)}
-.difficulty-hard{background:#fee2e2;color:var(--red)}
-.quiz-header-actions{display:flex;align-items:center;gap:12px;margin-bottom:12px;justify-content:space-between}
-.quiz-stats{font-size:13px;font-weight:700;background:var(--surface2);padding:6px 12px;border-radius:40px;color:var(--text2)}
-.quit-quiz-btn{background:var(--surface);color:var(--red);border:2px solid var(--red);border-radius:var(--radius-sm);padding:8px 16px;font-size:13px;font-weight:800;font-family:var(--font);cursor:pointer;transition:all 0.1s}
-.quit-quiz-btn:hover{background:var(--red-bg)}
-.quiz-top{display:flex;align-items:center;gap:12px;margin-bottom:20px}
-.hearts{display:flex;gap:4px}
-.heart{font-size:22px}
-.heart.lost{filter:grayscale(1);opacity:0.35}
-.progress-bar-wrap{flex:1;background:var(--border);border-radius:99px;height:13px;overflow:hidden}
-.progress-bar{height:100%;background:var(--green);border-radius:99px;transition:width 0.4s cubic-bezier(.4,0,.2,1)}
-.q-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:28px 24px;margin-bottom:18px;box-shadow:var(--shadow)}
-.q-topic{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px}
-.q-text{font-size:21px;font-weight:800;color:var(--text);line-height:1.4;text-align:center;font-family:var(--mono)}
-.options{display:flex;flex-direction:column;gap:10px}
-.opt-btn{background:var(--surface);border:2px solid var(--border);border-radius:var(--radius-sm);padding:15px 20px;font-size:15px;font-weight:700;font-family:var(--font);cursor:pointer;text-align:left;color:var(--text);transition:all 0.12s;display:flex;align-items:center;gap:12px;box-shadow:0 2px 0 var(--border)}
-.opt-btn:hover:not(:disabled){border-color:var(--green);background:var(--correct-bg);box-shadow:0 2px 0 var(--green)}
-.opt-btn.correct{border-color:var(--green);background:var(--correct-bg);color:var(--green-dark);box-shadow:0 2px 0 var(--green)}
-.opt-btn.wrong{border-color:var(--red);background:var(--red-bg);color:#b00;box-shadow:0 2px 0 var(--red)}
-.opt-btn:disabled{cursor:not-allowed}
-.opt-letter{width:30px;height:30px;border-radius:7px;background:var(--surface2);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--text2);flex-shrink:0}
-.opt-btn.correct .opt-letter{background:var(--green);color:#fff;border-color:var(--green-dark)}
-.opt-btn.wrong .opt-letter{background:var(--red);color:#fff;border-color:#c00}
-.feedback-bar{border-radius:var(--radius-sm);padding:14px 18px;margin-top:14px;display:none;align-items:center;gap:12px}
-.feedback-bar.show{display:flex}
-.feedback-bar.correct{background:#d7ffb8;border:1.5px solid var(--green)}
-.feedback-bar.wrong{background:var(--red-bg);border:1.5px solid var(--red)}
-.fb-icon{font-size:20px}
-.fb-text{font-size:15px;font-weight:800}
-.fb-text.correct{color:var(--green-dark)}
-.fb-text.wrong{color:#b00}
-.next-btn{display:none;margin-top:14px;width:100%;background:var(--green);color:#fff;border:none;border-bottom:4px solid var(--green-dark);border-radius:var(--radius-sm);padding:15px;font-size:15px;font-weight:800;font-family:var(--font);cursor:pointer;transition:all 0.1s}
-.next-btn:active{border-bottom-width:1px;transform:translateY(3px)}
-.next-btn.show{display:block}
-.expl-panel{margin-top:14px;border-radius:var(--radius-sm);border:1.5px solid var(--blue-border);background:var(--blue-bg);overflow:hidden;animation:slideIn 0.3s cubic-bezier(.4,0,.2,1)}
-@keyframes slideIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
-.expl-header{display:flex;align-items:center;gap:8px;padding:11px 16px;background:rgba(37,99,235,0.08);border-bottom:1px solid var(--blue-border)}
-.expl-badge{font-size:12px;font-weight:800;color:var(--blue);text-transform:uppercase;letter-spacing:0.08em}
-.expl-body{padding:14px 16px;font-size:14px;line-height:1.7;color:#1e3a5f}
-.step{display:flex;gap:12px;margin-bottom:12px;align-items:flex-start}
-.step-num{min-width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
-.step-text{flex:1;padding-top:3px}
-.math{font-family:var(--mono);font-size:13px;background:rgba(37,99,235,0.1);border-radius:5px;padding:2px 7px;display:inline-block;margin:3px 0}
-.expl-tip{margin-top:10px;padding:10px 14px;background:rgba(37,99,235,0.08);border-radius:var(--radius-sm);border-left:3px solid var(--blue);font-size:13px;color:#1e3a5f;font-weight:600}
-.result-screen-inner{text-align:center;padding:40px 20px;max-width:420px;margin:0 auto}
-.result-icon{font-size:68px;margin-bottom:16px}
-.result-title{font-size:28px;font-weight:800;color:var(--text);margin-bottom:6px;letter-spacing:-0.5px}
-.result-sub{font-size:15px;color:var(--text2);margin-bottom:28px;line-height:1.5}
-.result-stats{display:flex;gap:12px;justify-content:center;margin-bottom:32px}
-.stat-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:14px 22px;min-width:100px;box-shadow:var(--shadow)}
-.stat-val{font-size:24px;font-weight:800;color:var(--text)}
-.stat-label{font-size:12px;color:var(--text2);margin-top:2px;font-weight:600}
-.result-btn{background:var(--green);color:#fff;border:none;border-bottom:4px solid var(--green-dark);border-radius:var(--radius-sm);padding:14px 36px;font-size:15px;font-weight:800;font-family:var(--font);cursor:pointer}
-.subject-selector-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);z-index:1000;display:flex;align-items:center;justify-content:center;animation:fadeIn 0.2s ease}
-.subject-selector-card{background:var(--surface);border-radius:32px;padding:36px 32px;max-width:440px;width:90%;text-align:center;box-shadow:0 25px 45px rgba(0,0,0,0.25);border:2px solid var(--green)}
-.subject-selector-card h2{font-size:28px;font-weight:800;color:var(--text);margin-bottom:12px}
-.subject-selector-card p{color:var(--text2);margin-bottom:28px;font-size:14px}
-.subject-grid{display:flex;flex-direction:column;gap:12px;margin-bottom:12px}
-.subject-choice-btn{background:var(--surface2);border:2px solid var(--border);border-radius:60px;padding:16px;font-size:18px;font-weight:800;font-family:var(--font);cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:12px}
-.subject-choice-btn:hover{background:var(--correct-bg);border-color:var(--green);transform:scale(1.02)}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-@media(max-width:700px){
-  .app{flex-direction:column}
-  .sidebar{width:100%;height:auto;flex-direction:row;flex-wrap:nowrap;overflow-x:auto;padding:10px;gap:4px;position:static}
-  .logo{display:none}
-  .subject-btn{font-size:11px;padding:8px 10px;white-space:nowrap;flex:0 0 auto}
-  .reset-btn{flex:0 0 auto;font-size:11px;padding:8px 10px;margin-left:auto}
-  .main{padding:16px 12px}
-  .q-text{font-size:17px}
-  .opt-btn{font-size:13px;padding:12px 14px}
-  .opt-letter{width:26px;height:26px;font-size:11px}
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Quick Quiz | Daily Streak</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background: linear-gradient(145deg, #1a2a3a 0%, #0f1a24 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .quiz-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(4px);
+            border-radius: 56px;
+            padding: 20px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+        }
+
+        .quiz-card {
+            background: #fef9f0;
+            border-radius: 44px;
+            padding: 28px 24px 32px 24px;
+            max-width: 620px;
+            width: 100%;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+            background: linear-gradient(135deg, #1e4b6e, #2a6f5c);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .streak-badge {
+            background: #ffedd5;
+            border-radius: 60px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            margin-bottom: 20px;
+            border: 1px solid #f3c26b;
+        }
+
+        .streak-icon {
+            font-size: 1.5rem;
+        }
+
+        .streak-count {
+            font-weight: 800;
+            font-size: 1.4rem;
+            color: #b45309;
+        }
+
+        .streak-label {
+            font-weight: 600;
+            color: #92400e;
+            font-size: 0.85rem;
+        }
+
+        .question {
+            font-size: 1.6rem;
+            font-weight: 600;
+            background: #eef2ff;
+            padding: 16px 12px;
+            border-radius: 48px;
+            margin: 12px 0 20px 0;
+            color: #0c4e6e;
+        }
+
+        .options-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 14px;
+            margin: 24px 0 20px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #cfdfe8;
+            border-radius: 80px;
+            padding: 14px 28px;
+            min-width: 100px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1f4e6e;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: monospace;
+        }
+
+        .option-btn:hover {
+            background: #e6f4ff;
+            transform: scale(0.97);
+        }
+
+        .feedback {
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin: 12px 0 16px;
+            padding: 10px;
+            border-radius: 50px;
+            background: #f3f4f6;
+            min-height: 68px;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+            flex-wrap: wrap;
+            margin: 8px 0 10px;
+        }
+
+        .primary-btn {
+            background: #2c7a5e;
+            border: none;
+            color: white;
+            padding: 12px 28px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 60px;
+            cursor: pointer;
+        }
+
+        .primary-btn:hover {
+            background: #1f5e48;
+        }
+
+        .secondary-btn {
+            background: #4b5563;
+            border: none;
+            color: white;
+            padding: 12px 28px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 60px;
+            cursor: pointer;
+        }
+
+        .status {
+            margin-top: 24px;
+            font-size: 0.85rem;
+            color: #4b5563;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 16px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .key-hint {
+            background: #eef2ff;
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+    </style>
 </head>
 <body>
-<div class="app">
-  <div class="sidebar">
-    <div class="logo"><div class="logo-mark">Q</div>Quantix</div>
-    <button class="subject-btn active" onclick="switchSubject('Algebra 1')"><span>📐</span>Algebra 1</button>
-    <button class="subject-btn" onclick="switchSubject('Algebra 2')"><span>📊</span>Algebra 2</button>
-    <button class="subject-btn" onclick="switchSubject('Geometry')"><span>🔺</span>Geometry</button>
-    <button class="subject-btn" onclick="switchSubject('Pre-Calc')"><span>📡</span>Pre-Calc</button>
-    <button class="subject-btn" onclick="switchSubject('Calculus')"><span>∫</span>Calculus</button>
-    <div class="sidebar-spacer"></div>
-    <button class="reset-btn" onclick="resetAllProgress()">🗑 Reset Progress</button>
-  </div>
-  <div class="main">
-    <div id="map-screen" class="screen active"></div>
-    <div id="quiz-screen" class="screen"></div>
-    <div id="result-screen" class="screen"></div>
-  </div>
+
+<div class="quiz-container">
+    <div class="quiz-card">
+        <h1>📋 Select an Option</h1>
+
+        <div class="streak-badge">
+            <span class="streak-icon">🔥</span>
+            <span class="streak-count" id="streakValue">0</span>
+            <span class="streak-label">day streak</span>
+        </div>
+
+        <div class="question">Choose one:</div>
+
+        <div class="options-grid" id="optionsContainer"></div>
+
+        <div class="feedback" id="feedbackMsg">✨ Press 1,2,3,4 or click an option ✨</div>
+
+        <div class="action-buttons">
+            <button class="primary-btn" id="submitBtn">⏎ Enter / Submit / Continue</button>
+            <button class="secondary-btn" id="quitBtn">⎋ Esc / Quit quiz</button>
+        </div>
+
+        <div class="status">
+            <span>🔢 1=A &nbsp; 2=B &nbsp; 3=C &nbsp; 4=D</span>
+            <span class="key-hint">⏎ Submit &nbsp;&nbsp; ⎋ Quit</span>
+        </div>
+    </div>
 </div>
+
 <script>
-// ======================== RICH STEP-BY-STEP EXPLANATIONS ========================
-function r(a,b){return Math.floor(Math.random()*(b-a+1))+a}
-function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+    // Options: 1 = A, 2 = B, 3 = C, 4 = D
+    const OPTIONS = [
+        { value: 1, label: "1", meaning: "A" },
+        { value: 2, label: "2", meaning: "B" },
+        { value: 3, label: "3", meaning: "C" },
+        { value: 4, label: "4", meaning: "D" }
+    ];
 
-function getDetailedExplanation(unitName, question, answer, difficulty) {
-  if(unitName === "Linear Equations") {
-    const match = question.match(/(\d+)x \+ (\d+) = (\d+)/);
-    if(match) {
-      const a = parseInt(match[1]), b = parseInt(match[2]), c = parseInt(match[3]);
-      const xVal = (c - b) / a;
-      return { steps: [{ text: "Start with:", math: `${a}x + ${b} = ${c}` }, { text: `Subtract ${b}:`, math: `${a}x = ${c-b}` }, { text: `Divide by ${a}:`, math: `x = ${xVal}` }], tip: "Isolate x step by step." };
+    let selectedValue = null;
+    let currentButtons = [];
+
+    // DOM elements
+    const optionsContainer = document.getElementById('optionsContainer');
+    const feedbackMsg = document.getElementById('feedbackMsg');
+    const submitBtn = document.getElementById('submitBtn');
+    const quitBtn = document.getElementById('quitBtn');
+    const streakValueSpan = document.getElementById('streakValue');
+
+    // ---------- DAILY STREAK (24hrs since last login) ----------
+    const STREAK_KEY = 'quiz_streak_data';
+
+    function getStreakData() {
+        const defaultData = { lastLoginTimestamp: 0, streakCount: 0 };
+        const raw = localStorage.getItem(STREAK_KEY);
+        if (!raw) return defaultData;
+        try {
+            return JSON.parse(raw);
+        } catch(e) {
+            return defaultData;
+        }
     }
-  }
-  if(unitName === "Quadratics") {
-    const match = question.match(/x² = (\d+)/);
-    if(match) { const val = parseInt(match[1]); return { steps: [{ text: "Start:", math: `x² = ${val}` }, { text: "Square root both sides:", math: `x = √${val}` }, { text: "Result:", math: answer }], tip: "√(x²) = x, remember ±." }; }
-  }
-  if(unitName === "Factoring") {
-    const match = question.match(/Factor x² \+ (\d+)x \+ (\d+)/);
-    if(match) {
-      const sum = parseInt(match[1]), prod = parseInt(match[2]);
-      let fa=1, fb=1;
-      for(let i=1; i<=prod; i++) { if(prod % i === 0 && i + (prod/i) === sum) { fa = i; fb = prod/i; break; } }
-      return { steps: [{ text: "Find numbers multiplying to", math: `${prod}` }, { text: "and adding to", math: `${sum}` }, { text: `Found ${fa} and ${fb}`, math: `(x+${fa})(x+${fb})` }], tip: "Find factor pairs of c that sum to b." };
+
+    function saveStreakData(data) {
+        localStorage.setItem(STREAK_KEY, JSON.stringify(data));
     }
-  }
-  if(unitName === "Derivatives") {
-    const match = question.match(/d\/dx of x\^(\d+)/);
-    if(match) { const p = parseInt(match[1]); return { steps: [{ text: "Power rule:", math: "d/dx xⁿ = n·xⁿ⁻¹" }, { text: `Bring down ${p}:`, math: `${p}x^${p-1}` }], tip: "Multiply by exponent, subtract 1." }; }
-  }
-  return { steps: [{ text: "Problem:", math: question }, { text: "Correct answer:", math: answer }], tip: `Practice more ${unitName} problems.` };
-}
 
-function renderExplanation(unitName, question, answer, difficulty) {
-  const container = document.getElementById('expl-container');
-  if(!container) return;
-  const data = getDetailedExplanation(unitName, question, answer, difficulty);
-  const stepsHtml = data.steps.map((s, i) => `<div class="step"><div class="step-num">${i+1}</div><div class="step-text">${esc(s.text)}${s.math ? `<div class="math">${esc(s.math)}</div>` : ''}</div></div>`).join('');
-  const tipHtml = data.tip ? `<div class="expl-tip">💡 ${esc(data.tip)}</div>` : '';
-  container.innerHTML = `<div class="expl-panel"><div class="expl-header"><span>🧠</span><span class="expl-badge">Step-by-step (${difficulty})</span></div><div class="expl-body">${stepsHtml}${tipHtml}</div></div>`;
-}
+    function updateDailyStreak() {
+        const now = Date.now();
+        const data = getStreakData();
+        let { lastLoginTimestamp, streakCount } = data;
+        const MILLIS_24H = 24 * 60 * 60 * 1000;
 
-// ======================== QUESTION GENERATORS ========================
-function generateQuestion(unitName, difficulty) {
-  const generators = {
-    "Linear Equations": (diff) => {
-      if(diff === 'easy'){ const a=r(1,5), b=r(0,8), x=r(1,8); return [`${a}x + ${b} = ${a*x+b}`, `${x}`]; }
-      if(diff === 'medium'){ const a=r(2,8), b=r(3,15), x=r(3,12); return [`${a}x + ${b} = ${a*x+b}`, `${x}`]; }
-      const a=r(4,12), b=r(5,25), x=r(5,20); return [`${a}x + ${b} = ${a*x+b}`, `${x}`];
-    },
-    "Quadratics": (diff) => {
-      if(diff === 'easy'){ const x=r(2,6); return [`x² = ${x*x}`, `${x}`]; }
-      if(diff === 'medium'){ const x=r(3,9); return [`x² = ${x*x}`, `±${x}`]; }
-      const x=r(5,12); return [`x² = ${x*x}`, `±${x}`];
-    },
-    "Factoring": (diff) => {
-      if(diff === 'easy'){ const a=r(1,3), b=r(1,4); return [`Factor x² + ${a+b}x + ${a*b}`, `(x+${a})(x+${b})`]; }
-      if(diff === 'medium'){ const a=r(2,5), b=r(3,6); return [`Factor x² + ${a+b}x + ${a*b}`, `(x+${a})(x+${b})`]; }
-      const a=r(4,8), b=r(5,9); return [`Factor x² + ${a+b}x + ${a*b}`, `(x+${a})(x+${b})`];
-    },
-    "Inequalities": (diff) => {
-      if(diff === 'easy'){ const b=r(4,16); return [`2x > ${b}`, `x > ${b/2}`]; }
-      if(diff === 'medium'){ const b=r(10,30); return [`3x ≤ ${b}`, `x ≤ ${Math.floor(b/3)}`]; }
-      const b=r(25,60); return [`5x ≥ ${b}`, `x ≥ ${b/5}`];
-    },
-    "Functions": (diff) => {
-      if(diff === 'easy'){ const x=r(1,8); return [`f(x) = 2x + 3. Find f(${x})`, `${2*x+3}`]; }
-      if(diff === 'medium'){ const x=r(3,12); return [`f(x) = 3x - 5. Find f(${x})`, `${3*x-5}`]; }
-      const x=r(5,18); return [`f(x) = 4x² + 2. Find f(${x})`, `${4*x*x+2}`];
-    },
-    "Area": (diff) => {
-      if(diff === 'easy'){ const s=r(3,8); return [`Area of square with side ${s}?`, `${s*s}`]; }
-      if(diff === 'medium'){ const l=r(4,10), w=r(3,8); return [`Area of rectangle ${l}x${w}?`, `${l*w}`]; }
-      const s=r(7,15); return [`Area of square with side ${s}?`, `${s*s}`];
-    },
-    "Derivatives": (diff) => {
-      if(diff === 'easy'){ const p=r(2,4); return [`d/dx of x^${p}`, `${p}x^${p-1}`]; }
-      if(diff === 'medium'){ const p=r(3,6); return [`d/dx of ${p}x^3`, `${3*p}x^2`]; }
-      return [`d/dx of 5x^4 - 2x`, `20x^3 - 2`];
+        let newStreak = streakCount;
+
+        if (lastLoginTimestamp === 0) {
+            newStreak = 1;
+        } else {
+            const diff = now - lastLoginTimestamp;
+            if (diff >= MILLIS_24H && diff < 2 * MILLIS_24H) {
+                newStreak = streakCount + 1;
+            } else if (diff >= 2 * MILLIS_24H) {
+                newStreak = 1;
+            } else {
+                newStreak = streakCount;
+            }
+        }
+
+        saveStreakData({ lastLoginTimestamp: now, streakCount: newStreak });
+        streakValueSpan.innerText = newStreak;
+        return newStreak;
     }
-  };
-  const fn = generators[unitName] || ((d) => [`2 + 3 = ?`, `5`]);
-  return fn(difficulty);
-}
 
-// ======================== CURRICULUM & PROGRESSION ========================
-const curriculum = {
-  "Algebra 1": [{name:"Linear Equations", icon:"📐"},{name:"Quadratics", icon:"📈"},{name:"Factoring", icon:"🔢"},{name:"Inequalities", icon:"⚖️"},{name:"Functions", icon:"🎯"}],
-  "Algebra 2": [{name:"Complex Quadratics", icon:"📊"},{name:"Polynomials", icon:"🌊"},{name:"Exponents", icon:"⚡"},{name:"Logarithms", icon:"🔬"},{name:"Rational Functions", icon:"🔄"}],
-  "Geometry": [{name:"Area", icon:"🟦"},{name:"Perimeter", icon:"📏"},{name:"Angles", icon:"📐"},{name:"Triangles", icon:"🔺"},{name:"Circles", icon:"⭕"}],
-  "Pre-Calc": [{name:"Trig Basics", icon:"📡"},{name:"Sequences", icon:"🔗"},{name:"Advanced Functions", icon:"🎢"},{name:"Exponentials", icon:"🚀"},{name:"Polar Coords", icon:"🧭"}],
-  "Calculus": [{name:"Limits", icon:"🎯"},{name:"Derivatives", icon:"📉"},{name:"Chain Rule", icon:"⛓️"},{name:"Integrals", icon:"∫"},{name:"Applications", icon:"🏗️"}]
-};
-
-let progress = JSON.parse(localStorage.getItem('qx_progress_v7')||'{}');
-let currentSubject = 'Algebra 1';
-let quizState = {};
-
-function saveProgress(){ localStorage.setItem('qx_progress_v7', JSON.stringify(progress)); }
-function getUnitKey(s,i){ return `${s}::unit_${i}`; }
-function getUnitStatus(s,i){ return progress[getUnitKey(s,i)] || null; }
-function setUnitStatus(s,i,status){ progress[getUnitKey(s,i)] = status; saveProgress(); }
-function isUnitComplete(s,i){ return getUnitStatus(s,i) === 'testPass'; }
-function isUnlocked(s,i){ if(i===0) return true; return isUnitComplete(s,i-1); }
-function getStarCount(s,i){ const st = getUnitStatus(s,i); if(st==='testPass') return 3; if(st==='practicePass') return 2; return 0; }
-function isPracticePassed(s,i){ return getUnitStatus(s,i)==='practicePass' || getUnitStatus(s,i)==='testPass'; }
-
-function resetAllProgress(){ if(confirm('Reset ALL progress?')){ progress={}; localStorage.removeItem('qx_progress_v7'); saveProgress(); showMap(); const p=document.getElementById('unit-panel'); if(p)p.remove(); }}
-function switchSubject(s){ currentSubject=s; document.querySelectorAll('.subject-btn').forEach(b=>b.classList.toggle('active',b.textContent.trim().endsWith(s))); showMap(); }
-function showScreen(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
-function generateWrongAnswers(correct, count=3){ const wrongs=[]; const isNum=/^-?\d+\.?\d*$/.test(correct) || /^[±]?\d+/.test(correct); while(wrongs.length<count){ let w; if(isNum){ let n=parseFloat(correct); if(isNaN(n)) n=correct.length; const delta=r(1,5)*(Math.random()<.5?1:-1); w=String(n+delta); if(w===correct||wrongs.includes(w)) continue; } else { const v=[correct+'²', correct.replace(/\d+/,m=>String(parseInt(m)+r(1,3))), '2'+correct, 'None']; w=v[r(0,v.length-1)]; if(w===correct||wrongs.includes(w)) continue; } wrongs.push(w); } return wrongs; }
-function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
-function quitQuiz(){ showMap(); }
-
-function startQuiz(idx, mode){
-  const unit = curriculum[currentSubject][idx];
-  if(mode==='test' && !isPracticePassed(currentSubject,idx) && getStarCount(currentSubject,idx) < 2){ 
-    alert("⚠️ You must pass Practice (70% or more) before attempting the Test!"); 
-    return; 
-  }
-  const maxQ = mode === 'practice' ? 30 : 10;
-  const passThreshold = mode === 'practice' ? 70 : 75;
-  quizState = { idx, mode, unitName: unit.name, hearts: mode==='test'?3:999, correct:0, total:0, maxQ, passThreshold, questions:[], currentIndex:0 };
-  for(let i=0; i<maxQ; i++){
-    let difficulty = 'medium';
-    if(mode === 'practice'){
-      if(i < 10) difficulty = 'easy';
-      else if(i < 20) difficulty = 'medium';
-      else difficulty = 'hard';
-    } else {
-      if(i < 3) difficulty = 'easy';
-      else if(i < 7) difficulty = 'medium';
-      else difficulty = 'hard';
+    // ---------- RENDER OPTIONS (1,2,3,4) ----------
+    function renderOptions() {
+        optionsContainer.innerHTML = '';
+        const buttons = [];
+        OPTIONS.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.textContent = `${opt.label}  →  ${opt.meaning}`;
+            btn.setAttribute('data-value', opt.value);
+            btn.addEventListener('click', () => {
+                // reset all styles
+                currentButtons.forEach(b => {
+                    b.style.background = 'white';
+                    b.style.borderColor = '#cfdfe8';
+                });
+                selectedValue = opt.value;
+                btn.style.background = '#c7e9fb';
+                btn.style.borderColor = '#2c7a5e';
+                feedbackMsg.innerHTML = `✅ Selected: ${opt.label} (${opt.meaning}). Press Enter / Submit to continue.`;
+            });
+            optionsContainer.appendChild(btn);
+            buttons.push(btn);
+        });
+        currentButtons = buttons;
+        selectedValue = null;
     }
-    const [question, answer] = generateQuestion(unit.name, difficulty);
-    quizState.questions.push({ question, answer, difficulty, userAnswer: null, isCorrect: false });
-  }
-  renderQuestion(); showScreen('quiz-screen');
-}
 
-function renderQuestion(){
-  const qs = document.getElementById('quiz-screen');
-  const { total, maxQ, questions, currentIndex, mode, hearts, unitName } = quizState;
-  if(currentIndex >= maxQ){ showResult(); return; }
-  const current = questions[currentIndex];
-  const prog = Math.round((total/maxQ)*100);
-  const opts = shuffle([current.answer, ...generateWrongAnswers(current.answer)]);
-  const difficultyClass = current.difficulty === 'easy' ? 'difficulty-easy' : (current.difficulty === 'medium' ? 'difficulty-medium' : 'difficulty-hard');
-  const difficultyLabel = current.difficulty === 'easy' ? '🌱 EASY' : (current.difficulty === 'medium' ? '⚡ MEDIUM' : '🔥 HARD');
-  const heartHTML = mode==='test' ? Array.from({length:3},(_,i)=>`<span class="heart${i>=hearts?' lost':''}">❤️</span>`).join('') : '';
-  qs.innerHTML = `<div class="q-screen">
-    <div class="quiz-header-actions"><div class="quiz-stats">Q${currentIndex+1}/${maxQ} • ${mode==='practice'?'Practice':'Test'}</div><button class="quit-quiz-btn" onclick="quitQuiz()">✕ Quit</button></div>
-    <div class="quiz-top"><div class="hearts">${heartHTML}</div><div class="progress-bar-wrap"><div class="progress-bar" style="width:${prog}%"></div></div></div>
-    <div class="q-card"><div class="difficulty-badge ${difficultyClass}">${difficultyLabel}</div><div class="q-topic">${unitName}</div><div class="q-text">${esc(current.question)}</div></div>
-    <div class="options" id="opts"></div><div class="feedback-bar" id="fb"></div><div id="expl-container"></div>
-    <button class="next-btn" id="next-btn" onclick="nextQ()">Continue →</button>
-  </div>`;
-  const optDiv = document.getElementById('opts');
-  const letters = ['A', 'B', 'C', 'D'];
-  opts.forEach((opt, idx) => {
-    const btn = document.createElement('button');
-    btn.className = 'opt-btn';
-    btn.innerHTML = `<span class="opt-letter">${letters[idx]}</span><span>${esc(opt)}</span>`;
-    btn.onclick = () => checkAnswer(opt, btn);
-    optDiv.appendChild(btn);
-  });
-}
+    // Submit / Continue
+    function handleSubmit() {
+        if (selectedValue === null) {
+            feedbackMsg.innerHTML = '⚠️ Please select 1, 2, 3, or 4 first.';
+            return;
+        }
+        const selectedOpt = OPTIONS.find(o => o.value === selectedValue);
+        feedbackMsg.innerHTML = `🚀 You chose ${selectedOpt.label} (${selectedOpt.meaning}). Submitted! (Continue action would go here)`;
+        // Optional: you could trigger a next step here, but keeping exactly as requested.
+    }
 
-function checkAnswer(chosen, btn){
-  const { questions, currentIndex, mode, unitName } = quizState;
-  const current = questions[currentIndex];
-  const isCorrect = chosen === current.answer;
-  if(isCorrect){ 
-    btn.classList.add('correct'); 
-    quizState.correct++; 
-    current.isCorrect = true;
-  } else {
-    btn.classList.add('wrong');
-    document.querySelectorAll('.opt-btn').forEach(b=>{ if(b.querySelector('span:last-child')?.innerText.trim() === current.answer) b.classList.add('correct'); });
-    if(mode==='test'){ quizState.hearts--; }
-    renderExplanation(unitName, current.question, current.answer, current.difficulty);
-  }
-  current.userAnswer = chosen;
-  document.querySelectorAll('.opt-btn').forEach(b=>b.disabled=true);
-  const fb = document.getElementById('fb');
-  if(isCorrect){ fb.className='feedback-bar show correct'; fb.innerHTML=`<span class="fb-icon">✅</span><span class="fb-text correct">Correct! Well done.</span>`; }
-  else { fb.className='feedback-bar show wrong'; fb.innerHTML=`<span class="fb-icon">✗</span><span class="fb-text wrong">Correct answer: ${esc(current.answer)}</span>`; }
-  quizState.total++;
-  document.getElementById('next-btn').classList.add('show');
-  if(mode==='test' && quizState.hearts <= 0){ 
-    quizState.total = quizState.maxQ;
-    document.getElementById('next-btn').click();
-  }
-}
+    // Quit quiz (reset selection, clear feedback)
+    function quitQuiz() {
+        selectedValue = null;
+        currentButtons.forEach(btn => {
+            btn.style.background = 'white';
+            btn.style.borderColor = '#cfdfe8';
+        });
+        feedbackMsg.innerHTML = '✨ Quiz quit. Select 1,2,3,4 to start again. ✨';
+    }
 
-function nextQ(){
-  if(quizState.total >= quizState.maxQ || quizState.hearts <= 0){ showResult(); return; }
-  quizState.currentIndex++;
-  renderQuestion();
-}
+    // Keyboard: 1,2,3,4 keys select options
+    function handleKeydown(e) {
+        const key = e.key;
+        if (key === 'Enter') {
+            e.preventDefault();
+            handleSubmit();
+        } else if (key === 'Escape') {
+            e.preventDefault();
+            quitQuiz();
+        } else if (key === '1') {
+            e.preventDefault();
+            simulateSelect(1);
+        } else if (key === '2') {
+            e.preventDefault();
+            simulateSelect(2);
+        } else if (key === '3') {
+            e.preventDefault();
+            simulateSelect(3);
+        } else if (key === '4') {
+            e.preventDefault();
+            simulateSelect(4);
+        }
+    }
 
-function showResult(){
-  const { correct, maxQ, mode, passThreshold, idx } = quizState;
-  const pct = Math.round((correct/maxQ)*100);
-  const passed = pct >= passThreshold;
-  const currentStatus = getUnitStatus(currentSubject, idx);
-  let newStatus = currentStatus;
-  let message = "";
-  let title = "";
-  
-  if(mode === 'practice' && passed && currentStatus !== 'testPass'){ 
-    newStatus = 'practicePass'; 
-    message = `🎉 Practice passed! ${correct}/${maxQ} (${pct}%). You earned 2 stars. Test is now unlocked!`;
-    title = "Practice Passed! ⭐⭐";
-  } else if(mode === 'test' && passed){ 
-    if(currentStatus !== 'testPass') newStatus = 'testPass';
-    message = `🏆 Test passed! ${correct}/${maxQ} (${pct}%). You earned the 3rd star!`;
-    title = "Test Passed! 🌟🌟🌟";
-  } else if(mode === 'test' && !passed){ 
-    message = `❌ Test failed! ${correct}/${maxQ} (${pct}% needed ${passThreshold}%). Keep practicing!`;
-    title = "Test Failed ❌";
-  } else if(mode === 'practice' && !passed){ 
-    message = `📚 Practice score ${pct}% (need ${passThreshold}%). Try again!`;
-    title = "Practice Incomplete 📚";
-  } else if(mode === 'practice' && passed && currentStatus === 'testPass'){
-    message = `🎉 Great review! ${correct}/${maxQ} (${pct}%). You already have 3 stars!`;
-    title = "Practice Review ⭐⭐⭐";
-  } else if(mode === 'test' && passed && currentStatus === 'testPass'){
-    message = `🎉 Excellent! ${correct}/${maxQ} (${pct}%). You maintain your 3 stars!`;
-    title = "Test Review 🌟🌟🌟";
-  }
-  
-  if(newStatus !== currentStatus && newStatus){ setUnitStatus(currentSubject, idx, newStatus); }
-  const starCount = getStarCount(currentSubject, idx);
-  const emoji = starCount===3 ? '🌟' : (starCount===2 ? '⭐' : (mode==='test' ? '❌' : '📚'));
-  
-  document.getElementById('result-screen').innerHTML = `<div class="result-screen-inner">
-    <div class="result-icon">${emoji}</div>
-    <div class="result-title">${title || (starCount===3 ? 'Perfect!' : (starCount===2 ? 'Practice Passed' : (mode==='test' ? 'Test Failed' : 'Practice Incomplete')))}</div>
-    <div class="result-sub">${message || `${correct}/${maxQ} correct (${pct}%)`}</div>
-    <div class="result-stats"><div class="stat-card"><div class="stat-val">${correct}/${maxQ}</div><div class="stat-label">Correct</div></div><div class="stat-card"><div class="stat-val">${pct}%</div><div class="stat-label">Score</div></div></div>
-    <button class="result-btn" onclick="showMap()">Back to path</button>
-  </div>`;
-  showScreen('result-screen');
-}
+    function simulateSelect(val) {
+        const btnIndex = OPTIONS.findIndex(o => o.value === val);
+        if (btnIndex !== -1 && currentButtons[btnIndex]) {
+            currentButtons.forEach(b => {
+                b.style.background = 'white';
+                b.style.borderColor = '#cfdfe8';
+            });
+            selectedValue = val;
+            currentButtons[btnIndex].style.background = '#c7e9fb';
+            currentButtons[btnIndex].style.borderColor = '#2c7a5e';
+            const opt = OPTIONS[btnIndex];
+            feedbackMsg.innerHTML = `✅ Selected: ${opt.label} (${opt.meaning}). Press Enter / Submit to continue.`;
+        }
+    }
 
-// FIXED: showMap now makes completed units clickable for replay
-function showMap(){
-  const units = curriculum[currentSubject];
-  const ms = document.getElementById('map-screen');
-  ms.innerHTML = `<div class="map-header"><div class="map-title">${currentSubject}</div><div class="map-sub">⭐ Practice (30 Qs, 70%) = 2 stars & unlocks Test | 🏆 Test (10 Qs, 75%) = 3 stars | Click any completed unit to replay</div></div><div class="trail" id="trail"></div>`;
-  const trail = document.getElementById('trail');
-  units.forEach((unit,i)=>{
-    const unlocked = isUnlocked(currentSubject,i);
-    const starCount = getStarCount(currentSubject,i);
-    let cls = 'locked';
-    if(starCount===3) cls='perfect';
-    else if(starCount===2) cls='complete';
-    else if(unlocked) cls='available';
-    const starsDisplay = starCount===3 ? '★★★' : (starCount===2 ? '★★☆' : '☆☆☆');
-    const wrap = document.createElement('div'); wrap.className='checkpoint-wrap';
-    if(i>0){ const c=document.createElement('div'); c.className='connector'+(isUnitComplete(currentSubject,i-1)?' done':''); wrap.appendChild(c); }
-    // FIX: Make unit clickable if unlocked OR already has stars (completed) OR is first unit
-    const isClickable = unlocked || starCount > 0 || i === 0;
-    wrap.innerHTML += `<button class="checkpoint-btn ${cls}" ${isClickable ? `onclick="openUnit(${i})"` : ''}><span>${unit.icon}</span>${starCount>0?`<span class="cp-stars">${starsDisplay}</span>`:''}</button><div class="cp-label">${unit.name}</div>`;
-    trail.appendChild(wrap);
-  });
-  showScreen('map-screen');
-  const oldPanel = document.getElementById('unit-panel'); if(oldPanel) oldPanel.remove();
-}
-
-function scrollToPanelSmoothly(){ const panel=document.getElementById('unit-panel'); if(panel){ panel.scrollIntoView({behavior:'smooth',block:'start'}); panel.style.transition='box-shadow 0.2s'; panel.style.boxShadow='0 0 0 3px var(--green)'; setTimeout(()=>{ if(panel) panel.style.boxShadow=''; },800); } }
-
-// FIXED: openUnit always allows practice, test enabled based on practice pass
-function openUnit(idx){
-  const unit = curriculum[currentSubject][idx];
-  const practicePassed = isPracticePassed(currentSubject,idx);
-  const testPassed = isUnitComplete(currentSubject,idx);
-  const starCount = getStarCount(currentSubject,idx);
-  const ms = document.getElementById('map-screen');
-  const old = document.getElementById('unit-panel'); if(old) old.remove();
-  const panel = document.createElement('div'); panel.id='unit-panel'; panel.className='unit-panel';
-  let badgeHtml = `<div class="badge-container">`;
-  if(practicePassed) badgeHtml+=`<span class="status-badge practice-pass">✅ Practice Passed (2★)</span>`; else badgeHtml+=`<span class="status-badge locked">📘 Practice needed (70%)</span>`;
-  if(testPassed) badgeHtml+=`<span class="status-badge test-pass">🏆 Test Passed (3★)</span>`; else if(practicePassed) badgeHtml+=`<span class="status-badge locked">🎯 Take Test (75%) for 3rd star</span>`; else badgeHtml+=`<span class="status-badge locked">🔒 Test requires Practice first</span>`;
-  badgeHtml+=`</div>`;
-  // Always allow practice replay, test only disabled if no practice pass AND no stars
-  let testDisabled = (!practicePassed && starCount === 0);
-  const subText = testPassed ? '⭐ Unit complete! You have 3 stars. Replay anytime for practice!' : (practicePassed ? '✨ Practice passed! Take the test to earn the 3rd star.' : '📖 Complete 30-question practice (70% to unlock test).');
-  panel.innerHTML = `<div class="unit-panel-title">${unit.icon} ${unit.name}</div><div class="unit-panel-sub">${subText}</div>${badgeHtml}<div class="panel-actions"><button class="btn-practice" onclick="startQuiz(${idx},'practice')">📝 Practice (30 Qs • 70%)</button><button class="btn-test ${testDisabled?'disabled':''}" ${testDisabled?'disabled':`onclick="startQuiz(${idx},'test')"`}>🎯 Test (10 Qs • 75%)</button></div>${testPassed?'<div class="locked-message" style="color:var(--gold-dark);">★ 3 stars earned! Replay to keep skills sharp.</div>':(practicePassed?'<div class="locked-message">🎯 Pass the test (75%) to earn the final star!</div>':'<div class="locked-message">⚠️ Pass Practice first (70% correct) to unlock Test.</div>')}`;
-  ms.appendChild(panel); scrollToPanelSmoothly();
-}
-
-function showSubjectSelector(){
-  const overlay = document.createElement('div'); overlay.className='subject-selector-overlay'; overlay.id='subject-selector';
-  overlay.innerHTML = `<div class="subject-selector-card"><h2>📚 Welcome to Quantix</h2><p>Choose a subject to begin your mastery journey</p><div class="subject-grid" id="subject-grid"></div></div>`;
-  document.body.appendChild(overlay);
-  const grid = document.getElementById('subject-grid');
-  ['Algebra 1','Algebra 2','Geometry','Pre-Calc','Calculus'].forEach(sub=>{
-    const btn = document.createElement('button'); btn.className='subject-choice-btn';
-    btn.innerHTML = `<span>${sub==='Algebra 1'?'📐':sub==='Algebra 2'?'📊':sub==='Geometry'?'🔺':sub==='Pre-Calc'?'📡':'∫'}</span> ${sub}`;
-    btn.onclick = () => { const ov=document.getElementById('subject-selector'); if(ov) ov.remove(); localStorage.setItem('qx_subject_chosen','true'); currentSubject=sub; document.querySelectorAll('.subject-btn').forEach(b=>b.classList.toggle('active',b.textContent.trim().endsWith(sub))); showMap(); };
-    grid.appendChild(btn);
-  });
-}
-window.addEventListener('load',()=>{ if(localStorage.getItem('qx_subject_chosen') === 'true') showMap(); else showSubjectSelector(); });
+    // Initialize
+    renderOptions();
+    submitBtn.addEventListener('click', handleSubmit);
+    quitBtn.addEventListener('click', quitQuiz);
+    window.addEventListener('keydown', handleKeydown);
+    updateDailyStreak();
 </script>
 </body>
 </html>
