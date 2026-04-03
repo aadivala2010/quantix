@@ -1,0 +1,11 @@
+// ONE COMMAND - Gives ALL units in EVERY subject 3 stars
+const allSubjects = ['Algebra 1', 'Algebra 2', 'Geometry', 'Pre-Calc', 'Calculus'];
+allSubjects.forEach(subject => {
+  const unitCount = subject === 'Algebra 1' ? 5 : (subject === 'Algebra 2' ? 5 : (subject === 'Geometry' ? 5 : (subject === 'Pre-Calc' ? 5 : 5)));
+  for(let i = 0; i < unitCount; i++) {
+    progress[`${subject}::unit_${i}`] = 'testPass';
+  }
+});
+saveProgress();
+showMap();
+console.log('✅ ALL units in ALL subjects now have 3 stars!');
