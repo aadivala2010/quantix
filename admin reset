@@ -1,6 +1,9 @@
-// COMPLETE RESET - Clears ALL progress for ALL subjects
-localStorage.removeItem('qx_progress_v7');
-localStorage.removeItem('qx_subject_chosen');
-progress = {};
-saveProgress();
+// Clears ALL progress for Elementary, Middle, and High School
+localStorage.removeItem('qx_progress_elem');
+localStorage.removeItem('qx_progress_middle');
+localStorage.removeItem('qx_progress_high');
+localStorage.removeItem('qx_streak');
+localStorage.removeItem('qx_streak_last_date');
+localStorage.removeItem('qx_current_level');
+localStorage.removeItem('qx_current_subject');
 location.reload();
