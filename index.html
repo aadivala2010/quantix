@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>Quantix | Math Mastery | Grades 1-12</title>
+<title>Quantix | Math Mastery | Grades 1-12 + SAT</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -137,6 +137,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .level-choice-btn.elem{background:#d7ffb8;border-color:var(--green)}
 .level-choice-btn.middle{background:#fef3c7;border-color:var(--gold)}
 .level-choice-btn.high{background:#fee2e2;border-color:var(--red)}
+.level-choice-btn.sat{background:#ede9fe;border-color:#7c3aed}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @media(max-width:700px){
   .app{flex-direction:column}
@@ -173,7 +174,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 const levelSubjects = {
   "Elementary": ["1st Grade","2nd Grade","3rd Grade","4th Grade","5th Grade"],
   "Middle":     ["6th Grade","7th Grade","8th Grade"],
-  "High":       ["Algebra 1","Algebra 2","Geometry","Pre-Calc","Calculus"]
+  "High":       ["Algebra 1","Algebra 2","Geometry","Pre-Calc","Calculus"],
+  "SAT":        ["Algebra","Problem Solving","Advanced Math","Data Analysis","Additional Topics"]
 };
 
 let currentLevel   = localStorage.getItem('qx_current_level')   || null;
@@ -189,9 +191,12 @@ function rebuildSidebar() {
   if (!container) return;
   container.innerHTML = '';
   if (!currentLevel) return;
-  const icons = {'1st Grade':'🌟','2nd Grade':'🐧','3rd Grade':'🦊','4th Grade':'🦁','5th Grade':'🚀',
-                 '6th Grade':'⚡','7th Grade':'🔬','8th Grade':'🎯',
-                 'Algebra 1':'📐','Algebra 2':'📊','Geometry':'🔺','Pre-Calc':'📡','Calculus':'∫'};
+  const icons = {
+    '1st Grade':'🌟','2nd Grade':'🐧','3rd Grade':'🦊','4th Grade':'🦁','5th Grade':'🚀',
+    '6th Grade':'⚡','7th Grade':'🔬','8th Grade':'🎯',
+    'Algebra 1':'📐','Algebra 2':'📊','Geometry':'🔺','Pre-Calc':'📡','Calculus':'∫',
+    'Algebra':'🔢','Problem Solving':'🧮','Advanced Math':'🚀','Data Analysis':'📊','Additional Topics':'📐'
+  };
   levelSubjects[currentLevel].forEach(sub => {
     const btn = document.createElement('button');
     btn.className = 'subject-btn' + (currentSubject === sub ? ' active' : '');
@@ -211,6 +216,7 @@ function showLevelSelector() {
       <button class="level-choice-btn elem" data-level="Elementary">🏫 Elementary School<br><span style="font-size:14px;">Grades 1–5</span></button>
       <button class="level-choice-btn middle" data-level="Middle">📘 Middle School<br><span style="font-size:14px;">Grades 6–8</span></button>
       <button class="level-choice-btn high" data-level="High">🎓 High School<br><span style="font-size:14px;">Algebra 1 to Calculus</span></button>
+      <button class="level-choice-btn sat" data-level="SAT">🎯 SAT Prep<br><span style="font-size:14px;">Test-Ready Math Practice</span></button>
     </div></div>`;
   document.body.appendChild(overlay);
   overlay.querySelectorAll('.level-choice-btn').forEach(btn => {
@@ -234,12 +240,10 @@ function pick(arr){ return arr[r(0, arr.length-1)]; }
 function round2(n){ return Math.round(n*100)/100; }
 
 // ======================== WRONG ANSWER GENERATOR ========================
-// Smart variants per answer type so wrong answers are always plausible
 function generateWrongAnswers(correct, unitName, grade) {
   const wrongs = new Set();
   const str = String(correct).trim();
 
-  // Pure integer
   if (/^-?\d+$/.test(str)) {
     const n = parseInt(str);
     const deltas = shuffle([1,2,3,4,5,6,7,8,9,10]);
@@ -248,13 +252,11 @@ function generateWrongAnswers(correct, unitName, grade) {
       const w = (Math.random() < 0.5) ? n + d : n - d;
       if (String(w) !== str) wrongs.add(String(w));
     }
-    // fill if needed
     let fill = n + 11;
     while (wrongs.size < 3) { wrongs.add(String(fill++)); }
     return [...wrongs];
   }
 
-  // Decimal (e.g. 0.5, 3.14)
   if (/^-?\d+\.\d+$/.test(str)) {
     const n = parseFloat(str);
     const candidates = [round2(n+0.5), round2(n-0.5), round2(n+1), round2(n+0.25), round2(n*2), round2(n/2)];
@@ -267,21 +269,19 @@ function generateWrongAnswers(correct, unitName, grade) {
     return [...wrongs];
   }
 
-  // Degree answer like "90°", "130°"
   if (/^-?\d+°$/.test(str)) {
     const n = parseInt(str);
     const ds = shuffle([5,10,15,20,25,30]);
     for (const d of ds) {
       if (wrongs.size >= 3) break;
       const w = (Math.random()<0.5) ? n+d : n-d;
-      if (w > 0 && w < 180 && `${w}°` !== str) wrongs.add(`${w}°`);
+      if (w > 0 && w < 360 && `${w}°` !== str) wrongs.add(`${w}°`);
     }
     let fill = n + 35;
     while (wrongs.size < 3) { if (`${fill}°` !== str) wrongs.add(`${fill}°`); fill += 10; }
     return [...wrongs];
   }
 
-  // Fraction like "3/4", "2/5"
   if (/^\d+\/\d+$/.test(str)) {
     const [num, den] = str.split('/').map(Number);
     const variants = [`${num+1}/${den}`, `${num-1}/${den}`, `${num}/${den+1}`, `${num+2}/${den}`, `${num}/${den-1 > 0 ? den-1 : den+2}`];
@@ -293,7 +293,6 @@ function generateWrongAnswers(correct, unitName, grade) {
     return [...wrongs];
   }
 
-  // x = N, y = M  (Systems of equations)
   if (/^x\s*=\s*-?\d+,\s*y\s*=\s*-?\d+$/.test(str)) {
     const mx = str.match(/x\s*=\s*(-?\d+)/), my = str.match(/y\s*=\s*(-?\d+)/);
     const xv = parseInt(mx[1]), yv = parseInt(my[1]);
@@ -307,7 +306,6 @@ function generateWrongAnswers(correct, unitName, grade) {
     return [...wrongs];
   }
 
-  // x > N or x < N (Inequalities)
   if (/^x\s*[><≥≤]\s*-?\d+$/.test(str)) {
     const mn = str.match(/(-?\d+)/), op = str.match(/[><≥≤]/)[0];
     const n = parseInt(mn[1]);
@@ -318,21 +316,18 @@ function generateWrongAnswers(correct, unitName, grade) {
     return [...wrongs].slice(0,3);
   }
 
-  // x = N, N  (Quadratic two solutions)
   if (/^x\s*=\s*-?\d+,\s*-?\d+$/.test(str)) {
     const parts = str.match(/-?\d+/g).map(Number);
     const a = parts[0], b = parts[1];
     return [`x = ${a+1}, ${b}`, `x = ${a}, ${b+1}`, `x = ${a-1}, ${b+1}`];
   }
 
-  // Factored form like (x+2)(x+3)
   if (/^\(x[+-]\d+\)\(x[+-]\d+\)$/.test(str)) {
     const nums = str.match(/\d+/g).map(Number);
     const a = nums[0], b = nums[1];
     return [`(x+${a+1})(x+${b})`, `(x+${a})(x+${b+1})`, `(x+${a-1})(x+${b+2})`];
   }
 
-  // Derivative like "3x^2" or "2x^1"
   if (/^\d+x\^\d+$/.test(str) || /^\d+x$/.test(str)) {
     const mc = str.match(/(\d+)x/), me = str.match(/\^(\d+)/);
     const coef = mc ? parseInt(mc[1]) : 1;
@@ -341,1954 +336,1097 @@ function generateWrongAnswers(correct, unitName, grade) {
     return [fmt(coef+1,exp), fmt(coef,exp+1), fmt(coef-1,exp)].filter(w=>w!==str).slice(0,3);
   }
 
-  // Integral like "x^3/3 + C"
   if (str.includes('+ C') || str.includes('+C')) {
     const base = str.replace(/\s*\+\s*C/,'').trim();
     return [`${base} + C + 1`, `${base}/2 + C`, `2${base} + C`].slice(0,3);
   }
 
-  // Chain rule  like "3(x+2)^2"
   if (/^\d+\(x[+-]\d+\)\^\d+$/.test(str)) {
     const [, coef, inner, exp] = str.match(/(\d+)\(x([+-]\d+)\)\^(\d+)/);
     const c = parseInt(coef), e = parseInt(exp);
     return [`${c+1}(x${inner})^${e}`, `${c}(x${inner})^${e+1}`, `${c-1}(x${inner})^${e}`].filter(w=>w!==str).slice(0,3);
   }
 
-  // Polar form "(4, 0°)"
-  if (/^\(\d+,\s*\d+°\)$/.test(str)) {
-    const mn = str.match(/\d+/g);
-    const rv = parseInt(mn[0]);
-    return [`(${rv+1}, 0°)`, `(${rv-1}, 90°)`, `(${rv}, 180°)`];
+  if (/^-?\d+\/\d+$/.test(str)) {
+    const [num, den] = str.split('/').map(s => parseInt(s));
+    const variants = [`${num+1}/${den}`, `${num-1}/${den}`, `${num}/${den+1}`, `${-(num)}/${den}`];
+    for (const v of variants) {
+      if (wrongs.size >= 3) break;
+      if (v !== str && !v.includes('/0')) wrongs.add(v);
+    }
+    while (wrongs.size < 3) wrongs.add(`${num+wrongs.size+2}/${den}`);
+    return [...wrongs];
   }
 
-  // Trig decimal like "0.5" or "0.866"
-  if (/^0\.\d+$/.test(str)) {
-    const pool = ['0.5','0.707','0.866','1','0.25','0.75','0.333','0.6'];
-    const result = pool.filter(v => v !== str);
-    return shuffle(result).slice(0, 3);
+  if (/^\d+(\.\d+)?%$/.test(str)) {
+    const n = parseFloat(str);
+    const candidates = [round2(n+5)+'%', round2(n-5)+'%', round2(n+10)+'%', round2(n*2)+'%'];
+    for (const c of candidates) {
+      if (wrongs.size >= 3) break;
+      if (c !== str) wrongs.add(c);
+    }
+    while (wrongs.size < 3) wrongs.add(round2(n + wrongs.size*7)+'%');
+    return [...wrongs];
   }
 
-  // Last resort: append variations
   return [str + ' + 1', str + ' − 1', str + ' × 2'].slice(0, 3);
 }
 
-// ======================== QUESTION GENERATORS ========================
-// Each returns [questionString, answerString]
-// All questions are grade-appropriate and produce varied, non-repeating output
+// ======================== SAT QUESTION GENERATORS ========================
+// NOTE: Internal generator functions use the canonical topic names as keys.
+// "Algebra" maps to the old "Heart of Algebra" logic.
+// "Advanced Math" maps to the old "Passport to Adv. Math" logic.
+// "Data Analysis" and "Additional Topics" are swapped in order only (sidebar/curriculum),
+// but their generator logic remains identical.
 
+function generateSATQuestion(unitName, difficulty) {
+
+  /* ─── Algebra (was: Heart of Algebra) ────────────────────────────────
+     Topics: linear equations, systems of equations, linear inequalities,
+     interpreting linear functions, slope/intercept form              */
+  if (unitName === "Algebra") {
+
+    const easyTemplates = [
+      () => { const a=r(2,7), b=r(3,20), x=r(1,9); return [`${a}x + ${b} = ${a*x+b}`, `${x}`]; },
+      () => { const a=r(2,6), b=r(2,12), x=r(2,10); return [`${a}x - ${b} = ${a*x-b}`, `${x}`]; },
+      () => { const x1=0,y1=r(0,8),x2=r(2,6),dy=r(-6,6); const y2=y1+dy; return [`What is the slope of the line through (${x1}, ${y1}) and (${x2}, ${y2})?`, `${dy}/${x2}`]; },
+      () => { const m=r(-4,4), b=r(-10,10); return [`What is the y-intercept of y = ${m}x + ${b}?`, `${b}`]; },
+      () => { const x=r(2,12); return [`3x + 7 = ${3*x+7}`, `${x}`]; },
+      () => { const m=r(-5,5).toString(); const b=r(-8,8); return [`What is the slope of the line y = ${m}x + ${b}?`, `${m}`]; },
+    ];
+
+    const mediumTemplates = [
+      () => {
+        const x=r(1,6), y=r(1,6);
+        return [`Solve the system: x + y = ${x+y} and x - y = ${x-y}`, `x=${x}, y=${y}`];
+      },
+      () => {
+        const m=r(2,5), b=r(1,8), xv=r(2,8);
+        return [`The line y = ${m}x + ${b} passes through (${xv}, k). What is k?`, `${m*xv+b}`];
+      },
+      () => {
+        const a=r(2,5), b=r(1,6), x=r(2,8);
+        return [`${a}(x + ${b}) = ${a*(x+b)}. Solve for x.`, `${x}`];
+      },
+      () => {
+        const m=r(-4,4);
+        const b1=r(-6,6), b2=r(-6,6);
+        return [`Line ℓ₁: y = ${m}x + ${b1}. What is the slope of a line parallel to ℓ₁?`, `${m}`];
+      },
+      () => {
+        const a=r(2,5), b=r(4,20);
+        const ans = b/a;
+        const isInt = Number.isInteger(ans);
+        return [`${a}x ≤ ${b}. What is the largest integer value of x?`, `${Math.floor(ans)}`];
+      },
+      () => {
+        const x=r(2,7), y=r(1,6);
+        return [`2x + 3y = ${2*x+3*y} and x + y = ${x+y}. Solve for x.`, `${x}`];
+      },
+    ];
+
+    const hardTemplates = [
+      () => {
+        const a=r(2,5), b=r(1,8);
+        return [`For what value of k does the system ${a}x - y = ${b} and ${2*a}x - 2y = k have infinitely many solutions?`, `${2*b}`];
+      },
+      () => {
+        const rate=r(2,8), start=r(10,50);
+        return [`A function is defined by f(n) = ${start} + ${rate}n. By how much does f(n) increase each time n increases by 1?`, `${rate}`];
+      },
+      () => {
+        const m=r(-5,-1), b=r(6,30);
+        const x = round2(-b/m);
+        return [`What is the x-intercept of the line y = ${m}x + ${b}?`, `${x}`];
+      },
+      () => {
+        const a=r(2,4), b=r(2,5), c=r(1,6);
+        const x=r(1,6);
+        return [`If ${a}x + ${b}y = ${a*x+b*c} and y = ${c}, what is x?`, `${x}`];
+      },
+      () => {
+        const p=r(1,4), q=r(1,4);
+        return [`A line has slope ${p}/${q}. What is the slope of a line perpendicular to it?`, `-${q}/${p}`];
+      },
+    ];
+
+    const pool = difficulty==='easy' ? easyTemplates : difficulty==='medium' ? mediumTemplates : hardTemplates;
+    return pick(pool)();
+  }
+
+  /* ─── Problem Solving & Data Analysis ────────────────────────────────
+     Topics: ratios, rates, proportional relationships, percentages,
+     unit conversion, data interpretation, probability             */
+  if (unitName === "Problem Solving") {
+
+    const easyTemplates = [
+      () => { const p=pick([10,20,25,50]); const n=r(40,200); return [`What is ${p}% of ${n}?`, `${(p/100)*n}`]; },
+      () => { const a=r(1,6), b=r(2,8), c=r(2,10); return [`A ratio is ${a}:${b}. If the first quantity is ${a*c}, what is the second?`, `${b*c}`]; },
+      () => { const rate=r(20,80), time=r(2,5); return [`At a rate of ${rate} miles per hour, how many miles in ${time} hours?`, `${rate*time}`]; },
+      () => { const orig=r(100,500), pct=pick([10,20,25,50]); return [`A price of $${orig} is discounted by ${pct}%. What is the new price?`, `${orig*(1-pct/100)}`]; },
+      () => { const n=r(5,20), total=r(25,50); return [`${n} out of ${total} students passed. What percentage passed?`, `${round2(n/total*100)}%`]; },
+    ];
+
+    const mediumTemplates = [
+      () => {
+        const orig=r(40,200), pct=pick([10,15,20,25]);
+        const newVal = round2(orig * (1 + pct/100));
+        return [`A value increases from ${orig} to ${newVal}. What is the percent increase?`, `${pct}%`];
+      },
+      () => {
+        const r1=r(30,70), r2=r(30,70), t=r(2,5);
+        return [`Machine A produces ${r1} units/hr and Machine B produces ${r2} units/hr. How many total units in ${t} hours?`, `${(r1+r2)*t}`];
+      },
+      () => {
+        const a=r(2,8), b=r(2,6), c=r(2,5);
+        const x = round2(b*c/a);
+        return [`If ${a} items cost $${b}, how much do ${a*c} items cost?`, `${b*c}`];
+      },
+      () => {
+        const vals = [r(10,30), r(10,30), r(10,30), r(10,30)];
+        const mean = round2(vals.reduce((a,b)=>a+b,0)/vals.length);
+        return [`The four values are ${vals.join(', ')}. What is their mean?`, `${mean}`];
+      },
+      () => {
+        const red=r(1,6), blue=r(1,6), total=red+blue+r(1,4);
+        return [`A bag contains ${red} red marbles and ${total-red} non-red marbles (${total} total). P(red) = ?`, `${red}/${total}`];
+      },
+    ];
+
+    const hardTemplates = [
+      () => {
+        const orig=r(100,300), p1=pick([10,20,25]), p2=pick([10,20,25]);
+        const after = round2(orig*(1+p1/100)*(1-p2/100));
+        return [`A price of $${orig} rises by ${p1}%, then falls by ${p2}%. What is the final price?`, `$${after}`];
+      },
+      () => {
+        const g1=r(70,90), g2=r(70,90), w1=r(2,4), w2=r(2,4);
+        const avg = round2((g1*w1+g2*w2)/(w1+w2));
+        return [`Two groups: ${w1} scores averaging ${g1} and ${w2} scores averaging ${g2}. Overall mean?`, `${avg}`];
+      },
+      () => {
+        const mph=pick([30,40,50,60]);
+        const fpm = round2(mph * 5280/60);
+        return [`${mph} miles/hour equals how many feet per minute? (1 mile = 5,280 ft)`, `${fpm}`];
+      },
+      () => {
+        const a=r(2,8), b=r(2,5), total=r(20,40);
+        return [`Of ${total} students, ${a} study French and ${b} study both French and Spanish. Given a student studies French, P(also Spanish)?`, `${b}/${a}`];
+      },
+      () => {
+        const base=r(200,500), p1=pick([20,25,40,50]), p2=pick([10,20,25]);
+        const result = round2(base*(p1/100)*(p2/100));
+        return [`${p1}% of ${base} students play sports. Of those, ${p2}% play football. How many play football?`, `${result}`];
+      },
+    ];
+
+    const pool = difficulty==='easy' ? easyTemplates : difficulty==='medium' ? mediumTemplates : hardTemplates;
+    return pick(pool)();
+  }
+
+  /* ─── Advanced Math (was: Passport to Adv. Math) ─────────────────────
+     Topics: quadratic equations, polynomial operations, rational/radical
+     expressions, function notation, exponential growth              */
+  if (unitName === "Advanced Math") {
+
+    const easyTemplates = [
+      () => { const a=r(1,5), b=r(1,6); return [`Factor: x² + ${a+b}x + ${a*b}`, `(x+${a})(x+${b})`]; },
+      () => { const c=r(2,6), k=r(1,8); return [`f(x) = x² + ${c}. Find f(${k}).`, `${k*k+c}`]; },
+      () => { const sq=pick([4,9,16,25,36,49]); return [`x² = ${sq}. What are the solutions?`, `x = ±${Math.sqrt(sq)}`]; },
+      () => { const a=r(1,6), b=r(1,6); return [`(x² + ${a}x) + (${b}x + ${a*b})`, `x² + ${a+b}x + ${a*b}`]; },
+      () => { const b=r(2,5), e1=r(2,4), e2=r(1,3); return [`Simplify: x^${e1} · x^${e2}`, `x^${e1+e2}`]; },
+    ];
+
+    const mediumTemplates = [
+      () => {
+        const p=r(1,5), q=r(1,6);
+        return [`x² - ${p+q}x + ${p*q} = 0. Solve for x.`, `x = ${p}, ${q}`];
+      },
+      () => {
+        const b=r(2,8);
+        return [`x² - ${2*b}x + ${b*b} = 0. How many distinct real solutions?`, `1`];
+      },
+      () => {
+        const a=r(1,3), b=r(-8,8);
+        const xv = round2(-b/(2*a));
+        return [`f(x) = ${a}x² + ${b}x + 5. What is the x-coordinate of the vertex?`, `${xv}`];
+      },
+      () => {
+        const k=r(2,9);
+        return [`For what value of x is (x+3)/(x-${k}) undefined?`, `${k}`];
+      },
+      () => {
+        const p=r(1,5), q=r(1,6);
+        return [`Expand: (x+${p})(x+${q})`, `x² + ${p+q}x + ${p*q}`];
+      },
+      () => {
+        const b=r(2,4), p=r(2,5);
+        return [`If f(x) = ${b}^x, what is f(${p})?`, `${Math.pow(b,p)}`];
+      },
+    ];
+
+    const hardTemplates = [
+      () => {
+        const b=r(2,8)*2;
+        const h = b/2;
+        return [`x² + ${b}x + ${h*h} = (x + ?)²`, `${h}`];
+      },
+      () => {
+        const p=r(1,4), q=r(1,5);
+        return [`x² - ${p+q}x + ${p*q} = 0. Sum of the solutions?`, `${p+q}`];
+      },
+      () => {
+        const a=r(2,5), b=r(1,4), xv=r(1,5);
+        return [`f(x) = ${a}x + ${b}, g(x) = x². Find f(g(${xv})).`, `${a*xv*xv+b}`];
+      },
+      () => {
+        const bases = [[4,2],[8,2],[9,3],[16,2],[25,5],[27,3]];
+        const [base, root] = pick(bases);
+        return [`${base}^(1/2) = ?`, `${root}`];
+      },
+      () => {
+        const init=r(100,500), rate=pick([2,3,4]), periods=r(2,4);
+        const result = init * Math.pow(rate, periods);
+        return [`A population starts at ${init} and triples each year. After ${periods} years?`, `${result}`];
+      },
+      () => {
+        const k=r(1,5);
+        return [`y = x² and y = ${2*k}x - ${k*k}. How many intersection points?`, `1`];
+      },
+    ];
+
+    const pool = difficulty==='easy' ? easyTemplates : difficulty==='medium' ? mediumTemplates : hardTemplates;
+    return pick(pool)();
+  }
+
+  /* ─── Additional Topics in Math ──────────────────────────────────────
+     Topics: geometry (area, volume, similarity), trigonometry, complex
+     numbers, circles (arcs, sectors), coordinate geometry           */
+  if (unitName === "Additional Topics") {
+
+    const easyTemplates = [
+      () => { const rad=r(2,8); return [`Area of circle with radius ${rad}? (π ≈ 3.14)`, `${round2(3.14*rad*rad)}`]; },
+      () => { const triples=[[3,4,5],[5,12,13],[8,15,17],[6,8,10]]; const [a,b,c]=pick(triples); return [`Right triangle legs ${a} and ${b}. Hypotenuse = ?`, `${c}`]; },
+      () => { const a=r(30,150); return [`Two angles are supplementary. One measures ${a}°. Find the other.`, `${180-a}°`]; },
+      () => { const l=r(3,8), w=r(2,6), h=r(2,5); return [`Volume of a box: l=${l}, w=${w}, h=${h}`, `${l*w*h}`]; },
+      () => { const rad=r(2,8); return [`Circumference of circle with radius ${rad}? (π ≈ 3.14)`, `${round2(2*3.14*rad)}`]; },
+    ];
+
+    const mediumTemplates = [
+      () => {
+        const rad=r(3,10), deg=pick([30,45,60,90,120,180]);
+        const arc = round2(2*3.14*rad*(deg/360));
+        return [`Arc length of a circle (r=${rad}) with central angle ${deg}°? (π ≈ 3.14)`, `${arc}`];
+      },
+      () => {
+        const a=r(2,6), scale=r(2,4), b=r(3,8);
+        return [`Two similar triangles. Sides of first: ${a} and ${b}. Scale factor ${scale}. Longer side of second?`, `${b*scale}`];
+      },
+      () => {
+        const short=r(2,8);
+        return [`In a 30-60-90 triangle, the shortest leg = ${short}. What is the hypotenuse?`, `${2*short}`];
+      },
+      () => {
+        const triples=[[3,4,5],[5,12,13],[8,15,17]];
+        const [opp,adj,hyp]=pick(triples);
+        return [`Right triangle: opposite=${opp}, adjacent=${adj}, hypotenuse=${hyp}. sin(θ) = ?`, `${opp}/${hyp}`];
+      },
+      () => {
+        const rad=r(2,6), h=r(3,8);
+        return [`Volume of cylinder: radius ${rad}, height ${h}? (π ≈ 3.14)`, `${round2(3.14*rad*rad*h)}`];
+      },
+      () => {
+        const x1=0,y1=0, x2=pick([3,4,5,6,8,12]), y2=pick([4,3,5,8,15]);
+        const dist = Math.sqrt(x2*x2+y2*y2);
+        if (Number.isInteger(dist)) return [`Distance from (${x1},${y1}) to (${x2},${y2})?`, `${dist}`];
+        return [`Distance from (0,0) to (${x2},0)?`, `${x2}`];
+      },
+    ];
+
+    const hardTemplates = [
+      () => {
+        const rad=r(4,10), deg=pick([45,60,90,120]);
+        const area = round2(3.14*rad*rad*(deg/360));
+        return [`Area of sector: r=${rad}, central angle=${deg}°? (π ≈ 3.14)`, `${area}`];
+      },
+      () => {
+        const hyp=r(2,8)*Math.SQRT2;
+        const leg=r(2,8);
+        return [`In a 45-45-90 triangle, one leg = ${leg}. Hypotenuse = ?`, `${round2(leg*Math.SQRT2)}`];
+      },
+      () => {
+        const deg=pick([30,45,60]);
+        const adj=r(3,10);
+        const opp = deg===30 ? round2(adj/Math.sqrt(3)) : deg===45 ? adj : round2(adj*Math.sqrt(3));
+        return [`Right triangle: angle=${deg}°, adjacent=${adj}. Opposite side = ? (exact or ≈)`, `${opp}`];
+      },
+      () => {
+        const central=r(40,160);
+        return [`A central angle measures ${central}°. The inscribed angle subtending the same arc = ?`, `${central/2}°`];
+      },
+      () => {
+        const x1=r(0,6), y1=r(0,6), x2=r(8,16), y2=r(8,16);
+        return [`Midpoint of (${x1}, ${y1}) and (${x2}, ${y2})?`, `(${(x1+x2)/2}, ${(y1+y2)/2})`];
+      },
+    ];
+
+    const pool = difficulty==='easy' ? easyTemplates : difficulty==='medium' ? mediumTemplates : hardTemplates;
+    return pick(pool)();
+  }
+
+  /* ─── Data Analysis & Statistics ─────────────────────────────────────
+     Topics: mean/median/mode, standard deviation concepts, data
+     distributions, scatterplots/lines of best fit, two-way tables  */
+  if (unitName === "Data Analysis") {
+
+    const easyTemplates = [
+      () => { const v=[r(5,20),r(5,20),r(5,20),r(5,20)]; const mean=round2(v.reduce((a,b)=>a+b,0)/v.length); return [`Mean of ${v.join(', ')}?`, `${mean}`]; },
+      () => { const v=[r(2,8),r(10,20),r(25,35)].sort((a,b)=>a-b); return [`Median of ${v.join(', ')}?`, `${v[1]}`]; },
+      () => { const vals=[r(1,10),r(11,20),r(21,40),r(41,60)]; return [`Range of ${vals.join(', ')}?`, `${Math.max(...vals)-Math.min(...vals)}`]; },
+      () => { const n=r(2,8); const v=[n,n,r(1,n-1),r(n+1,n+5)]; return [`Mode of ${shuffle(v).join(', ')}?`, `${n}`]; },
+      () => { return [`Which measure of center is most affected by an extreme outlier?`, `mean`]; },
+    ];
+
+    const mediumTemplates = [
+      () => {
+        const v=[r(10,20),r(21,30),r(31,40),r(41,50)].sort((a,b)=>a-b);
+        const med = round2((v[1]+v[2])/2);
+        return [`Median of ${v.join(', ')}?`, `${med}`];
+      },
+      () => {
+        const target=r(50,80), n=5, givenSum=r(3,4)*r(40,70);
+        const missing = target*n - givenSum;
+        if (missing < 0 || missing > 150) return [`The mean of 4 values is 60. Their sum = ?`, `240`];
+        return [`The mean of 5 values is ${target}. Four of them sum to ${givenSum}. What is the fifth?`, `${missing}`];
+      },
+      () => {
+        const slope=r(2,8);
+        return [`A line of best fit has equation y = ${slope}x + 10. For each 1-unit increase in x, y increases by how much?`, `${slope}`];
+      },
+      () => {
+        const a=r(10,30), b=r(10,30), c=r(10,30), d=r(10,30);
+        const rowTotal=a+b;
+        return [`In a two-way table: row has ${a} "Yes" and ${b} "No" (total ${rowTotal}). What fraction answered "Yes"?`, `${a}/${rowTotal}`];
+      },
+      () => { return [`Which dataset has greater spread? {2,2,2,2} or {1,2,3,4}`, `{1,2,3,4}`]; },
+    ];
+
+    const hardTemplates = [
+      () => {
+        const g1=r(60,90), g2=r(60,90), w1=r(2,4), w2=r(2,4);
+        const avg = round2((g1*w1+g2*w2)/(w1+w2));
+        return [`${w1} scores average ${g1} and ${w2} scores average ${g2}. Weighted mean?`, `${avg}`];
+      },
+      () => {
+        const n=r(100,500), fav=r(40,60);
+        return [`A survey of ${n} people finds ${fav}% support policy X. For valid inference, what must be true of the sample?`, `It must be random`];
+      },
+      () => {
+        const mean=r(60,80), sd=r(5,15), val=mean+sd;
+        return [`A dataset has mean ${mean} and std dev ${sd}. A value of ${val} has a z-score of?`, `1`];
+      },
+      () => { return [`A study finds students who eat breakfast score higher on tests. This proves breakfast causes higher scores. Is this conclusion valid?`, `No`]; },
+      () => {
+        const before=r(100,300), pct=pick([20,25,50]);
+        const after=before*(1+pct/100);
+        return [`A dataset median increases from ${before} to ${after}. Percent increase?`, `${pct}%`];
+      },
+    ];
+
+    const pool = difficulty==='easy' ? easyTemplates : difficulty==='medium' ? mediumTemplates : hardTemplates;
+    return pick(pool)();
+  }
+
+  return [`2 + 3 = ?`, `5`];
+}
+
+// ======================== QUESTION GENERATORS (ALL GRADES) ========================
 function generateQuestionForGrade(grade, unitName, difficulty) {
+
+  // SAT routing — map new display names to generator logic
+  if (grade === "Algebra" || grade === "Problem Solving" ||
+      grade === "Advanced Math" || grade === "Additional Topics" ||
+      grade === "Data Analysis") {
+    return generateSATQuestion(grade, difficulty);
+  }
 
   /* ─── 1st Grade ─────────────────────────────────────────── */
   if (grade === "1st Grade") {
-    if (unitName === "Addition") {
-      const a = r(1,9), b = r(1,9);
-      return [`${a} + ${b} = ?`, `${a+b}`];
-    }
-    if (unitName === "Subtraction") {
-      const a = r(3,15), b = r(1, a-1);
-      return [`${a} - ${b} = ?`, `${a-b}`];
-    }
+    if (unitName === "Addition") { const a=r(1,9),b=r(1,9); return [`${a} + ${b} = ?`,`${a+b}`]; }
+    if (unitName === "Subtraction") { const a=r(3,15),b=r(1,a-1); return [`${a} - ${b} = ?`,`${a-b}`]; }
     if (unitName === "Counting") {
-      const templates = [
-        () => { const n=r(1,19); return [`What comes after ${n}?`, `${n+1}`]; },
-        () => { const n=r(2,20); return [`What comes before ${n}?`, `${n-1}`]; },
-        () => { const n=r(1,15); return [`Count to ${n+2} starting from ${n}: ${n}, __, __`, `${n+1}, ${n+2}`]; },
-        () => { const n=r(1,10); return [`How many ★ are there? ${'★'.repeat(n)}`, `${n}`]; }
+      const templates=[
+        ()=>{const n=r(1,19);return[`What comes after ${n}?`,`${n+1}`];},
+        ()=>{const n=r(2,20);return[`What comes before ${n}?`,`${n-1}`];},
+        ()=>{const n=r(1,10);return[`How many ★ are there? ${'★'.repeat(n)}`,`${n}`];}
       ];
       return pick(templates)();
     }
     if (unitName === "Number Bonds") {
-      const total = r(5,10), part = r(1,total-1);
-      const templates = [
-        [`${total} = ${part} + ?`,  `${total-part}`],
-        [`${part} + ? = ${total}`,  `${total-part}`],
-        [`? + ${total-part} = ${total}`, `${part}`]
-      ];
-      return pick(templates);
+      const total=r(5,10),part=r(1,total-1);
+      return pick([[`${total} = ${part} + ?`,`${total-part}`],[`${part} + ? = ${total}`,`${total-part}`],[`? + ${total-part} = ${total}`,`${part}`]]);
     }
     if (unitName === "Word Problems") {
-      const stories = [
-        () => { const a=r(1,7),b=r(1,7); return [`Sam has ${a} apples. He gets ${b} more. Total apples?`, `${a+b}`]; },
-        () => { const a=r(5,12),b=r(1,a-1); return [`Lily has ${a} stickers. She gives ${b} away. How many left?`, `${a-b}`]; },
-        () => { const a=r(2,8),b=r(2,6); return [`There are ${a} red balls and ${b} blue balls. How many total?`, `${a+b}`]; },
-        () => { const a=r(3,10),b=r(1,a-1); return [`A bag has ${a} candies. ${b} are eaten. How many remain?`, `${a-b}`]; }
+      const stories=[
+        ()=>{const a=r(1,7),b=r(1,7);return[`Sam has ${a} apples. He gets ${b} more. Total apples?`,`${a+b}`];},
+        ()=>{const a=r(5,12),b=r(1,a-1);return[`Lily has ${a} stickers. She gives ${b} away. How many left?`,`${a-b}`];}
       ];
       return pick(stories)();
     }
   }
-
   /* ─── 2nd Grade ─────────────────────────────────────────── */
   if (grade === "2nd Grade") {
-    if (unitName === "Addition") {
-      const templates = [
-        () => { const a=r(10,60),b=r(10,39); return [`${a} + ${b} = ?`, `${a+b}`]; },
-        () => { const a=r(15,50),b=r(15,49); return [`${a} + ${b} = ?`, `${a+b}`]; },
-        () => { const a=r(11,29),b=r(11,29),c=r(5,15); return [`${a} + ${b} + ${c} = ?`, `${a+b+c}`]; }
-      ];
-      return pick(templates)();
-    }
-    if (unitName === "Subtraction") {
-      const a=r(20,90), b=r(5,Math.min(45,a-1));
-      return [`${a} - ${b} = ?`, `${a-b}`];
-    }
-    if (unitName === "Multiplication") {
-      const tables = [2,5,10];
-      const t = pick(tables), m = r(2,9);
-      return [`${t} × ${m} = ?`, `${t*m}`];
-    }
-    if (unitName === "Place Value") {
-      const n = r(10,99);
-      const q = pick([
-        [`What is the tens digit in ${n}?`, `${Math.floor(n/10)}`],
-        [`What is the ones digit in ${n}?`, `${n%10}`],
-        [`${Math.floor(n/10)} tens and ${n%10} ones = ?`, `${n}`]
-      ]);
-      return q;
-    }
-    if (unitName === "Measurement") {
-      const templates = [
-        () => { const f=r(1,8); return [`${f} feet = ? inches`, `${f*12}`]; },
-        () => { const y=r(1,5); return [`${y} yards = ? feet`, `${y*3}`]; },
-        () => { const p=r(2,5); return [`A pencil is about ${p} inches long. A desk is ${p+6} inches. How much longer is the desk?`, `${6}`]; }
-      ];
-      return pick(templates)();
-    }
+    if (unitName === "Addition") { const a=r(10,60),b=r(10,39); return [`${a} + ${b} = ?`,`${a+b}`]; }
+    if (unitName === "Subtraction") { const a=r(20,90),b=r(5,Math.min(45,a-1)); return [`${a} - ${b} = ?`,`${a-b}`]; }
+    if (unitName === "Multiplication") { const t=pick([2,5,10]),m=r(2,9); return [`${t} × ${m} = ?`,`${t*m}`]; }
+    if (unitName === "Place Value") { const n=r(10,99); return pick([[`What is the tens digit in ${n}?`,`${Math.floor(n/10)}`],[`What is the ones digit in ${n}?`,`${n%10}`]]); }
+    if (unitName === "Measurement") { const f=r(1,8); return [`${f} feet = ? inches`,`${f*12}`]; }
   }
-
   /* ─── 3rd Grade ─────────────────────────────────────────── */
   if (grade === "3rd Grade") {
-    if (unitName === "Multiplication") {
-      const a=r(2,9), b=r(2,9);
-      return [`${a} × ${b} = ?`, `${a*b}`];
-    }
-    if (unitName === "Division") {
-      const divisor=r(2,9), quotient=r(2,10);
-      const dividend=divisor*quotient;
-      return [`${dividend} ÷ ${divisor} = ?`, `${quotient}`];
-    }
-    if (unitName === "Fractions Basics") {
-      const templates = [
-        () => { const d=r(2,6),n=r(1,d-1); return [`Which is larger: ${n}/${d} or 1/${d}?`, n>1?`${n}/${d}`:`1/${d}`]; },
-        () => { const d=r(2,5); return [`What fraction of a pizza is 1 slice out of ${d} equal slices?`, `1/${d}`]; },
-        () => { const n=r(1,3),d=r(n+1,6); return [`Is ${n}/${d} greater than 1/2? (yes/no)`, n*2>d?'yes':'no']; },
-        () => { const d=r(2,5); return [`Draw ${d} equal parts. You shade ${d-1}. What fraction is shaded?`, `${d-1}/${d}`]; }
-      ];
-      return pick(templates)();
-    }
-    if (unitName === "Area & Perimeter") {
-      const shapes = [
-        () => { const s=r(2,9); return [`Area of a square with side ${s} cm?`, `${s*s}`]; },
-        () => { const l=r(3,10),w=r(2,7); return [`Area of a rectangle ${l} cm × ${w} cm?`, `${l*w}`]; },
-        () => { const s=r(2,8); return [`Perimeter of a square with side ${s} cm?`, `${4*s}`]; },
-        () => { const l=r(3,10),w=r(2,7); return [`Perimeter of rectangle ${l} cm × ${w} cm?`, `${2*(l+w)}`]; }
-      ];
-      return pick(shapes)();
-    }
-    if (unitName === "Time") {
-      const templates = [
-        () => { const h=r(1,11); return [`What time is shown on a clock at ${h}:00?`, `${h}:00`]; },
-        () => { const h=r(1,11); return [`${h}:30 is ${h} hours and how many minutes?`, `30 minutes`]; },
-        () => { const h=r(1,10); return [`A movie starts at ${h}:00 and lasts 2 hours. When does it end?`, `${h+2}:00`]; },
-        () => { return [`How many minutes are in 1 hour?`, `60`]; },
-        () => { return [`How many hours are in 1 day?`, `24`]; }
-      ];
-      return pick(templates)();
-    }
+    if (unitName === "Multiplication") { const a=r(2,9),b=r(2,9); return [`${a} × ${b} = ?`,`${a*b}`]; }
+    if (unitName === "Division") { const d=r(2,9),q=r(2,10); return [`${d*q} ÷ ${d} = ?`,`${q}`]; }
+    if (unitName === "Fractions Basics") { const d=r(2,5); return [`What fraction of ${d} equal parts is 1 part?`,`1/${d}`]; }
+    if (unitName === "Area & Perimeter") { const l=r(3,10),w=r(2,7); return pick([[`Area of rectangle ${l} cm × ${w} cm?`,`${l*w}`],[`Perimeter of rectangle ${l} cm × ${w} cm?`,`${2*(l+w)}`]]); }
+    if (unitName === "Time") { return pick([[`How many minutes are in 1 hour?`,`60`],[`How many hours are in 1 day?`,`24`]]); }
   }
-
   /* ─── 4th Grade ─────────────────────────────────────────── */
   if (grade === "4th Grade") {
-    if (unitName === "Multiplication") {
-      const a=r(10,50), b=r(2,12);
-      return [`${a} × ${b} = ?`, `${a*b}`];
-    }
-    if (unitName === "Division") {
-      const b=r(3,9), q=r(5,20);
-      return [`${b*q} ÷ ${b} = ?`, `${q}`];
-    }
-    if (unitName === "Fractions & Decimals") {
-      const templates = [
-        () => { const d=r(1,9); return [`Write 0.${d} as a fraction`, `${d}/10`]; },
-        () => { const n=r(1,4),d=4; return [`${n}/${d} as a decimal`, `${round2(n/d)}`]; },
-        () => { const n=r(1,2),d=2; return [`${n}/2 as a decimal`, `${n*0.5}`]; },
-        () => { const n=r(1,9); return [`${n}/10 as a decimal`, `0.${n}`]; }
-      ];
-      return pick(templates)();
-    }
-    if (unitName === "Geometry Basics") {
-      const templates = [
-        [`A right angle measures how many degrees?`,  `90°`],
-        [`A straight angle measures how many degrees?`, `180°`],
-        [`How many sides does a pentagon have?`,      `5`],
-        [`How many sides does a hexagon have?`,       `6`],
-        [`What do the angles of a triangle sum to?`,  `180°`],
-        [`What is a quadrilateral?`, `A shape with 4 sides`]
-      ];
-      return pick(templates);
-    }
-    if (unitName === "Measurement") {
-      const templates = [
-        () => { const m=r(1,10); return [`${m} meters = ? centimeters`, `${m*100}`]; },
-        () => { const km=r(1,5); return [`${km} km = ? meters`, `${km*1000}`]; },
-        () => { const kg=r(1,8); return [`${kg} kg = ? grams`, `${kg*1000}`]; },
-        () => { const l=r(1,6); return [`${l} liters = ? milliliters`, `${l*1000}`]; }
-      ];
-      return pick(templates)();
-    }
+    if (unitName === "Multiplication") { const a=r(10,50),b=r(2,12); return [`${a} × ${b} = ?`,`${a*b}`]; }
+    if (unitName === "Division") { const b=r(3,9),q=r(5,20); return [`${b*q} ÷ ${b} = ?`,`${q}`]; }
+    if (unitName === "Fractions & Decimals") { const d=r(1,9); return [`Write 0.${d} as a fraction`,`${d}/10`]; }
+    if (unitName === "Geometry Basics") { return pick([[`A right angle measures how many degrees?`,`90°`],[`How many sides does a pentagon have?`,`5`]]); }
+    if (unitName === "Measurement") { const m=r(1,10); return [`${m} meters = ? centimeters`,`${m*100}`]; }
   }
-
   /* ─── 5th Grade ─────────────────────────────────────────── */
   if (grade === "5th Grade") {
-    if (unitName === "Multiplication") {
-      const a=r(20,99), b=r(3,15);
-      return [`${a} × ${b} = ?`, `${a*b}`];
-    }
-    if (unitName === "Division") {
-      const d=r(4,12), q=r(6,25);
-      return [`${d*q} ÷ ${d} = ?`, `${q}`];
-    }
-    if (unitName === "Fractions Operations") {
-      const templates = [
-        () => { const d=r(2,8),n1=r(1,d-1),n2=r(1,d-1); const sum=n1+n2; return sum<d ? [`${n1}/${d} + ${n2}/${d} = ?`, `${sum}/${d}`] : [`${n1}/${d} + 1/${d} = ?`, `${n1+1}/${d}`]; },
-        () => { const d=r(3,8),n=r(2,d-1); return [`${n}/${d} - 1/${d} = ?`, `${n-1}/${d}`]; },
-        () => { const n=r(1,4),d=r(2,5); return [`${n}/${d} × 2 = ?`, `${n*2}/${d}`]; },
-        () => { const d=r(2,6); return [`1/2 + 1/${d} = ?`, `${d+2}/${2*d}`]; }
-      ];
-      return pick(templates)();
-    }
-    if (unitName === "Decimals") {
-      const templates = [
-        () => { const a=r(1,9),b=r(1,9); return [`${a}.${b} + 1.0 = ?`, `${a+1}.${b}`]; },
-        () => { const a=r(2,9),b=r(1,8); return [`${a}.${b} - 1.0 = ?`, `${a-1}.${b}`]; },
-        () => { const a=r(1,5); return [`${a}.5 × 2 = ?`, `${a*2+1}`]; },
-        () => { const a=r(2,9),b=r(1,4); return [`${a}.${b} rounded to nearest whole number?`, b>=5?`${a+1}`:`${a}`]; }
-      ];
-      return pick(templates)();
-    }
-    if (unitName === "Volume") {
-      const l=r(2,8), w=r(2,6), h=r(2,5);
-      const templates = [
-        () => [`Volume of box: length ${l}, width ${w}, height ${h}?`, `${l*w*h}`],
-        () => { const s=r(2,6); return [`Volume of a cube with side ${s} cm?`, `${s*s*s}`]; },
-        () => [`A box is ${l} cm × ${w} cm × ${h} cm. What is its volume?`, `${l*w*h}`]
-      ];
-      return pick(templates)();
-    }
+    if (unitName === "Multiplication") { const a=r(20,99),b=r(3,15); return [`${a} × ${b} = ?`,`${a*b}`]; }
+    if (unitName === "Division") { const d=r(4,12),q=r(6,25); return [`${d*q} ÷ ${d} = ?`,`${q}`]; }
+    if (unitName === "Fractions Operations") { const d=r(2,8),n1=r(1,d-1),n2=r(1,d-1); const sum=n1+n2; return sum<d?[`${n1}/${d} + ${n2}/${d} = ?`,`${sum}/${d}`]:[`${n1}/${d} + 1/${d} = ?`,`${n1+1}/${d}`]; }
+    if (unitName === "Decimals") { const a=r(2,9),b=r(1,8); return [`${a}.${b} - 1.0 = ?`,`${a-1}.${b}`]; }
+    if (unitName === "Volume") { const l=r(2,8),w=r(2,6),h=r(2,5); return [`Volume of box: length ${l}, width ${w}, height ${h}?`,`${l*w*h}`]; }
   }
-
   /* ─── 6th Grade ─────────────────────────────────────────── */
   if (grade === "6th Grade") {
-    if (unitName === "Ratios") {
-      const a=r(1,6), b=r(2,8);
-      const templates = [
-        () => [`There are ${a*3} boys and ${b*3} girls. Simplify the ratio boys:girls`, `${a}:${b}`],
-        () => { const total=r(10,30),part=r(2,8); return [`Out of ${total} students, ${part} have bikes. Write as ratio to total`, `${part}:${total}`]; },
-        () => [`Ratio ${a*2}:${b*2} in simplest form?`, `${a}:${b}`],
-        () => { const x=r(2,5); return [`If ratio is 3:${x}, and first quantity is 12, find second`, `${4*x}`]; }
-      ];
-      return pick(templates)();
-    }
-    if (unitName === "Percentages") {
-      const p = pick([10,20,25,50,75,30,40]);
-      const t = r(40,200);
-      const ans = (p/100)*t;
-      const templates = [
-        () => [`${p}% of ${t} = ?`, `${ans}`],
-        () => { const n=r(20,80),total=100; return [`${n} out of ${total} as a percentage?`, `${n}%`]; },
-        () => { const orig=r(50,100),pct=pick([10,20,25,50]); return [`${orig} increased by ${pct}% = ?`, `${orig*(1+pct/100)}`]; }
-      ];
-      return pick(templates)();
-    }
-    if (unitName === "Integers") {
-      const templates = [
-        () => { const a=r(-12,12),b=r(-10,10); return [`${a} + ${b} = ?`, `${a+b}`]; },
-        () => { const a=r(-10,10),b=r(-10,10); return [`${a} - ${b} = ?`, `${a-b}`]; },
-        () => { const a=r(-5,5),b=r(-5,5); return [`${a} × ${b} = ?`, `${a*b}`]; },
-        () => { const b=r(1,5),q=r(1,5); return [`-${b*q} ÷ ${b} = ?`, `${-q}`]; }
-      ];
-      return pick(templates)();
-    }
-    if (unitName === "Expressions") {
-      const templates = [
-        () => { const x=r(2,10); return [`Evaluate 3x + 2 when x = ${x}`, `${3*x+2}`]; },
-        () => { const x=r(1,8); return [`Evaluate 5x - 1 when x = ${x}`, `${5*x-1}`]; },
-        () => { const x=r(2,6); return [`Evaluate x² when x = ${x}`, `${x*x}`]; },
-        () => { const x=r(1,5),y=r(1,5); return [`Evaluate 2x + 3y when x=${x}, y=${y}`, `${2*x+3*y}`]; }
-      ];
-      return pick(templates)();
-    }
-    if (unitName === "Statistics") {
-      const makeSet = () => Array.from({length:r(3,6)}, ()=>r(2,20));
-      const templates = [
-        () => { const vals=makeSet(); const sorted=[...vals].sort((a,b)=>a-b); const mean=round2(vals.reduce((a,b)=>a+b,0)/vals.length); return [`Mean of ${vals.join(', ')}?`, `${mean}`]; },
-        () => { const vals=[...makeSet()].sort((a,b)=>a-b); const mid=Math.floor(vals.length/2); const med=vals.length%2===0?round2((vals[mid-1]+vals[mid])/2):vals[mid]; return [`Median of ${vals.join(', ')}?`, `${med}`]; },
-        () => { const vals=makeSet(); const counts={}; vals.forEach(v=>{counts[v]=(counts[v]||0)+1;}); const maxC=Math.max(...Object.values(counts)); const mode=Object.keys(counts).find(k=>counts[k]===maxC); return [`Mode of ${vals.join(', ')}?`, `${mode}`]; },
-        () => { const vals=makeSet().sort((a,b)=>a-b); return [`Range of ${vals.join(', ')}?`, `${vals[vals.length-1]-vals[0]}`]; }
-      ];
-      return pick(templates)();
-    }
+    if (unitName === "Ratios") { const a=r(1,6),b=r(2,8); return [`Ratio ${a*2}:${b*2} in simplest form?`,`${a}:${b}`]; }
+    if (unitName === "Percentages") { const p=pick([10,20,25,50]),t=r(40,200); return [`${p}% of ${t} = ?`,`${(p/100)*t}`]; }
+    if (unitName === "Integers") { const a=r(-12,12),b=r(-10,10); return [`${a} + ${b} = ?`,`${a+b}`]; }
+    if (unitName === "Expressions") { const x=r(2,10); return [`Evaluate 3x + 2 when x = ${x}`,`${3*x+2}`]; }
+    if (unitName === "Statistics") { const vals=[r(2,10),r(11,20),r(21,30)].sort((a,b)=>a-b); return [`Median of ${vals.join(', ')}?`,`${vals[1]}`]; }
   }
-
   /* ─── 7th Grade ─────────────────────────────────────────── */
   if (grade === "7th Grade") {
-    if (unitName === "Proportions") {
-      const a=r(2,8), b=r(3,12), c=r(2,10);
-      const templates = [
-        () => [`If ${a} items cost $${b}, how much do ${c} items cost?`, `$${round2(b*c/a)}`],
-        () => { const d=r(2,6),h=r(3,8); return [`A car travels ${d*h} miles in ${h} hours. Speed?`, `${d} mph`]; },
-        () => { const t=r(2,5),u=r(3,8); return [`Scale: 1 cm = ${t} m. ${u} cm on map = ? meters`, `${t*u}`]; }
-      ];
-      return pick(templates)();
-    }
-    if (unitName === "Rational Numbers") {
-      const templates = [
-        () => { const d=r(2,6),n=r(1,d-1); return [`${n}/${d} + ${n}/${d} = ?`, `${2*n}/${d}`]; },
-        () => { const d=r(2,6),n=r(2,d-1); return [`${n}/${d} - 1/${d} = ?`, `${n-1}/${d}`]; },
-        () => { const n=r(1,4),d=r(2,5); return [`${n}/${d} × ${d}/${n} = ?`, `1`]; },
-        () => { const a=r(-5,5),b=r(2,7); return [`${a}/${b} as a decimal (round to 2 places)?`, `${round2(a/b)}`]; }
-      ];
-      return pick(templates)();
-    }
-    if (unitName === "Equations") {
-      const templates = [
-        () => { const x=r(2,12); return [`2x = ${2*x}`, `${x}`]; },
-        () => { const x=r(2,10); return [`x + ${r(3,15)} = ${x+r(3,15)}`, `${x}`]; },
-        () => { const a=r(2,6),x=r(1,9),b=r(2,10); return [`${a}x + ${b} = ${a*x+b}`, `${x}`]; },
-        () => { const x=r(2,8); return [`3x - 2 = ${3*x-2}`, `${x}`]; }
-      ];
-      return pick(templates)();
-    }
-    if (unitName === "Probability") {
-      const templates = [
-        [`Probability of rolling a 6 on a fair die?`, `1/6`],
-        [`Probability of flipping heads on a fair coin?`, `1/2`],
-        [`A bag has 3 red and 7 blue marbles. P(red)?`, `3/10`],
-        [`Probability of rolling an even number on a die?`, `1/2`],
-        () => { const r_=r(1,5),b_=r(1,5),total=r_+b_; return [`Bag: ${r_} red, ${b_} blue. P(blue) = ?`, `${b_}/${total}`]; }
-      ];
-      const t = pick(templates);
-      return typeof t === 'function' ? t() : t;
-    }
-    if (unitName === "Geometry") {
-      const templates = [
-        () => { const a=r(40,80),b=r(30,60); const c=180-a-b; return c>0 ? [`Triangle angles: ${a}° and ${b}°. Find the third angle.`, `${c}°`] : [`Triangle angles: 60° and 70°. Find the third.`, `50°`]; },
-        () => { const a=r(30,70); return [`Two angles are supplementary. One is ${a}°. Find the other.`, `${180-a}°`]; },
-        () => { const a=r(10,80); return [`Two angles are complementary. One is ${a}°. Find the other.`, `${90-a}°`]; },
-        () => { const b=r(3,12),h=r(3,10); return [`Area of triangle: base ${b}, height ${h}?`, `${b*h/2}`]; }
-      ];
-      return pick(templates)();
-    }
+    if (unitName === "Proportions") { const a=r(2,8),b=r(3,12),c=r(2,10); return [`If ${a} items cost $${b}, how much do ${c} items cost?`,`$${round2(b*c/a)}`]; }
+    if (unitName === "Rational Numbers") { const d=r(2,6),n=r(1,d-1); return [`${n}/${d} + ${n}/${d} = ?`,`${2*n}/${d}`]; }
+    if (unitName === "Equations") { const x=r(2,12); return [`2x = ${2*x}`,`${x}`]; }
+    if (unitName === "Probability") { return [`Probability of flipping heads on a fair coin?`,`1/2`]; }
+    if (unitName === "Geometry") { const a=r(40,80),b=r(30,60); const c=180-a-b; return c>0?[`Triangle angles: ${a}° and ${b}°. Find the third angle.`,`${c}°`]:[`Triangle angles: 60° and 70°. Find the third.`,`50°`]; }
   }
-
   /* ─── 8th Grade ─────────────────────────────────────────── */
   if (grade === "8th Grade") {
-    if (unitName === "Linear Equations") {
-      const templates = [
-        () => { const a=r(2,6),b=r(2,12),x=r(1,9); return [`${a}x + ${b} = ${a*x+b}`, `${x}`]; },
-        () => { const a=r(2,5),b=r(3,10),x=r(2,8); return [`${a}x - ${b} = ${a*x-b}`, `${x}`]; },
-        () => { const a=r(3,7),x=r(2,9); return [`${a}x = ${a*x}`, `${x}`]; },
-        () => { const x=r(1,10),b=r(5,20); return [`x + ${b} = ${x+b}`, `${x}`]; },
-        () => { const a=r(2,5),b=r(2,8),c=r(1,6),x=r(1,8); return [`${a}x + ${b} = ${c}x + ${(a-c)*x+b}`, `${x}`]; }
-      ];
-      return pick(templates)();
-    }
-    if (unitName === "Functions") {
-      const templates = [
-        () => { const x=r(1,10); return [`f(x) = 2x + 1. Find f(${x}).`, `${2*x+1}`]; },
-        () => { const x=r(1,8); return [`f(x) = 3x - 4. Find f(${x}).`, `${3*x-4}`]; },
-        () => { const x=r(2,8); return [`f(x) = x² + 1. Find f(${x}).`, `${x*x+1}`]; },
-        () => { const x=r(1,6); return [`f(x) = 5 - x. Find f(${x}).`, `${5-x}`]; },
-        () => { const pairs=[[1,3],[2,5],[3,7],[4,9]]; return [`Input/Output table: 1→3, 2→5, 3→7. What is f(4)?`, `9`]; }
-      ];
-      return pick(templates)();
-    }
-    if (unitName === "Systems") {
-      // Use only clean integer-solution systems
-      const systems = [
-        [["x + y = 5", "x - y = 1"], "x=3, y=2"],
-        [["x + y = 8", "x - y = 2"], "x=5, y=3"],
-        [["2x + y = 7", "x + y = 4"], "x=3, y=1"],
-        [["x + 2y = 8", "x - y = 2"], "x=4, y=2"],
-        [["3x + y = 10", "x + y = 6"], "x=2, y=4"],
-        [["x + y = 9", "x - y = 3"], "x=6, y=3"],
-        [["2x + y = 9", "x + y = 5"], "x=4, y=1"],
-        [["x + y = 7", "x - y = 1"], "x=4, y=3"]
-      ];
-      const chosen = pick(systems);
-      return [`Solve: ${chosen[0][0]}, ${chosen[0][1]}`, chosen[1]];
-    }
-    if (unitName === "Pythagorean Theorem") {
-      // Only use Pythagorean triples to avoid ugly decimals
-      const triples = [[3,4,5],[5,12,13],[8,15,17],[7,24,25],[6,8,10],[9,12,15],[10,24,26]];
-      const [a,b,c] = pick(triples);
-      const q = pick([
-        [`${a}² + ${b}² = c². Find c.`, `${c}`],
-        [`Hypotenuse of right triangle with legs ${a} and ${b}?`, `${c}`],
-        [`A ladder ${c} ft long leans against a wall. Base is ${a} ft from wall. Height reached?`, `${b}`]
-      ]);
-      return q;
-    }
-    if (unitName === "Scientific Notation") {
-      const templates = [
-        () => { const a=r(1,9),b=r(2,6); return [`Write ${a} × 10^${b} in standard form`, `${a*Math.pow(10,b)}`]; },
-        () => { const a=r(10000,900000); return [`Write ${a.toLocaleString()} in scientific notation`, `${(a/Math.pow(10,Math.floor(Math.log10(a)))).toFixed(2)} × 10^${Math.floor(Math.log10(a))}`]; },
-        () => { const p=r(3,6); return [`10^${p} in standard form?`, `${Math.pow(10,p)}`]; },
-        () => { const a=r(2,8),b=r(3,5); return [`Multiply: (${a} × 10^${b}) × (2 × 10^2)`, `${a*2} × 10^${b+2}`]; }
-      ];
-      return pick(templates)();
-    }
+    if (unitName === "Linear Equations") { const a=r(2,6),b=r(2,12),x=r(1,9); return [`${a}x + ${b} = ${a*x+b}`,`${x}`]; }
+    if (unitName === "Functions") { const x=r(1,10); return [`f(x) = 2x + 1. Find f(${x}).`,`${2*x+1}`]; }
+    if (unitName === "Systems") { const sys=[["x + y = 5","x - y = 1"],"x=3, y=2"]; return [`Solve: ${sys[0][0]}, ${sys[0][1]}`,sys[1]]; }
+    if (unitName === "Pythagorean Theorem") { const [a,b,c]=pick([[3,4,5],[5,12,13],[8,15,17]]); return [`${a}² + ${b}² = c². Find c.`,`${c}`]; }
+    if (unitName === "Scientific Notation") { const a=r(1,9),b=r(2,6); return [`Write ${a} × 10^${b} in standard form`,`${a*Math.pow(10,b)}`]; }
   }
-
   /* ─── Algebra 1 ─────────────────────────────────────────── */
   if (grade === "Algebra 1") {
-    if (unitName === "Linear Equations") {
-      const templates = [
-        () => { const a=r(2,6),b=r(2,14),x=r(1,9); return [`${a}x + ${b} = ${a*x+b}`, `${x}`]; },
-        () => { const a=r(2,5),b=r(3,12),x=r(2,8); return [`${a}x - ${b} = ${a*x-b}`, `${x}`]; },
-        () => { const x=r(2,10),b=r(5,20); return [`x + ${b} = ${x+b}`, `${x}`]; },
-        () => { const a=r(3,8),x=r(2,9); return [`${a}x = ${a*x}`, `${x}`]; }
-      ];
-      return pick(templates)();
-    }
-    if (unitName === "Quadratics") {
-      const squares = [4,9,16,25,36,49,64,81,100];
-      const sq = pick(squares);
-      const root = Math.sqrt(sq);
-      const templates = [
-        () => [`x² = ${sq}`, `${root}`],
-        () => { const k=r(2,5); return [`(x-${k})² = 0`, `x = ${k}`]; },
-        () => { const p=r(1,4),q=r(1,4); return [`x² + ${p+q}x + ${p*q} = 0`, `x = -${p}, -${q}`]; }
-      ];
-      return pick(templates)();
-    }
-    if (unitName === "Factoring") {
-      const a=r(1,5), b=r(1,6);
-      const templates = [
-        () => [`Factor: x² + ${a+b}x + ${a*b}`, `(x+${a})(x+${b})`],
-        () => { const p=r(1,4); return [`Factor: x² - ${p*p}`, `(x+${p})(x-${p})`]; },
-        () => { const g=r(2,5),n=r(2,6); return [`Factor: ${g}x + ${g*n}`, `${g}(x + ${n})`]; }
-      ];
-      return pick(templates)();
-    }
-    if (unitName === "Inequalities") {
-      const templates = [
-        () => { const b=r(6,20); return [`2x > ${b}`, `x > ${b/2}`]; },
-        () => { const a=r(2,5),b=r(4,20); return [`${a}x ≤ ${b}`, `x ≤ ${b/a}`]; },
-        () => { const b=r(6,20); return [`x + ${r(2,8)} < ${b}`, `x < ${b-r(2,8)}`]; },
-        () => { const a=r(2,4),b=r(2,10),x=r(2,8); return [`${a}x - ${b} ≥ ${a*x-b}`, `x ≥ ${x}`]; }
-      ];
-      return pick(templates)();
-    }
-    if (unitName === "Functions") {
-      const templates = [
-        () => { const x=r(2,9); return [`f(x) = 3x - 2. Find f(${x}).`, `${3*x-2}`]; },
-        () => { const x=r(1,7); return [`f(x) = x² + 1. Find f(${x}).`, `${x*x+1}`]; },
-        () => [`Is (2, 5) on the line y = 2x + 1? (yes/no)`, `yes`],
-        () => { const m=r(1,4),b=r(0,5),x=r(1,6); return [`y = ${m}x + ${b}. Find y when x = ${x}.`, `${m*x+b}`]; }
-      ];
-      return pick(templates)();
-    }
+    if (unitName === "Linear Equations") { const a=r(2,6),b=r(2,14),x=r(1,9); return [`${a}x + ${b} = ${a*x+b}`,`${x}`]; }
+    if (unitName === "Quadratics") { const sq=pick([4,9,16,25,36]); return [`x² = ${sq}`,`${Math.sqrt(sq)}`]; }
+    if (unitName === "Factoring") { const a=r(1,5),b=r(1,6); return [`Factor: x² + ${a+b}x + ${a*b}`,`(x+${a})(x+${b})`]; }
+    if (unitName === "Inequalities") { const b=r(6,20); return [`2x > ${b}`,`x > ${b/2}`]; }
+    if (unitName === "Functions") { const x=r(2,9); return [`f(x) = 3x - 2. Find f(${x}).`,`${3*x-2}`]; }
   }
-
   /* ─── Algebra 2 ─────────────────────────────────────────── */
   if (grade === "Algebra 2") {
-    if (unitName === "Complex Quadratics") {
-      const a=r(1,5), b=r(1,6);
-      const templates = [
-        () => [`Solve: x² - ${a+b}x + ${a*b} = 0`, `x = ${a}, ${b}`],
-        () => { const p=r(2,5); return [`Solve: x² - ${p*p} = 0`, `x = ±${p}`]; },
-        () => { const c=r(1,4); return [`Solve: (x+${c})² = ${c*c}`, `x = 0 or x = -${2*c}`]; }
-      ];
-      return pick(templates)();
-    }
-    if (unitName === "Polynomials") {
-      const a=r(1,5), b=r(1,6);
-      const templates = [
-        () => [`Factor: x² + ${a+b}x + ${a*b}`, `(x+${a})(x+${b})`],
-        () => { const p=r(1,4); return [`Expand: (x+${p})²`, `x² + ${2*p}x + ${p*p}`]; },
-        () => { const p=r(1,5),q=r(1,5); return [`Multiply: (x+${p})(x-${q})`, `x² + ${p-q}x - ${p*q}`]; }
-      ];
-      return pick(templates)();
-    }
-    if (unitName === "Exponents") {
-      const templates = [
-        () => { const p=r(2,7); return [`2^${p} = ?`, `${Math.pow(2,p)}`]; },
-        () => { const p=r(2,5); return [`3^${p} = ?`, `${Math.pow(3,p)}`]; },
-        () => { const b=r(2,5),e1=r(2,4),e2=r(2,4); return [`${b}^${e1} × ${b}^${e2} = ?`, `${b}^${e1+e2}`]; },
-        () => { const b=r(2,4),e=r(2,5); return [`(${b}^${e})^2 = ?`, `${b}^${e*2}`]; }
-      ];
-      return pick(templates)();
-    }
-    if (unitName === "Logarithms") {
-      const templates = [
-        () => { const p=r(2,6); return [`log₂(2^${p}) = ?`, `${p}`]; },
-        () => { const p=r(2,5); return [`log₁₀(10^${p}) = ?`, `${p}`]; },
-        () => { const b=r(2,4),val=Math.pow(b,r(2,4)); return [`log_${b}(${val}) = ?`, `${Math.round(Math.log(val)/Math.log(b))}`]; },
-        () => [`log₁₀(1000) = ?`, `3`]
-      ];
-      return pick(templates)();
-    }
-    if (unitName === "Rational Functions") {
-      const templates = [
-        () => { const k=r(2,8); return [`f(x) = (x+1)/(x-1). Find f(${k}).`, `${round2((k+1)/(k-1))}`]; },
-        () => { const k=r(3,9); return [`For f(x) = 1/(x-2), find f(${k}).`, `${round2(1/(k-2))}`]; },
-        () => [`At what x-value is f(x) = x/(x-3) undefined?`, `x = 3`]
-      ];
-      return pick(templates)();
-    }
+    if (unitName === "Complex Quadratics") { const a=r(1,5),b=r(1,6); return [`Solve: x² - ${a+b}x + ${a*b} = 0`,`x = ${a}, ${b}`]; }
+    if (unitName === "Polynomials") { const a=r(1,5),b=r(1,6); return [`Factor: x² + ${a+b}x + ${a*b}`,`(x+${a})(x+${b})`]; }
+    if (unitName === "Exponents") { const p=r(2,7); return [`2^${p} = ?`,`${Math.pow(2,p)}`]; }
+    if (unitName === "Logarithms") { const p=r(2,6); return [`log₂(2^${p}) = ?`,`${p}`]; }
+    if (unitName === "Rational Functions") { return [`At what x-value is f(x) = x/(x-3) undefined?`,`x = 3`]; }
   }
-
   /* ─── Geometry ───────────────────────────────────────────── */
   if (grade === "Geometry") {
-    if (unitName === "Area") {
-      const shapes = [
-        () => { const s=r(3,12); return [`Area of square with side ${s} cm?`, `${s*s}`]; },
-        () => { const l=r(4,14),w=r(3,10); return [`Area of rectangle: ${l} cm × ${w} cm?`, `${l*w}`]; },
-        () => { const b=r(4,14),h=r(3,10); return [`Area of triangle: base ${b}, height ${h}?`, `${b*h/2}`]; },
-        () => { const rad=r(2,8); return [`Area of circle radius ${rad} cm? (use π≈3.14)`, `${round2(3.14*rad*rad)}`]; }
-      ];
-      return pick(shapes)();
-    }
-    if (unitName === "Perimeter") {
-      const shapes = [
-        () => { const s=r(3,12); return [`Perimeter of square with side ${s} cm?`, `${4*s}`]; },
-        () => { const l=r(4,14),w=r(3,10); return [`Perimeter of rectangle: ${l} cm × ${w} cm?`, `${2*(l+w)}`]; },
-        () => { const a=r(3,8),b=r(4,10),c=r(5,12); return [`Perimeter of triangle with sides ${a}, ${b}, ${c}?`, `${a+b+c}`]; },
-        () => { const rad=r(2,8); return [`Circumference of circle radius ${rad}? (use π≈3.14)`, `${round2(2*3.14*rad)}`]; }
-      ];
-      return pick(shapes)();
-    }
-    if (unitName === "Angles") {
-      const templates = [
-        () => { const a=r(30,80),b=r(25,70); const c=180-a-b; return c>0 ? [`Triangle angles: ${a}° and ${b}°. Find the third.`, `${c}°`] : [`Triangle angles: 55° and 65°. Find the third.`, `60°`]; },
-        () => { const a=r(20,70); return [`Two angles supplement each other. One is ${a}°. Find the other.`, `${180-a}°`]; },
-        () => { const a=r(10,80); return [`Two angles are complementary. One is ${a}°. Find the other.`, `${90-a}°`]; },
-        [`Vertical angles are equal. One is 47°. Find the other.`, `47°`],
-        () => { const ext=r(100,170); return [`Interior angle if exterior angle is ${ext}°?`, `${180-ext}°`]; }
-      ];
-      const t = pick(templates);
-      return typeof t === 'function' ? t() : t;
-    }
-    if (unitName === "Triangles") {
-      const triples = [[3,4,5],[5,12,13],[8,15,17],[6,8,10],[9,12,15]];
-      const [a,b,c] = pick(triples);
-      const templates = [
-        () => { const base=r(4,12),h=r(3,10); return [`Area of triangle: base ${base}, height ${h}?`, `${base*h/2}`]; },
-        () => [`Right triangle legs: ${a} and ${b}. Find hypotenuse.`, `${c}`],
-        () => { const A=r(35,75),B=r(30,70); const C=180-A-B; return C>0 ? [`Two angles of a triangle are ${A}° and ${B}°. Find the third.`, `${C}°`] : [`Two angles: 60° and 80°. Find the third.`, `40°`]; }
-      ];
-      return pick(templates)();
-    }
-    if (unitName === "Circles") {
-      const templates = [
-        () => { const rad=r(2,10); return [`Area of circle radius ${rad}? (π≈3.14)`, `${round2(3.14*rad*rad)}`]; },
-        () => { const rad=r(2,10); return [`Circumference of circle radius ${rad}? (π≈3.14)`, `${round2(2*3.14*rad)}`]; },
-        () => { const d=r(4,20); return [`Diameter is ${d}. What is the radius?`, `${d/2}`]; },
-        () => { const rad=r(2,10); return [`Diameter of a circle with radius ${rad}?`, `${2*rad}`]; }
-      ];
-      return pick(templates)();
-    }
+    if (unitName === "Area") { const l=r(4,14),w=r(3,10); return [`Area of rectangle: ${l} cm × ${w} cm?`,`${l*w}`]; }
+    if (unitName === "Perimeter") { const s=r(3,12); return [`Perimeter of square with side ${s} cm?`,`${4*s}`]; }
+    if (unitName === "Angles") { const a=r(20,70); return [`Two angles supplement each other. One is ${a}°. Find the other.`,`${180-a}°`]; }
+    if (unitName === "Triangles") { const [a,b,c]=pick([[3,4,5],[5,12,13]]); return [`Right triangle legs: ${a} and ${b}. Find hypotenuse.`,`${c}`]; }
+    if (unitName === "Circles") { const rad=r(2,10); return [`Area of circle radius ${rad}? (π≈3.14)`,`${round2(3.14*rad*rad)}`]; }
   }
-
   /* ─── Pre-Calc ───────────────────────────────────────────── */
   if (grade === "Pre-Calc") {
-    if (unitName === "Trig Basics") {
-      const trigs = [
-        ["sin(30°)", "0.5"],
-        ["cos(60°)", "0.5"],
-        ["tan(45°)", "1"],
-        ["sin(90°)", "1"],
-        ["cos(0°)",  "1"],
-        ["sin(60°)", "0.866"],
-        ["cos(30°)", "0.866"],
-        ["tan(0°)",  "0"],
-        ["sin(0°)",  "0"],
-        ["cos(90°)", "0"]
-      ];
-      return pick(trigs);
-    }
-    if (unitName === "Sequences") {
-      const templates = [
-        () => { const n=r(5,15); return [`Sum: 1 + 2 + ... + ${n} = ?`, `${n*(n+1)/2}`]; },
-        () => { const a=r(2,8),d=r(2,5),n=r(4,10); return [`Arithmetic: first term ${a}, common diff ${d}, ${n}th term?`, `${a+(n-1)*d}`]; },
-        () => { const a=r(1,4),r_=r(2,3),n=r(3,6); return [`Geometric: first term ${a}, ratio ${r_}, ${n}th term?`, `${a*Math.pow(r_,n-1)}`]; },
-        () => { const seq=[2,4,8,16]; return [`Next term in: ${seq.join(', ')} ...?`, `32`]; }
-      ];
-      return pick(templates)();
-    }
-    if (unitName === "Advanced Functions") {
-      const templates = [
-        () => { const x=r(2,8); return [`f(x) = x² + 2. Find f(${x}).`, `${x*x+2}`]; },
-        () => { const x=r(1,6); return [`g(x) = 2x² - 3. Find g(${x}).`, `${2*x*x-3}`]; },
-        () => { const a=r(2,5),b=r(1,4); return [`h(x) = ${a}x + ${b}. If h(x) = ${a*3+b}, find x.`, `3`]; },
-        () => [`Vertical asymptote of f(x) = 1/(x-3)?`, `x = 3`]
-      ];
-      return pick(templates)();
-    }
-    if (unitName === "Exponentials") {
-      const templates = [
-        () => { const p=r(2,5); return [`2^${p} = ?`, `${Math.pow(2,p)}`]; },
-        () => { const p=r(2,4); return [`3^${p} = ?`, `${Math.pow(3,p)}`]; },
-        () => { const p=r(2,4); return [`5^${p} = ?`, `${Math.pow(5,p)}`]; },
-        () => [`Solve: 2^x = 16`, `4`],
-        () => [`Solve: 3^x = 27`, `3`]
-      ];
-      return pick(templates)();
-    }
-    if (unitName === "Polar Coords") {
-      const templates = [
-        () => { const a=r(2,8); return [`Cartesian (${a}, 0) in polar form?`, `(${a}, 0°)`]; },
-        () => { const a=r(2,6); return [`Polar (${a}, 90°) to Cartesian?`, `(0, ${a})`]; },
-        [`Polar angle for positive x-axis?`, `0°`],
-        [`What is the polar radius called?`, `r`],
-        () => { const a=r(3,7); return [`Point (0, ${a}) in polar form?`, `(${a}, 90°)`]; }
-      ];
-      const t = pick(templates);
-      return typeof t === 'function' ? t() : t;
-    }
+    if (unitName === "Trig Basics") { return pick([["sin(30°)","0.5"],["cos(60°)","0.5"],["tan(45°)","1"],["sin(90°)","1"]]); }
+    if (unitName === "Sequences") { const n=r(5,15); return [`Sum: 1 + 2 + ... + ${n} = ?`,`${n*(n+1)/2}`]; }
+    if (unitName === "Advanced Functions") { const x=r(2,8); return [`f(x) = x² + 2. Find f(${x}).`,`${x*x+2}`]; }
+    if (unitName === "Exponentials") { const p=r(2,5); return [`2^${p} = ?`,`${Math.pow(2,p)}`]; }
+    if (unitName === "Polar Coords") { const a=r(2,8); return [`Cartesian (${a}, 0) in polar form?`,`(${a}, 0°)`]; }
   }
-
   /* ─── Calculus ───────────────────────────────────────────── */
   if (grade === "Calculus") {
-    if (unitName === "Limits") {
-      const templates = [
-        () => { const a=r(1,8),b=r(1,10); return [`lim x→${a} of (x + ${b})`, `${a+b}`]; },
-        () => { const a=r(2,9),b=r(1,6); return [`lim x→${a} of (${b}x)`, `${b*a}`]; },
-        () => { const a=r(2,7); return [`lim x→${a} of x²`, `${a*a}`]; },
-        () => { const a=r(2,6),b=r(2,8); return [`lim x→${a} of (x² + ${b})`, `${a*a+b}`]; }
-      ];
-      return pick(templates)();
-    }
-    if (unitName === "Derivatives") {
-      const templates = [
-        () => { const p=r(2,6); return [`d/dx of x^${p}`, `${p}x^${p-1}`]; },
-        () => { const c=r(2,8),p=r(2,5); return [`d/dx of ${c}x^${p}`, `${c*p}x^${p-1}`]; },
-        () => [`d/dx of 5x`, `5`],
-        () => { const c=r(2,10); return [`d/dx of ${c}`, `0`]; }
-      ];
-      return pick(templates)();
-    }
-    if (unitName === "Chain Rule") {
-      const templates = [
-        () => { const a=r(1,5),p=r(2,4); return [`d/dx of (x+${a})^${p}`, `${p}(x+${a})^${p-1}`]; },
-        () => { const a=r(1,4),p=r(3,5); return [`d/dx of (2x+${a})^${p}`, `${2*p}(2x+${a})^${p-1}`]; },
-        () => { const p=r(2,4); return [`d/dx of (3x)^${p}`, `${3*p}(3x)^${p-1}`]; }
-      ];
-      return pick(templates)();
-    }
-    if (unitName === "Integrals") {
-      const templates = [
-        () => { const p=r(1,5); return [`∫ x^${p} dx`, `x^${p+1}/${p+1} + C`]; },
-        () => { const c=r(2,8); return [`∫ ${c} dx`, `${c}x + C`]; },
-        () => { const c=r(2,6),p=r(1,4); return [`∫ ${c}x^${p} dx`, `${c}x^${p+1}/${p+1} + C`]; }
-      ];
-      return pick(templates)();
-    }
-    if (unitName === "Applications") {
-      const templates = [
-        () => { const x=r(2,8); return [`y = x². Find dy/dx at x = ${x}.`, `${2*x}`]; },
-        () => { const c=r(2,6),x=r(1,6); return [`y = ${c}x². Find dy/dx at x = ${x}.`, `${2*c*x}`]; },
-        () => { const a=r(2,5); return [`y = ${a}x. Find the slope of the tangent.`, `${a}`]; },
-        () => [`y = x³. Find dy/dx.`, `3x²`]
-      ];
-      return pick(templates)();
-    }
+    if (unitName === "Limits") { const a=r(1,8),b=r(1,10); return [`lim x→${a} of (x + ${b})`,`${a+b}`]; }
+    if (unitName === "Derivatives") { const p=r(2,6); return [`d/dx of x^${p}`,`${p}x^${p-1}`]; }
+    if (unitName === "Chain Rule") { const a=r(1,5),p=r(2,4); return [`d/dx of (x+${a})^${p}`,`${p}(x+${a})^${p-1}`]; }
+    if (unitName === "Integrals") { const p=r(1,5); return [`∫ x^${p} dx`,`x^${p+1}/${p+1} + C`]; }
+    if (unitName === "Applications") { const x=r(2,8); return [`y = x². Find dy/dx at x = ${x}.`,`${2*x}`]; }
   }
 
-  // Should never reach here
   return [`2 + 3 = ?`, `5`];
 }
 
-// ======================== STEP-BY-STEP EXPLANATION ENGINE ========================
+// ======================== SAT EXPLANATION ENGINE ========================
+function getSATExplanation(unitName, question, answer, difficulty) {
+
+  // "Algebra" — was "Heart of Algebra"
+  if (unitName === "Algebra") {
+    const mLinear = question.match(/^(-?\d+)x\s*([+-])\s*(\d+)\s*=\s*(-?\d+)/);
+    const mSystem = question.match(/Solve the system: (.+?) and (.+)/);
+    const mPoint = question.match(/y = (-?\d+)x \+ (-?\d+) passes through \((\d+), k\)/);
+    const mSlope = question.match(/What is the slope of the line y = (-?\d+)x \+ (-?\d+)/);
+    const mYint = question.match(/What is the y-intercept of y = (-?\d+)x \+ (-?\d+)/);
+    const mSlopePts = question.match(/slope of the line through \((-?\d+), (-?\d+)\) and \((-?\d+), (-?\d+)\)/);
+    const mDist = question.match(/^(-?\d+)\(x \+ (\d+)\) = (-?\d+)/);
+    const mXint = question.match(/x-intercept of the line y = (-?\d+)x \+ (-?\d+)/);
+    const mParallel = question.match(/slope of a line parallel to/);
+    const mInfSol = question.match(/infinitely many solutions/);
+    const mIneq = question.match(/^(-?\d+)x\s*≤\s*(-?\d+)/);
+    const mSys2 = question.match(/2x \+ 3y = (\d+) and x \+ y = (\d+)\. Solve for x/);
+    const mPerp = question.match(/slope of a line perpendicular to it/);
+    const mRate = question.match(/f\(n\) = (\d+) \+ (\d+)n\. By how much does f\(n\) increase/);
+
+    if (mLinear) {
+      const a=+mLinear[1], op=mLinear[2], b=+mLinear[3], rhs=+mLinear[4];
+      const actualB = op==='-' ? -b : b;
+      return { steps:[
+        {text:"Goal: isolate x. Start with the equation:", math:`${a}x ${op} ${b} = ${rhs}`},
+        {text:`Step 1 — ${op==='+' ? 'Subtract' : 'Add'} ${b} from both sides:`, math:`${a}x = ${rhs} ${op==='+' ? '-' : '+'} ${b} = ${rhs - actualB}`},
+        {text:`Step 2 — Divide both sides by ${a}:`, math:`x = ${(rhs-actualB)/a}`},
+        {text:"Verification — substitute back:", math:`${a}(${(rhs-actualB)/a}) ${op} ${b} = ${rhs} ✓`}
+      ], tip:"SAT strategy: undo addition/subtraction first, then division. Always verify by plugging back in." };
+    }
+    if (mSystem) {
+      const mx = answer.match(/x=(-?\d+)/), my = answer.match(/y=(-?\d+)/);
+      const xv=mx?+mx[1]:'?', yv=my?+my[1]:'?';
+      return { steps:[
+        {text:"System of equations — use elimination:", math:`Eq1: ${mSystem[1]}`},
+        {text:"Second equation:", math:`Eq2: ${mSystem[2]}`},
+        {text:"Add the two equations to eliminate y:", math:`2x = ${2*xv} → x = ${xv}`},
+        {text:`Substitute x = ${xv} into Eq1 to find y:`, math:`${xv} + y = ... → y = ${yv}`},
+        {text:"Check both equations with (x, y):", math:`(${xv}, ${yv}) satisfies both ✓`}
+      ], tip:"Elimination: add or subtract equations to cancel one variable. Then back-substitute." };
+    }
+    if (mSlopePts) {
+      const [,x1,y1,x2,y2] = mSlopePts.map(Number);
+      return { steps:[
+        {text:"Slope formula: m = (y₂ - y₁) / (x₂ - x₁)", math:`Points: (${x1}, ${y1}) and (${x2}, ${y2})`},
+        {text:"Subtract y-coordinates:", math:`y₂ - y₁ = ${y2} - ${y1} = ${y2-y1}`},
+        {text:"Subtract x-coordinates:", math:`x₂ - x₁ = ${x2} - ${x1} = ${x2-x1}`},
+        {text:"Divide:", math:`m = ${y2-y1} / ${x2-x1} = ${answer}`}
+      ], tip:"Rise over run: (change in y) ÷ (change in x). Order must be consistent." };
+    }
+    if (mSlope) { const m=mSlope[1]; return { steps:[{text:"In y = mx + b, m is the slope and b is the y-intercept.", math:`y = ${m}x + ${mSlope[2]}`},{text:"The slope is the coefficient of x:", math:`m = ${m}`}], tip:"Slope-intercept form: y = mx + b. Read slope directly from the coefficient of x." }; }
+    if (mYint) { const b=mYint[2]; return { steps:[{text:"In y = mx + b, b is the y-intercept (where the line crosses the y-axis).", math:`y = ${mYint[1]}x + ${b}`},{text:"The y-intercept is the constant term:", math:`b = ${b}`}], tip:"Y-intercept = where x = 0. Set x = 0 in the equation to find it directly." }; }
+    if (mPoint) {
+      const m=+mPoint[1], b=+mPoint[2], xv=+mPoint[3];
+      return { steps:[
+        {text:"If a point (x, k) lies on the line, it satisfies the equation:", math:`y = ${m}x + ${b}`},
+        {text:`Substitute x = ${xv}:`, math:`k = ${m}(${xv}) + ${b}`},
+        {text:"Compute:", math:`k = ${m*xv} + ${b} = ${m*xv+b}`}
+      ], tip:"To test if a point is on a line, substitute its coordinates into the equation." };
+    }
+    if (mParallel) { return { steps:[{text:"Parallel lines have identical slopes.", math:"If line ℓ has slope m, any parallel line also has slope m."},{text:"Read the slope from the given equation:", math:`Slope = ${answer}`}], tip:"Parallel: same slope, different y-intercept. Perpendicular: slopes multiply to −1." }; }
+    if (mPerp) {
+      const mParts = question.match(/slope (\d+)\/(\d+)/);
+      if (mParts) {
+        const p=+mParts[1], q=+mParts[2];
+        return { steps:[{text:"Perpendicular lines: their slopes multiply to −1.", math:`m₁ × m₂ = -1`},{text:"Given slope:", math:`${p}/${q}`},{text:"Perpendicular slope = negative reciprocal:", math:`m₂ = -${q}/${p}`}], tip:"Perpendicular slope = flip the fraction, then negate it." };
+      }
+    }
+    if (mInfSol) {
+      const mK = question.match(/(\d+)x - y = (\d+)/);
+      if (mK) {
+        const a=+mK[1], b=+mK[2];
+        return { steps:[
+          {text:"Infinitely many solutions means the equations are identical (same line).", math:""},
+          {text:"Multiply the first equation by 2:", math:`${2*a}x - 2y = ${2*b}`},
+          {text:"For this to match the second equation, k must equal:", math:`k = ${2*b}`}
+        ], tip:"Infinite solutions: the two equations represent the same line. Scale one to match the other." };
+      }
+    }
+    if (mIneq) {
+      const a=+mIneq[1], b=+mIneq[2];
+      return { steps:[
+        {text:"Solve the inequality:", math:`${a}x ≤ ${b}`},
+        {text:`Divide both sides by ${a}:`, math:`x ≤ ${b/a}`},
+        {text:"The largest integer satisfying x ≤ "+round2(b/a)+":", math:`${Math.floor(b/a)}`}
+      ], tip:"For 'largest integer value,' solve the inequality, then floor the result." };
+    }
+    if (mSys2) {
+      const sum=+mSys2[1], sum2=+mSys2[2];
+      return { steps:[
+        {text:"Subtract Eq2 from Eq1 to eliminate y:", math:`(2x+3y) - (x+y) = ${sum} - ${sum2}`},
+        {text:"Simplify:", math:`x + 2y = ${sum-sum2}`},
+        {text:"From Eq2: y = "+ sum2 +" - x. Substitute:", math:`x + 2(${sum2}-x) = ${sum-sum2}`},
+        {text:"Solve:", math:`x = ${answer}`}
+      ], tip:"Elimination on the SAT: subtract equations to reduce variables, then solve." };
+    }
+    if (mRate) {
+      const start=mRate[1], rate=mRate[2];
+      return { steps:[
+        {text:"The function f(n) = "+ start +" + "+ rate +"n is linear.", math:`f(n) = ${start} + ${rate}n`},
+        {text:"The coefficient of n tells us the rate of change:", math:`For each +1 in n, f(n) increases by ${rate}`}
+      ], tip:"In f(n) = a + bn, the slope b is the constant rate of change per unit." };
+    }
+    if (mXint) {
+      const m=+mXint[1], b=+mXint[2];
+      return { steps:[
+        {text:"X-intercept: set y = 0 and solve for x.", math:`0 = ${m}x + ${b}`},
+        {text:"Subtract constant from both sides:", math:`${-b} = ${m}x`},
+        {text:"Divide by slope:", math:`x = ${round2(-b/m)}`}
+      ], tip:"X-intercept: plug in y = 0. Y-intercept: plug in x = 0." };
+    }
+  }
+
+  // "Advanced Math" — was "Passport to Adv. Math"
+  if (unitName === "Advanced Math") {
+    const mFactor = question.match(/Factor: x² \+ (\d+)x \+ (\d+)/);
+    const mSolveQ = question.match(/x² - (\d+)x \+ (\d+) = 0\. Solve for x/);
+    const mEval = question.match(/f\(x\) = x² \+ (\d+)\. Find f\((\d+)\)/);
+    const mRoot = question.match(/x² = (\d+)\. What are the solutions/);
+    const mVertex = question.match(/f\(x\) = (\d+)x² \+ (-?\d+)x \+ \d+\. What is the x-coordinate of the vertex/);
+    const mFOIL = question.match(/Expand: \(x\+(\d+)\)\(x\+(\d+)\)/);
+    const mCompose = question.match(/f\(x\) = (\d+)x \+ (\d+), g\(x\) = x²\. Find f\(g\((\d+)\)\)/);
+    const mRatExp = question.match(/(\d+)\^\(1\/2\)/);
+    const mExpGrowth = question.match(/starts at (\d+) and triples.*(\d+) years/);
+    const mComplSq = question.match(/x² \+ (\d+)x \+ (\d+) = \(x \+ \?\)²/);
+    const mSumRoots = question.match(/x² - (\d+)x \+ (\d+) = 0\. Sum of the solutions/);
+    const mExcluded = question.match(/\(x\+3\)\/\(x-(\d+)\) undefined/);
+    const mExpRule = question.match(/Simplify: x\^(\d+) · x\^(\d+)/);
+    const mDisc = question.match(/x² - (\d+)x \+ (\d+) = 0\. How many distinct real solutions/);
+
+    if (mFactor) {
+      const [,b,c] = mFactor.map(Number);
+      return { steps:[
+        {text:"To factor x² + bx + c, find two integers that:", math:`multiply to ${c} and add to ${b}`},
+        {text:"List factor pairs of "+c+":", math:`Try pairs and check their sum`},
+        {text:"Once found, write in factored form:", math:`(x + ?)(x + ?)`},
+        {text:"Answer:", math:`${answer}`},
+        {text:"Verify by FOIL-ing back:", math:`(expand to confirm x² + ${b}x + ${c})`}
+      ], tip:"Factor quadratics by finding two numbers: product = c, sum = b. Practice with common pairs." };
+    }
+    if (mSolveQ) {
+      const [,b,c] = mSolveQ.map(Number);
+      const roots = answer.match(/\d+/g).map(Number);
+      return { steps:[
+        {text:"Factor the quadratic:", math:`x² - ${b}x + ${c} = 0`},
+        {text:`Find two numbers that multiply to ${c} and add to ${b}:`, math:`${roots[0]} × ${roots[1]} = ${c}, ${roots[0]} + ${roots[1]} = ${b}`},
+        {text:"Factored form:", math:`(x - ${roots[0]})(x - ${roots[1]}) = 0`},
+        {text:"Set each factor to zero:", math:`x = ${roots[0]} or x = ${roots[1]}`}
+      ], tip:"Zero-product property: if (A)(B) = 0, then A = 0 or B = 0." };
+    }
+    if (mEval) {
+      const c=+mEval[1], xv=+mEval[2];
+      return { steps:[
+        {text:"Substitute the value into the function:", math:`f(${xv}) = (${xv})² + ${c}`},
+        {text:"Square the input:", math:`${xv}² = ${xv*xv}`},
+        {text:"Add the constant:", math:`${xv*xv} + ${c} = ${xv*xv+c}`}
+      ], tip:"Function evaluation: replace every x with the given number, follow order of operations." };
+    }
+    if (mRoot) {
+      const sq=+mRoot[1], root=Math.sqrt(sq);
+      return { steps:[
+        {text:"Take the square root of both sides:", math:`√(x²) = ±√${sq}`},
+        {text:"Don't forget ±:", math:`x = ±${root}`},
+        {text:"Two solutions:", math:`x = ${root} and x = -${root}`}
+      ], tip:"√(x²) = |x|, so you always get ±. The SAT tests this — don't drop the negative root." };
+    }
+    if (mVertex) {
+      const a=+mVertex[1], b=+mVertex[2];
+      return { steps:[
+        {text:"Vertex x-coordinate formula: x = -b/(2a)", math:`a = ${a}, b = ${b}`},
+        {text:"Substitute:", math:`x = -(${b}) / (2 × ${a}) = ${-b} / ${2*a}`},
+        {text:"Simplify:", math:`x = ${round2(-b/(2*a))}`}
+      ], tip:"The vertex is the min (a>0) or max (a<0) of the parabola. x = -b/(2a) is always the axis of symmetry." };
+    }
+    if (mFOIL) {
+      const p=+mFOIL[1], q=+mFOIL[2];
+      return { steps:[
+        {text:"FOIL: First × First, Outer × Inner, Inner × Outer, Last × Last:", math:`(x+${p})(x+${q})`},
+        {text:"First:", math:`x × x = x²`},
+        {text:`Outer + Inner (like terms):`, math:`${p}x + ${q}x = ${p+q}x`},
+        {text:"Last:", math:`${p} × ${q} = ${p*q}`},
+        {text:"Combine:", math:`x² + ${p+q}x + ${p*q}`}
+      ], tip:"FOIL guarantees you multiply every term by every other term. Check by expanding both brackets." };
+    }
+    if (mCompose) {
+      const a=+mCompose[1], b=+mCompose[2], xv=+mCompose[3];
+      return { steps:[
+        {text:"Composition: f(g(x)) means apply g first, then f.", math:`g(${xv}) = ${xv}² = ${xv*xv}`},
+        {text:"Then apply f to that result:", math:`f(${xv*xv}) = ${a}(${xv*xv}) + ${b} = ${a*xv*xv+b}`}
+      ], tip:"f(g(x)): work from the inside out. First evaluate g, then plug into f." };
+    }
+    if (mRatExp) {
+      const base=+mRatExp[1];
+      return { steps:[
+        {text:"A fractional exponent: b^(1/2) = √b", math:`${base}^(1/2) = √${base}`},
+        {text:"Find the square root:", math:`√${base} = ${answer}`}
+      ], tip:"b^(1/n) = nth root of b. So b^(1/2) = √b, b^(1/3) = cube root of b." };
+    }
+    if (mExpGrowth) {
+      const init=+mExpGrowth[1], periods=+mExpGrowth[2];
+      return { steps:[
+        {text:"Exponential growth formula: final = initial × r^t", math:`initial = ${init}, r = 3 (triple), t = ${periods}`},
+        {text:"Compute 3^t:", math:`3^${periods} = ${Math.pow(3,periods)}`},
+        {text:"Multiply:", math:`${init} × ${Math.pow(3,periods)} = ${init*Math.pow(3,periods)}`}
+      ], tip:"Exponential growth: multiply by the growth factor for each period. Not addition!" };
+    }
+    if (mComplSq) {
+      const b=+mComplSq[1];
+      return { steps:[
+        {text:"Completing the square: (x + h)² = x² + 2hx + h²", math:""},
+        {text:"Match coefficient of x:", math:`2h = ${b} → h = ${b/2}`},
+        {text:"So (x + ?)² with ? =", math:`${b/2}`}
+      ], tip:"To complete the square: take half the coefficient of x, square it. That's what fills the blank." };
+    }
+    if (mSumRoots) {
+      const [,b,c] = mSumRoots.map(Number);
+      return { steps:[
+        {text:"Vieta's formulas: for x² + bx + c = 0,", math:"sum of roots = -b/a, product = c/a"},
+        {text:"Here the equation is x² - "+b+"x + "+c+" = 0, so:", math:`sum = -(-${b})/1 = ${b}`}
+      ], tip:"SAT shortcut: sum of roots of x² + bx + c = 0 is always -b. No need to find each root." };
+    }
+    if (mExcluded) {
+      const k=+mExcluded[1];
+      return { steps:[
+        {text:"A rational expression is undefined when its denominator = 0:", math:"denominator: x - "+k+" = 0"},
+        {text:"Solve:", math:`x = ${k}`}
+      ], tip:"Always check for values that make the denominator zero — those are excluded from the domain." };
+    }
+    if (mExpRule) {
+      const e1=+mExpRule[1], e2=+mExpRule[2];
+      return { steps:[
+        {text:"Product of Powers rule: x^m · x^n = x^(m+n)", math:`x^${e1} · x^${e2}`},
+        {text:"Add the exponents:", math:`x^(${e1}+${e2}) = x^${e1+e2}`}
+      ], tip:"Same base? Add exponents when multiplying. Subtract when dividing." };
+    }
+    if (mDisc) {
+      const b=+mDisc[1], c=+mDisc[2];
+      const disc = b*b - 4*c;
+      return { steps:[
+        {text:"Use the discriminant: D = b² - 4ac", math:`a=1, b=-${b}, c=${c}`},
+        {text:"Calculate D:", math:`(-${b})² - 4(1)(${c}) = ${b*b} - ${4*c} = ${disc}`},
+        {text:"D = 0 means exactly one real solution (a repeated root).", math:`D = ${disc} → ${disc===0?'1 solution':disc>0?'2 solutions':'0 real solutions'}`}
+      ], tip:"Discriminant: D>0 → 2 roots, D=0 → 1 root, D<0 → no real roots. Key SAT concept." };
+    }
+  }
+
+  if (unitName === "Problem Solving") {
+    const mPctOf = question.match(/What is (\d+)% of (\d+)/);
+    const mDiscount = question.match(/\$(\d+) is discounted by (\d+)%/);
+    const mPctPass = question.match(/(\d+) out of (\d+).*percentage passed/);
+    const mPctChange = question.match(/increases from (\d+) to ([\d.]+).*percent increase/);
+    const mRate = question.match(/rate of (\d+) miles per hour.*(\d+) hours/);
+    const mWeighted = question.match(/(\d+) scores averaging (\d+) and (\d+) scores averaging (\d+). Weighted mean/);
+    const mZscore = question.match(/mean (\d+) and std dev (\d+). A value of (\d+) has a z-score/);
+    const mConditional = question.match(/(\d+) study French and (\d+) study both French and Spanish/);
+    const mTwoStep = question.match(/\$(\d+) rises by (\d+)%.*falls by (\d+)%/);
+
+    if (mPctOf) {
+      const p=+mPctOf[1], n=+mPctOf[2];
+      return { steps:[
+        {text:"Convert the percent to a decimal:", math:`${p}% = ${p/100}`},
+        {text:"Multiply by the total:", math:`${p/100} × ${n}`},
+        {text:"Calculate:", math:`= ${(p/100)*n}`}
+      ], tip:"Percent of a number: convert % to decimal (÷100), then multiply." };
+    }
+    if (mDiscount) {
+      const price=+mDiscount[1], pct=+mDiscount[2];
+      return { steps:[
+        {text:"Discount = original price × (percent/100):", math:`Discount = ${price} × ${pct/100} = ${price*pct/100}`},
+        {text:"New price = original − discount:", math:`${price} - ${price*pct/100} = ${price*(1-pct/100)}`},
+        {text:"Or directly: multiply by (1 - discount rate):", math:`${price} × ${1-pct/100} = ${price*(1-pct/100)}`}
+      ], tip:"Shortcut: multiply by (1 − rate). A 20% discount means multiply by 0.80." };
+    }
+    if (mPctChange) {
+      const before=+mPctChange[1], after=+mPctChange[2];
+      return { steps:[
+        {text:"Percent change formula:", math:`(new − old) / old × 100%`},
+        {text:"Calculate the change:", math:`${after} − ${before} = ${after-before}`},
+        {text:"Divide by original:", math:`${after-before} / ${before} = ${round2((after-before)/before)}`},
+        {text:"Multiply by 100:", math:`${round2((after-before)/before*100)}%`}
+      ], tip:"Percent change = (change ÷ original) × 100. Never divide by the new value." };
+    }
+    if (mRate) {
+      const rate=+mRate[1], time=+mRate[2];
+      return { steps:[
+        {text:"Distance = Rate × Time:", math:`d = ${rate} × ${time}`},
+        {text:"Calculate:", math:`d = ${rate*time} miles`}
+      ], tip:"d = r·t is the fundamental rate equation. Know all three forms: d=rt, r=d/t, t=d/r." };
+    }
+    if (mWeighted) {
+      const w1=+mWeighted[1], g1=+mWeighted[2], w2=+mWeighted[3], g2=+mWeighted[4];
+      return { steps:[
+        {text:"Weighted mean: multiply each group's average by its count, then divide by total count.", math:`(${w1}×${g1} + ${w2}×${g2}) / (${w1}+${w2})`},
+        {text:"Numerator:", math:`${w1*g1} + ${w2*g2} = ${w1*g1+w2*g2}`},
+        {text:"Denominator:", math:`${w1+w2}`},
+        {text:"Weighted mean:", math:`${round2((w1*g1+w2*g2)/(w1+w2))}`}
+      ], tip:"Weighted mean ≠ simple average. Groups with more members pull the mean toward them." };
+    }
+    if (mConditional) {
+      const french=+mConditional[1], both=+mConditional[2];
+      return { steps:[
+        {text:"Conditional probability: P(A|B) = P(A and B) / P(B)", math:""},
+        {text:"P(both) = favorable outcomes:", math:`${both} study both`},
+        {text:"P(French) = students who study French:", math:`${french}`},
+        {text:"P(Spanish | French):", math:`${both}/${french}`}
+      ], tip:"P(A|B) means 'given B happened.' Restrict the sample space to B, then count A." };
+    }
+    if (mTwoStep) {
+      const orig=+mTwoStep[1], p1=+mTwoStep[2], p2=+mTwoStep[3];
+      return { steps:[
+        {text:"Apply the first change (increase):", math:`${orig} × ${1+p1/100} = ${orig*(1+p1/100)}`},
+        {text:"Apply the second change (decrease) to the result:", math:`${orig*(1+p1/100)} × ${1-p2/100} = ${round2(orig*(1+p1/100)*(1-p2/100))}`},
+        {text:"Final price:", math:`$${round2(orig*(1+p1/100)*(1-p2/100))}`}
+      ], tip:"Apply percent changes sequentially, not together. A 20% rise then 20% fall ≠ 0% overall." };
+    }
+  }
+
+  if (unitName === "Additional Topics") {
+    const mCircleArea = question.match(/Area of circle with radius (\d+)/);
+    const mCircumf = question.match(/Circumference of circle with radius (\d+)/);
+    const mPyth = question.match(/legs (\d+) and (\d+)\. Hypotenuse/);
+    const mSupp = question.match(/supplementary.*?(\d+)°/i);
+    const mVol = question.match(/Volume of a box: l=(\d+), w=(\d+), h=(\d+)/);
+    const mArc = question.match(/Arc length.*r=(\d+).*central angle (\d+)°/);
+    const mSimilar = question.match(/Scale factor (\d+)\. Longer side of second/);
+    const m306090 = question.match(/30-60-90.*shortest leg = (\d+)/);
+    const mTrigRatio = question.match(/opposite=(\d+), adjacent=(\d+), hypotenuse=(\d+)\. sin/);
+    const mCylinder = question.match(/cylinder: radius (\d+), height (\d+)/);
+    const mSector = question.match(/Area of sector: r=(\d+), central angle=(\d+)°/);
+    const m454590 = question.match(/45-45-90.*one leg = (\d+)/);
+    const mInscribed = question.match(/central angle measures (\d+)°/);
+    const mMidpoint = question.match(/Midpoint of \((\d+), (\d+)\) and \((\d+), (\d+)\)/);
+
+    if (mCircleArea) {
+      const rad=+mCircleArea[1];
+      return { steps:[
+        {text:"Area of circle formula: A = πr²", math:`r = ${rad}`},
+        {text:"Square the radius:", math:`${rad}² = ${rad*rad}`},
+        {text:"Multiply by π ≈ 3.14:", math:`3.14 × ${rad*rad} = ${round2(3.14*rad*rad)}`}
+      ], tip:"A = πr². Circumference = 2πr. Don't mix them up on the SAT." };
+    }
+    if (mCircumf) {
+      const rad=+mCircumf[1];
+      return { steps:[
+        {text:"Circumference formula: C = 2πr", math:`r = ${rad}`},
+        {text:"Multiply:", math:`C = 2 × 3.14 × ${rad} = ${round2(2*3.14*rad)}`}
+      ], tip:"C = 2πr = πd. The SAT provides π ≈ 3.14159 in the formula sheet." };
+    }
+    if (mPyth) {
+      const [,a,b] = mPyth.map(Number), c=Math.sqrt(a*a+b*b);
+      return { steps:[
+        {text:"Pythagorean Theorem: a² + b² = c²", math:`${a}² + ${b}² = c²`},
+        {text:"Square each leg:", math:`${a*a} + ${b*b} = ${a*a+b*b}`},
+        {text:"Take square root:", math:`c = √${a*a+b*b} = ${c}`}
+      ], tip:"Memorize common triples: 3-4-5, 5-12-13, 8-15-17. The SAT loves them." };
+    }
+    if (mSupp) {
+      const a=+mSupp[1];
+      return { steps:[
+        {text:"Supplementary angles sum to 180°:", math:`${a}° + x = 180°`},
+        {text:"Subtract:", math:`x = 180 - ${a} = ${180-a}°`}
+      ], tip:"Supplementary = 180° (straight line). Complementary = 90° (right angle)." };
+    }
+    if (mVol) {
+      const [,l,w,h] = mVol.map(Number);
+      return { steps:[
+        {text:"Volume of a rectangular prism: V = l × w × h", math:`${l} × ${w} × ${h}`},
+        {text:"Multiply step by step:", math:`${l}×${w} = ${l*w}, then ${l*w}×${h} = ${l*w*h}`}
+      ], tip:"The SAT formula sheet includes common volume formulas. Know when to apply each." };
+    }
+    if (mArc) {
+      const rad=+mArc[1], deg=+mArc[2];
+      return { steps:[
+        {text:"Arc length = (central angle / 360°) × circumference", math:`= (${deg}/360) × 2π(${rad})`},
+        {text:"Fraction of circle:", math:`${deg}/360 = ${round2(deg/360)}`},
+        {text:"Circumference:", math:`2 × 3.14 × ${rad} = ${round2(2*3.14*rad)}`},
+        {text:"Multiply:", math:`${round2(deg/360)} × ${round2(2*3.14*rad)} = ${round2(2*3.14*rad*(deg/360))}`}
+      ], tip:"Arc length is a fraction of the full circumference. Fraction = central angle / 360°." };
+    }
+    if (m306090) {
+      const short=+m306090[1];
+      return { steps:[
+        {text:"30-60-90 side ratios: 1 : √3 : 2", math:`shortest (30°) : middle (60°) : hypotenuse`},
+        {text:"If shortest = "+short+":", math:`hypotenuse = 2 × ${short} = ${2*short}`}
+      ], tip:"30-60-90: sides are x, x√3, 2x. The SAT provides this in the formula sheet." };
+    }
+    if (mTrigRatio) {
+      const [,opp,adj,hyp] = mTrigRatio.map(Number);
+      return { steps:[
+        {text:"SOHCAHTOA: sin = opposite / hypotenuse", math:`sin(θ) = opp/hyp`},
+        {text:"Plug in:", math:`sin(θ) = ${opp}/${hyp}`}
+      ], tip:"SOH-CAH-TOA. On the SAT, trig ratios are applied to right triangles only (unless unit circle)." };
+    }
+    if (mCylinder) {
+      const rad=+mCylinder[1], h=+mCylinder[2];
+      return { steps:[
+        {text:"Volume of cylinder: V = πr²h", math:`π × ${rad}² × ${h}`},
+        {text:"Square the radius:", math:`${rad}² = ${rad*rad}`},
+        {text:"Multiply:", math:`3.14 × ${rad*rad} × ${h} = ${round2(3.14*rad*rad*h)}`}
+      ], tip:"V = πr²h. The base area is πr², then extend it by height h." };
+    }
+    if (mSector) {
+      const rad=+mSector[1], deg=+mSector[2];
+      return { steps:[
+        {text:"Sector area = (central angle / 360°) × πr²", math:`(${deg}/360) × π(${rad})²`},
+        {text:"Fraction:", math:`${deg}/360 = ${round2(deg/360)}`},
+        {text:"Full circle area:", math:`3.14 × ${rad*rad} = ${round2(3.14*rad*rad)}`},
+        {text:"Multiply:", math:`${round2(deg/360)} × ${round2(3.14*rad*rad)} = ${round2(3.14*rad*rad*(deg/360))}`}
+      ], tip:"Sector area is a fraction of the full circle area. Same fraction concept as arc length." };
+    }
+    if (m454590) {
+      const leg=+m454590[1];
+      return { steps:[
+        {text:"45-45-90 ratios: 1 : 1 : √2", math:`leg : leg : hypotenuse`},
+        {text:"Hypotenuse = leg × √2:", math:`${leg} × √2 ≈ ${round2(leg*Math.SQRT2)}`}
+      ], tip:"45-45-90: sides are x, x, x√2. Isosceles right triangle. SAT formula sheet includes this." };
+    }
+    if (mInscribed) {
+      const central=+mInscribed[1];
+      return { steps:[
+        {text:"Inscribed Angle Theorem: inscribed angle = half the central angle subtending the same arc.", math:`Central angle = ${central}°`},
+        {text:"Inscribed angle:", math:`${central}/2 = ${central/2}°`}
+      ], tip:"Inscribed angle = (1/2) × central angle. This is a key circle theorem tested on the SAT." };
+    }
+    if (mMidpoint) {
+      const [,x1,y1,x2,y2] = mMidpoint.map(Number);
+      return { steps:[
+        {text:"Midpoint formula: M = ((x₁+x₂)/2, (y₁+y₂)/2)", math:`Points: (${x1},${y1}) and (${x2},${y2})`},
+        {text:"Average x-coordinates:", math:`(${x1}+${x2})/2 = ${(x1+x2)/2}`},
+        {text:"Average y-coordinates:", math:`(${y1}+${y2})/2 = ${(y1+y2)/2}`},
+        {text:"Midpoint:", math:`(${(x1+x2)/2}, ${(y1+y2)/2})`}
+      ], tip:"Midpoint = average of coordinates. Add them up and divide by 2." };
+    }
+  }
+
+  if (unitName === "Data Analysis") {
+    const mMean = question.match(/Mean of (.+)\?/);
+    const mMedian = question.match(/Median of (.+)\?/);
+    const mRange = question.match(/Range of (.+)\?/);
+    const mMode = question.match(/Mode of (.+)\?/);
+    const mMissing = question.match(/mean of 5 values is (\d+)\. Four of them sum to (\d+)\. What is the fifth/);
+    const mBestFit = question.match(/y = (\d+)x \+ 10. For each 1-unit increase/);
+    const mWeightedD = question.match(/(\d+) scores average (\d+) and (\d+) scores average (\d+). Weighted mean/);
+    const mZscoreD = question.match(/mean (\d+) and std dev (\d+). A value of (\d+) has a z-score/);
+    const mOutlier = question.match(/most affected by an extreme outlier/);
+    const mSpread = question.match(/greater spread/);
+    const mPctChange2 = question.match(/median increases from (\d+) to ([\d.]+). Percent increase/);
+
+    if (mMean) {
+      const vals = mMean[1].match(/-?\d+/g).map(Number);
+      const sum = vals.reduce((a,b)=>a+b,0);
+      return { steps:[
+        {text:"Mean = sum of all values ÷ count", math:`Values: ${vals.join(', ')}`},
+        {text:"Sum:", math:`${vals.join(' + ')} = ${sum}`},
+        {text:"Divide by count:", math:`${sum} ÷ ${vals.length} = ${round2(sum/vals.length)}`}
+      ], tip:"Mean = sum/count. On the SAT, means appear in data tables and scatterplots too." };
+    }
+    if (mMedian) {
+      const vals = mMedian[1].match(/-?\d+/g).map(Number).sort((a,b)=>a-b);
+      const mid = Math.floor(vals.length/2);
+      const med = vals.length%2===0 ? round2((vals[mid-1]+vals[mid])/2) : vals[mid];
+      return { steps:[
+        {text:"Sort the values in order:", math:vals.join(', ')},
+        {text:vals.length%2!==0 ? "Odd count: middle value is the median:" : "Even count: average the two middle values:", math:vals.length%2!==0 ? `Position ${mid+1}: ${vals[mid]}` : `(${vals[mid-1]} + ${vals[mid]})/2 = ${med}`},
+        {text:"Median:", math:`${med}`}
+      ], tip:"Median = middle value after sorting. For even sets, average the two middle values." };
+    }
+    if (mMissing) {
+      const target=+mMissing[1], knownSum=+mMissing[2];
+      return { steps:[
+        {text:"Mean formula: mean = sum / count", math:`target mean = ${target}, count = 5`},
+        {text:"Total required sum:", math:`${target} × 5 = ${target*5}`},
+        {text:"Known sum of four values:", math:`${knownSum}`},
+        {text:"Fifth value:", math:`${target*5} - ${knownSum} = ${target*5-knownSum}`}
+      ], tip:"Work backwards: total sum = mean × count. Then subtract the known values." };
+    }
+    if (mBestFit) {
+      const slope=+mBestFit[1];
+      return { steps:[
+        {text:"Line of best fit: y = mx + b. The slope m tells us the rate of change.", math:`y = ${slope}x + 10`},
+        {text:"For each 1-unit increase in x, y changes by m:", math:`Slope = ${slope}`},
+        {text:"So y increases by:", math:`${slope}`}
+      ], tip:"The slope of a line of best fit = rate of change between variables. The SAT often asks for interpretation, not computation." };
+    }
+    if (mZscoreD) {
+      const [,mean,sd,val] = mZscoreD.map(Number);
+      return { steps:[
+        {text:"Z-score formula: z = (value − mean) / std dev", math:`z = (${val} − ${mean}) / ${sd}`},
+        {text:"Subtract:", math:`${val} − ${mean} = ${val-mean}`},
+        {text:"Divide:", math:`${val-mean} / ${sd} = ${(val-mean)/sd}`}
+      ], tip:"Z-score = how many standard deviations a value is from the mean. z = 1 means one SD above." };
+    }
+    if (mOutlier) {
+      return { steps:[
+        {text:"An outlier is an extreme value far from the rest of the data.", math:""},
+        {text:"The mean uses all values in its calculation:", math:"mean = sum/count"},
+        {text:"A single extreme value shifts the sum, pulling the mean toward it.", math:""},
+        {text:"The median (middle value) is largely unaffected by outliers.", math:""}
+      ], tip:"Mean is sensitive to outliers. Median is resistant. On the SAT, expect this to appear in data interpretation." };
+    }
+    if (mSpread) {
+      return { steps:[
+        {text:"Spread = how varied the data is. Measured by range, variance, or std deviation.", math:""},
+        {text:"Dataset {2,2,2,2}: all values identical, zero spread.", math:"Range = 0"},
+        {text:"Dataset {1,2,3,4}: values differ from each other.", math:`Range = ${4-1} = 3`},
+        {text:"{1,2,3,4} has greater spread.", math:""}
+      ], tip:"Spread = variability. Look at range and how far values are from the mean." };
+    }
+    if (mPctChange2) {
+      const before=+mPctChange2[1], after=+mPctChange2[2];
+      return { steps:[
+        {text:"Percent change = (new − old) / old × 100%", math:`(${after} − ${before}) / ${before} × 100`},
+        {text:"Change:", math:`${after-before}`},
+        {text:"Divide by original:", math:`${after-before} / ${before} = ${round2((after-before)/before)}`},
+        {text:"Multiply by 100:", math:`${round2((after-before)/before*100)}%`}
+      ], tip:"Always divide by the ORIGINAL value, not the new one." };
+    }
+  }
+
+  // Generic fallback for SAT
+  return {
+    steps:[
+      {text:"Review the question carefully:", math:question},
+      {text:"The correct answer is:", math:answer},
+      {text:"Verify by substituting or estimating.", math:""}
+    ],
+    tip:"SAT strategy: eliminate wrong answers first. If stuck, work backwards from the choices."
+  };
+}
+
+// ======================== STEP-BY-STEP EXPLANATION ENGINE (ALL GRADES) ========================
 function getDetailedExplanation(grade, unitName, question, answer, difficulty) {
+  const satGrades = ["Algebra","Problem Solving","Advanced Math","Additional Topics","Data Analysis"];
+  if (satGrades.includes(grade)) {
+    return getSATExplanation(grade, question, answer, difficulty);
+  }
 
   /* ─── 1st Grade ─────────────────────────────────────────── */
   if (grade === "1st Grade") {
-    if (unitName === "Addition") {
-      const m = question.match(/(\d+)\s*\+\s*(\d+)/);
-      if (m) {
-        const a=+m[1], b=+m[2];
-        const hops = Array.from({length:b}, (_,i)=>`${a+i+1}`).join(' → ');
-        return { steps:[
-          {text:"Start at the first number on the number line:", math:`${a}`},
-          {text:`Count forward ${b} hops:`, math:`${a} → ${hops}`},
-          {text:"You land on:", math:`${a+b}`}
-        ], tip:"Always start with the bigger number and count up — it's faster!" };
-      }
-    }
-    if (unitName === "Subtraction") {
-      const m = question.match(/(\d+)\s*-\s*(\d+)/);
-      if (m) {
-        const a=+m[1], b=+m[2];
-        const hops = Array.from({length:b}, (_,i)=>`${a-i-1}`).join(' → ');
-        return { steps:[
-          {text:"Start at:", math:`${a}`},
-          {text:`Count back ${b} hops:`, math:`${a} → ${hops}`},
-          {text:"You land on:", math:`${a-b}`}
-        ], tip:"Think of subtraction as walking backwards on the number line." };
-      }
-    }
-    if (unitName === "Word Problems") {
-      const mAdd = question.match(/(\d+)[^0-9]+(\d+)/);
-      if (mAdd) {
-        const a=+mAdd[1], b=+mAdd[2];
-        const isAdd = answer === String(a+b);
-        return { steps:[
-          {text:"Read the problem carefully and find the two numbers:", math:`${a} and ${b}`},
-          {text:isAdd ? "We are combining (adding):" : "We are taking away (subtracting):", math: isAdd ? `${a} + ${b}` : `${a} - ${b}`},
-          {text:"The answer is:", math:`${answer}`}
-        ], tip:"Look for words like 'total' or 'altogether' for addition, 'left' for subtraction." };
-      }
-    }
-    if (unitName === "Counting") {
-      return { steps:[
-        {text:"The question asks what comes next in the count:", math:question},
-        {text:"Count up by 1:", math:`... → ${answer}`},
-        {text:"The answer is:", math:`${answer}`}
-      ], tip:"Numbers go in order: 1, 2, 3, 4… each one is 1 more than the last." };
-    }
-    if (unitName === "Number Bonds") {
-      const m = question.match(/(\d+)\s*=\s*(\d+)\s*\+\s*\?/);
-      if (m) {
-        const total=+m[1], part=+m[2];
-        return { steps:[
-          {text:"We know the total and one part:", math:`Total = ${total}, Part = ${part}`},
-          {text:"To find the missing part, subtract:", math:`${total} - ${part} = ?`},
-          {text:"The missing part is:", math:`${total-part}`}
-        ], tip:"If whole = part + part, then missing part = whole − known part." };
-      }
-    }
+    if (unitName === "Addition") { const m=question.match(/(\d+)\s*\+\s*(\d+)/); if(m){const a=+m[1],b=+m[2]; return {steps:[{text:"Start at the first number:",math:`${a}`},{text:`Count forward ${b}:`,math:`→ ${a+b}`}],tip:"Count on from the bigger number!"};} }
+    if (unitName === "Subtraction") { const m=question.match(/(\d+)\s*-\s*(\d+)/); if(m){const a=+m[1],b=+m[2]; return {steps:[{text:"Start at:",math:`${a}`},{text:`Count back ${b}:`,math:`→ ${a-b}`}],tip:"Subtraction is walking backwards on the number line."};} }
+    return {steps:[{text:"Problem:",math:question},{text:"Answer:",math:answer}],tip:"Practice makes perfect!"};
   }
 
   /* ─── 2nd Grade ─────────────────────────────────────────── */
   if (grade === "2nd Grade") {
-    if (unitName === "Addition") {
-      const m = question.match(/(\d+)\s*\+\s*(\d+)/);
-      if (m) {
-        const a=+m[1], b=+m[2];
-        return { steps:[
-          {text:"Line up the ones place:", math:`Ones: ${a%10} + ${b%10} = ${(a%10)+(b%10)}`},
-          {text:"Line up the tens place:", math:`Tens: ${Math.floor(a/10)} + ${Math.floor(b/10)} = ${Math.floor(a/10)+Math.floor(b/10)}`},
-          {text:"Combine (carry if needed):", math:`${a} + ${b} = ${a+b}`}
-        ], tip:"Always add ones first, then tens. If ones ≥ 10, carry 1 to the tens column." };
-      }
-    }
-    if (unitName === "Subtraction") {
-      const m = question.match(/(\d+)\s*-\s*(\d+)/);
-      if (m) {
-        const a=+m[1], b=+m[2];
-        return { steps:[
-          {text:"Check the ones digit:", math:`${a%10} - ${b%10}`},
-          {text:a%10 >= b%10 ? "No borrowing needed:" : "Borrow 10 from tens column:", math:a%10 >= b%10 ? `${a%10 - b%10}` : `${10+a%10} - ${b%10} = ${10+a%10-b%10}`},
-          {text:"Subtract the tens:", math:`${Math.floor(a/10)} - ${Math.floor(b/10)} = ${Math.floor((a-b)/10)}`},
-          {text:"Answer:", math:`${a-b}`}
-        ], tip:"When the top ones digit is smaller, borrow 10 from the tens." };
-      }
-    }
-    if (unitName === "Multiplication") {
-      const m = question.match(/(\d+)\s*×\s*(\d+)/);
-      if (m) {
-        const a=+m[1], b=+m[2];
-        const repeated = Array(b).fill(a).join(' + ');
-        return { steps:[
-          {text:"Multiplication is repeated addition:", math:`${a} × ${b}`},
-          {text:`Add ${a} exactly ${b} times:`, math:`${repeated}`},
-          {text:"Total:", math:`${a*b}`}
-        ], tip:`The ${a} times table: ${Array.from({length:10},(_,i)=>`${a}×${i+1}=${a*(i+1)}`).join(', ')}` };
-      }
-    }
-    if (unitName === "Place Value") {
-      const m = question.match(/(\d{2})/);
-      if (m) {
-        const n=+m[1];
-        return { steps:[
-          {text:"Write the number:", math:`${n}`},
-          {text:"Tens digit (how many groups of 10):", math:`${Math.floor(n/10)} tens = ${Math.floor(n/10)*10}`},
-          {text:"Ones digit (leftover):", math:`${n%10} ones = ${n%10}`},
-          {text:"Put it together:", math:`${Math.floor(n/10)*10} + ${n%10} = ${n}`}
-        ], tip:"In 47: the 4 means 4 tens (40), the 7 means 7 ones." };
-      }
-    }
-    if (unitName === "Measurement") {
-      const m = question.match(/(\d+) feet = \? inches/);
-      if (m) {
-        const f=+m[1];
-        return { steps:[
-          {text:"Conversion fact:", math:`1 foot = 12 inches`},
-          {text:`Multiply feet by 12:`, math:`${f} × 12`},
-          {text:"Answer:", math:`${f*12} inches`}
-        ], tip:"Feet to inches: multiply by 12. Inches to feet: divide by 12." };
-      }
-    }
+    if (unitName === "Addition") { const m=question.match(/(\d+)\s*\+\s*(\d+)/); if(m){const a=+m[1],b=+m[2]; return {steps:[{text:"Ones:",math:`${a%10}+${b%10}=${(a%10)+(b%10)}`},{text:"Tens:",math:`${Math.floor(a/10)}+${Math.floor(b/10)}`},{text:"Total:",math:`${a+b}`}],tip:"Add ones first, then tens."};} }
+    if (unitName === "Subtraction") { const m=question.match(/(\d+)\s*-\s*(\d+)/); if(m){const a=+m[1],b=+m[2]; return {steps:[{text:"Subtract:",math:`${a}-${b}=${a-b}`}],tip:"Borrow from tens if needed."};} }
+    if (unitName === "Multiplication") { const m=question.match(/(\d+)\s*×\s*(\d+)/); if(m){const a=+m[1],b=+m[2]; return {steps:[{text:"Repeated addition:",math:`${Array(b).fill(a).join('+')}=${a*b}`}],tip:`Know the ${a} times table!`};} }
+    return {steps:[{text:"Problem:",math:question},{text:"Answer:",math:answer}],tip:"Review the concept!"};
   }
 
-  /* ─── 3rd Grade ─────────────────────────────────────────── */
-  if (grade === "3rd Grade") {
-    if (unitName === "Multiplication") {
-      const m = question.match(/(\d+)\s*×\s*(\d+)/);
-      if (m) {
-        const a=+m[1], b=+m[2];
-        return { steps:[
-          {text:"Think of it as repeated addition:", math:`${a} × ${b} = ${a} added ${b} times`},
-          {text:"Or use the times table:", math:`${a} × ${b} = ${a*b}`},
-          {text:"Check with a related fact:", math:`${b} × ${a} = ${a*b} ✓`}
-        ], tip:`Remember: the order doesn't matter! ${a}×${b} = ${b}×${a} = ${a*b}` };
-      }
-    }
-    if (unitName === "Division") {
-      const m = question.match(/(\d+)\s*÷\s*(\d+)/);
-      if (m) {
-        const dividend=+m[1], divisor=+m[2], quotient=dividend/divisor;
-        return { steps:[
-          {text:`"How many groups of ${divisor} fit into ${dividend}?"`, math:`${divisor} × ? = ${dividend}`},
-          {text:"Think of your times table:", math:`${divisor} × ${quotient} = ${dividend}`},
-          {text:"So:", math:`${dividend} ÷ ${divisor} = ${quotient}`}
-        ], tip:"Division is the opposite of multiplication. Use times tables to help!" };
-      }
-    }
-    if (unitName === "Fractions Basics") {
-      return { steps:[
-        {text:"Read the question carefully:", math:question},
-        {text:"A fraction has a top (numerator) and bottom (denominator):", math:`numerator / denominator`},
-        {text:"The denominator tells how many equal parts total", math:`The numerator tells how many you have`},
-        {text:"Answer:", math:`${answer}`}
-      ], tip:"Think of fractions as slices of a pizza. 3/4 = 3 slices out of 4 total." };
-    }
-    if (unitName === "Area & Perimeter") {
-      const mArea = question.match(/Area.*?(\d+)\s*cm.*?(\d+)\s*cm/);
-      const mPerim = question.match(/Perimeter.*?(\d+)\s*cm.*?(\d+)\s*cm/);
-      const mSquareArea = question.match(/Area of a square with side (\d+)/);
-      const mSquarePerim = question.match(/Perimeter of a square with side (\d+)/);
-      if (mSquareArea) {
-        const s=+mSquareArea[1];
-        return { steps:[
-          {text:"A square has 4 equal sides.", math:`Side = ${s} cm`},
-          {text:"Area = side × side:", math:`${s} × ${s} = ${s*s}`},
-          {text:"Area:", math:`${s*s} cm²`}
-        ], tip:"Area is the space INSIDE a shape. Measured in square units (cm², m²)." };
-      }
-      if (mSquarePerim) {
-        const s=+mSquarePerim[1];
-        return { steps:[
-          {text:"Perimeter = total distance around the shape", math:`4 sides of length ${s}`},
-          {text:"Perimeter = 4 × side:", math:`4 × ${s} = ${4*s}`},
-          {text:"Perimeter:", math:`${4*s} cm`}
-        ], tip:"Perimeter is the OUTSIDE edge. Like a fence around a yard." };
-      }
-      if (mArea) {
-        const l=+mArea[1],w=+mArea[2];
-        return { steps:[
-          {text:"Area of a rectangle = length × width", math:`${l} × ${w}`},
-          {text:"Multiply:", math:`${l} × ${w} = ${l*w}`},
-          {text:"Area:", math:`${l*w} cm²`}
-        ], tip:"Area = length × width. Always use square units." };
-      }
-      if (mPerim) {
-        const l=+mPerim[1],w=+mPerim[2];
-        return { steps:[
-          {text:"Perimeter = all sides added together", math:`${l} + ${w} + ${l} + ${w}`},
-          {text:"Formula: P = 2(l + w):", math:`2 × (${l} + ${w}) = 2 × ${l+w} = ${2*(l+w)}`},
-          {text:"Perimeter:", math:`${2*(l+w)} cm`}
-        ], tip:"Perimeter = 2 × (length + width) for rectangles." };
-      }
-    }
-    if (unitName === "Time") {
-      return { steps:[
-        {text:"Read the question:", math:question},
-        {text:"Key facts:", math:`60 minutes = 1 hour, 24 hours = 1 day`},
-        {text:"Answer:", math:`${answer}`}
-      ], tip:"Clock: the short hand shows hours, the long hand shows minutes." };
-    }
-  }
-
-  /* ─── 4th Grade ─────────────────────────────────────────── */
-  if (grade === "4th Grade") {
-    if (unitName === "Multiplication") {
-      const m = question.match(/(\d+)\s*×\s*(\d+)/);
-      if (m) {
-        const a=+m[1], b=+m[2];
-        return { steps:[
-          {text:"Break it down using place value:", math:`${a} × ${b}`},
-          {text:`Multiply ones: ${a} × ${b%10}:`, math:`${a} × ${b%10} = ${a*(b%10)}`},
-          {text:`Multiply tens: ${a} × ${Math.floor(b/10)*10}:`, math:`${a} × ${Math.floor(b/10)*10} = ${a*Math.floor(b/10)*10}`},
-          {text:"Add the results:", math:`${a*(b%10)} + ${a*Math.floor(b/10)*10} = ${a*b}`}
-        ], tip:"Break large multiplications into smaller parts and add them together." };
-      }
-    }
-    if (unitName === "Division") {
-      const m = question.match(/(\d+)\s*÷\s*(\d+)/);
-      if (m) {
-        const dividend=+m[1], divisor=+m[2], quotient=dividend/divisor;
-        return { steps:[
-          {text:`Divide ${dividend} by ${divisor}:`, math:`${dividend} ÷ ${divisor}`},
-          {text:`Ask: ${divisor} × how many = ${dividend}?`, math:`${divisor} × ${quotient} = ${dividend}`},
-          {text:"Answer:", math:`${quotient}`}
-        ], tip:"Long division: how many times does the divisor fit into the dividend?" };
-      }
-    }
-    if (unitName === "Fractions & Decimals") {
-      return { steps:[
-        {text:"Question:", math:question},
-        {text:"Remember: decimals and fractions both name parts of a whole.", math:`0.1 = 1/10, 0.5 = 1/2`},
-        {text:"Answer:", math:`${answer}`}
-      ], tip:"To convert a fraction to decimal, divide numerator by denominator." };
-    }
-    if (unitName === "Geometry Basics") {
-      return { steps:[
-        {text:"Recall the definition:", math:question},
-        {text:"Key angle facts:", math:`Right = 90°, Straight = 180°, Full turn = 360°`},
-        {text:"Answer:", math:`${answer}`}
-      ], tip:"A right angle looks like the corner of a square (90°)." };
-    }
-    if (unitName === "Measurement") {
-      return { steps:[
-        {text:"Identify the conversion:", math:question},
-        {text:"Key facts: 1 m = 100 cm, 1 km = 1000 m, 1 kg = 1000 g, 1 L = 1000 mL", math:""},
-        {text:"Multiply or divide to convert:", math:`Answer = ${answer}`}
-      ], tip:"Bigger unit → smaller unit: multiply. Smaller → bigger: divide." };
-    }
-  }
-
-  /* ─── 5th Grade ─────────────────────────────────────────── */
-  if (grade === "5th Grade") {
-    if (unitName === "Multiplication") {
-      const m = question.match(/(\d+)\s*×\s*(\d+)/);
-      if (m) {
-        const a=+m[1], b=+m[2];
-        return { steps:[
-          {text:"Multiply using standard algorithm:", math:`${a} × ${b}`},
-          {text:`${a} × ${b%10} (ones):`, math:`${a*(b%10)}`},
-          {text:`${a} × ${Math.floor(b/10)*10} (tens):`, math:`${a*Math.floor(b/10)*10}`},
-          {text:"Add:", math:`${a*b}`}
-        ], tip:"Check your answer by estimating: round both numbers, multiply, compare." };
-      }
-    }
-    if (unitName === "Division") {
-      const m = question.match(/(\d+)\s*÷\s*(\d+)/);
-      if (m) {
-        const dividend=+m[1], divisor=+m[2], quotient=dividend/divisor;
-        return { steps:[
-          {text:"Long division setup:", math:`${dividend} ÷ ${divisor}`},
-          {text:`How many times does ${divisor} go into ${dividend}?`, math:`${divisor} × ${quotient} = ${dividend}`},
-          {text:"Quotient:", math:`${quotient}`}
-        ], tip:"Estimate first! Rough guess helps you place the first digit." };
-      }
-    }
-    if (unitName === "Fractions Operations") {
-      return { steps:[
-        {text:"Identify the operation:", math:question},
-        {text:"For same denominator: add/subtract numerators, keep denominator", math:`a/d ± b/d = (a±b)/d`},
-        {text:"Answer:", math:`${answer}`}
-      ], tip:"Same denominator? Just add/subtract the top numbers." };
-    }
-    if (unitName === "Decimals") {
-      return { steps:[
-        {text:"Line up the decimal points:", math:question},
-        {text:"Add or subtract column by column right to left", math:""},
-        {text:"Answer:", math:`${answer}`}
-      ], tip:"Keep the decimal point in the same column when adding/subtracting." };
-    }
-    if (unitName === "Volume") {
-      const m = question.match(/(\d+).*?(\d+).*?(\d+)/);
-      if (m) {
-        const l=+m[1], w=+m[2], h=+m[3];
-        return { steps:[
-          {text:"Volume formula for a rectangular box:", math:`V = length × width × height`},
-          {text:"Plug in values:", math:`V = ${l} × ${w} × ${h}`},
-          {text:"Multiply step by step:", math:`${l}×${w} = ${l*w}, then ${l*w}×${h} = ${l*w*h}`},
-          {text:"Volume:", math:`${l*w*h} cubic units`}
-        ], tip:"Volume is 3D! Multiply all three dimensions together." };
-      }
-    }
-  }
-
-  /* ─── 6th Grade ─────────────────────────────────────────── */
-  if (grade === "6th Grade") {
-    if (unitName === "Ratios") {
-      return { steps:[
-        {text:"Read the ratio problem:", math:question},
-        {text:"A ratio compares two quantities.", math:`a:b means for every ${answer.split(':')[0]} of the first, there are ${answer.split(':')[1]||'?'} of the second`},
-        {text:"To simplify: find the GCD and divide both sides by it.", math:``},
-        {text:"Simplified ratio:", math:`${answer}`}
-      ], tip:"Ratios can be written as a:b, a/b, or 'a to b'. They all mean the same thing." };
-    }
-    if (unitName === "Percentages") {
-      const m = question.match(/(\d+)%\s*of\s*(\d+)/);
-      if (m) {
-        const p=+m[1], total=+m[2];
-        return { steps:[
-          {text:"Convert percent to decimal:", math:`${p}% = ${p}/100 = ${p/100}`},
-          {text:"Multiply by the total:", math:`${p/100} × ${total}`},
-          {text:"Calculate:", math:`= ${(p/100)*total}`}
-        ], tip:"Percent means 'per 100'. Move decimal point 2 places left to convert." };
-      }
-    }
-    if (unitName === "Integers") {
-      const mAdd = question.match(/(-?\d+)\s*\+\s*(-?\d+)/);
-      const mSub = question.match(/(-?\d+)\s*-\s*(-?\d+)/);
-      const mMul = question.match(/(-?\d+)\s*×\s*(-?\d+)/);
-      if (mAdd) {
-        const a=+mAdd[1], b=+mAdd[2];
-        return { steps:[
-          {text:"Adding integers — use the number line:", math:`Start at ${a}`},
-          {text:b>0 ? `Add positive ${b}: move RIGHT` : `Add negative ${b}: move LEFT`, math:`${a} + (${b})`},
-          {text:"Result:", math:`${a+b}`}
-        ], tip:"Same signs: add and keep the sign. Different signs: subtract and use the bigger number's sign." };
-      }
-      if (mSub) {
-        const a=+mSub[1], b=+mSub[2];
-        return { steps:[
-          {text:"Subtracting integers: change to addition of the opposite", math:`${a} - (${b}) = ${a} + (${-b})`},
-          {text:"Now add:", math:`${a} + (${-b}) = ${a-b}`}
-        ], tip:"Subtracting a negative is the same as adding a positive: 5 - (-3) = 5 + 3 = 8" };
-      }
-      if (mMul) {
-        const a=+mMul[1], b=+mMul[2];
-        return { steps:[
-          {text:"Multiplying integers:", math:`${a} × ${b}`},
-          {text:"Rule: same signs → positive, different signs → negative", math: (a*b>0) ? `Both same sign → positive` : `Different signs → negative`},
-          {text:"Answer:", math:`${a*b}`}
-        ], tip:"(+)(+)=+, (−)(−)=+, (+)(−)=−, (−)(+)=−" };
-      }
-    }
-    if (unitName === "Expressions") {
-      const mExpr = question.match(/Evaluate\s+(.+?)\s+when\s+x\s*=\s*(\d+)/);
-      if (mExpr) {
-        const expr=mExpr[1], xval=+mExpr[2];
-        return { steps:[
-          {text:"The expression to evaluate:", math:expr},
-          {text:`Substitute x = ${xval}:`, math:expr.replace(/x/g,`(${xval})`)},
-          {text:"Calculate step by step:", math:`= ${answer}`}
-        ], tip:"Substitution: replace every x with the given value, then follow order of operations (PEMDAS)." };
-      }
-    }
-    if (unitName === "Statistics") {
-      const isMedian = question.includes("Median") || question.includes("Median");
-      const isMean = question.includes("Mean");
-      const isMode = question.includes("Mode");
-      const isRange = question.includes("Range");
-      const vals = question.match(/-?\d+/g)?.map(Number) || [];
-      if (isMean && vals.length > 1) {
-        const sum = vals.reduce((a,b)=>a+b,0);
-        return { steps:[
-          {text:"Mean = sum of values ÷ count of values", math:`Values: ${vals.join(', ')}`},
-          {text:`Add all values:`, math:`${vals.join(' + ')} = ${sum}`},
-          {text:`Divide by count (${vals.length}):`, math:`${sum} ÷ ${vals.length} = ${round2(sum/vals.length)}`}
-        ], tip:"Mean = average. Add everything up, then divide by how many there are." };
-      }
-      if (isMedian && vals.length > 1) {
-        const sorted = [...vals].sort((a,b)=>a-b);
-        return { steps:[
-          {text:"Sort the values:", math:sorted.join(', ')},
-          {text:"Find the middle value:", math:sorted.length%2===0 ? `Average of middle two: (${sorted[sorted.length/2-1]} + ${sorted[sorted.length/2]}) / 2` : `Middle value: ${sorted[Math.floor(sorted.length/2)]}`},
-          {text:"Median:", math:`${answer}`}
-        ], tip:"Median = middle value when sorted. If even count, average the two middle values." };
-      }
-      if (isMode) {
-        return { steps:[
-          {text:"Find the value that appears most often:", math:question},
-          {text:"Count occurrences of each number:", math:""},
-          {text:"Mode:", math:`${answer}`}
-        ], tip:"Mode = most frequent value. A dataset can have more than one mode." };
-      }
-      if (isRange) {
-        const sorted = [...vals].sort((a,b)=>a-b);
-        return { steps:[
-          {text:"Range = largest value − smallest value", math:`Values: ${vals.join(', ')}`},
-          {text:"Sort to find max and min:", math:`Max = ${sorted[sorted.length-1]}, Min = ${sorted[0]}`},
-          {text:`Subtract:`, math:`${sorted[sorted.length-1]} - ${sorted[0]} = ${sorted[sorted.length-1]-sorted[0]}`}
-        ], tip:"Range shows the spread of the data. Bigger range = more spread out." };
-      }
-    }
-  }
-
-  /* ─── 7th Grade ─────────────────────────────────────────── */
-  if (grade === "7th Grade") {
-    if (unitName === "Proportions") {
-      const m = question.match(/(\d+)\s*items?\s*cost\s*\$(\d+)/);
-      if (m) {
-        const qty=+m[1], cost=+m[2];
-        const targetM = question.match(/how much (?:do|for)\s*(\d+)/i);
-        if (targetM) {
-          const target=+targetM[1];
-          return { steps:[
-            {text:"Set up a proportion:", math:`${qty} items / $${cost} = ${target} items / $x`},
-            {text:"Cross-multiply:", math:`${qty} × x = ${cost} × ${target}`},
-            {text:"Solve for x:", math:`x = ${cost*target}/${qty} = ${round2(cost*target/qty)}`}
-          ], tip:"Proportion: if two ratios are equal, you can cross-multiply to solve." };
-        }
-      }
-      return { steps:[
-        {text:"Set up the proportion:", math:question},
-        {text:"Cross-multiply:", math:`a/b = c/d → a×d = b×c`},
-        {text:"Answer:", math:`${answer}`}
-      ], tip:"Proportions: two equal ratios. Cross-multiply to find the unknown." };
-    }
-    if (unitName === "Rational Numbers") {
-      const mAdd = question.match(/(\d+)\/(\d+)\s*\+\s*(\d+)\/(\d+)/);
-      const mSub = question.match(/(\d+)\/(\d+)\s*-\s*(\d+)\/(\d+)/);
-      if (mAdd) {
-        const [,n1,d1,n2,d2] = mAdd.map(Number);
-        if (d1===d2) {
-          return { steps:[
-            {text:"Same denominator — add the numerators:", math:`${n1}/${d1} + ${n2}/${d2}`},
-            {text:"Add tops:", math:`${n1} + ${n2} = ${n1+n2}`},
-            {text:"Keep the denominator:", math:`${n1+n2}/${d1}`}
-          ], tip:"Same denominator? Just add the numerators and keep the denominator." };
-        }
-      }
-      if (mSub) {
-        const [,n1,d1,n2,d2] = mSub.map(Number);
-        if (d1===d2) {
-          return { steps:[
-            {text:"Same denominator — subtract the numerators:", math:`${n1}/${d1} - ${n2}/${d2}`},
-            {text:"Subtract tops:", math:`${n1} - ${n2} = ${n1-n2}`},
-            {text:"Answer:", math:`${n1-n2}/${d1}`}
-          ], tip:"Keep the denominator the same, only change the numerators." };
-        }
-      }
-      return { steps:[
-        {text:"Rational number operation:", math:question},
-        {text:"Rational numbers include fractions and decimals.", math:""},
-        {text:"Answer:", math:`${answer}`}
-      ], tip:"Rational number = any number that can be written as a fraction." };
-    }
-    if (unitName === "Equations") {
-      const m1 = question.match(/^(\d+)x\s*=\s*(\d+)/);
-      const m2 = question.match(/^(\d+)x\s*\+\s*(\d+)\s*=\s*(\d+)/);
-      const m3 = question.match(/^(\d+)x\s*-\s*(\d+)\s*=\s*(\d+)/);
-      if (m1) {
-        const coef=+m1[1], rhs=+m1[2];
-        return { steps:[
-          {text:"Equation:", math:`${coef}x = ${rhs}`},
-          {text:`Divide both sides by ${coef}:`, math:`x = ${rhs} ÷ ${coef}`},
-          {text:"Answer:", math:`x = ${rhs/coef}`}
-        ], tip:"To isolate x, undo multiplication by dividing both sides." };
-      }
-      if (m2) {
-        const [,a,b,c] = m2.map(Number);
-        return { steps:[
-          {text:"Start:", math:`${a}x + ${b} = ${c}`},
-          {text:`Subtract ${b} from both sides:`, math:`${a}x = ${c-b}`},
-          {text:`Divide by ${a}:`, math:`x = ${(c-b)/a}`}
-        ], tip:"Solve in reverse order: undo addition/subtraction first, then multiplication/division." };
-      }
-      if (m3) {
-        const [,a,b,c] = m3.map(Number);
-        return { steps:[
-          {text:"Start:", math:`${a}x - ${b} = ${c}`},
-          {text:`Add ${b} to both sides:`, math:`${a}x = ${c+b}`},
-          {text:`Divide by ${a}:`, math:`x = ${(c+b)/a}`}
-        ], tip:"Undo subtraction first (add to both sides), then divide." };
-      }
-    }
-    if (unitName === "Probability") {
-      return { steps:[
-        {text:"Probability formula:", math:`P(event) = favorable outcomes / total outcomes`},
-        {text:"Identify favorable and total:", math:question},
-        {text:"Calculate:", math:`P = ${answer}`}
-      ], tip:"Probability is always between 0 (impossible) and 1 (certain)." };
-    }
-    if (unitName === "Geometry") {
-      if (question.includes("supplementary") || question.includes("supplement")) {
-        const m = question.match(/(\d+)°/);
-        if (m) {
-          const a=+m[1];
-          return { steps:[
-            {text:"Supplementary angles add up to 180°:", math:`${a}° + x = 180°`},
-            {text:`Subtract ${a} from both sides:`, math:`x = 180 - ${a} = ${180-a}°`}
-          ], tip:"Supplementary = 180°. Complementary = 90°." };
-        }
-      }
-      if (question.includes("complementary") || question.includes("complement")) {
-        const m = question.match(/(\d+)°/);
-        if (m) {
-          const a=+m[1];
-          return { steps:[
-            {text:"Complementary angles add up to 90°:", math:`${a}° + x = 90°`},
-            {text:`Subtract ${a}:`, math:`x = 90 - ${a} = ${90-a}°`}
-          ], tip:"Complementary = 90°. Supplementary = 180°." };
-        }
-      }
-      const mTri = question.match(/(\d+)°.*?(\d+)°/);
-      if (mTri) {
-        const a=+mTri[1], b=+mTri[2];
-        return { steps:[
-          {text:"Triangle Angle Sum Theorem:", math:`All 3 angles = 180°`},
-          {text:"Known angles:", math:`${a}° + ${b}° = ${a+b}°`},
-          {text:`Third angle = 180° - ${a+b}°:`, math:`= ${180-a-b}°`}
-        ], tip:"The three angles of ANY triangle always add up to exactly 180°." };
-      }
-    }
-  }
-
-  /* ─── 8th Grade ─────────────────────────────────────────── */
-  if (grade === "8th Grade") {
-    if (unitName === "Linear Equations") {
-      const m2 = question.match(/^(\d+)x\s*\+\s*(\d+)\s*=\s*(\d+)/);
-      const m3 = question.match(/^(\d+)x\s*-\s*(\d+)\s*=\s*(\d+)/);
-      const m1 = question.match(/^(\d+)x\s*=\s*(\d+)/);
-      const m4 = question.match(/^x\s*\+\s*(\d+)\s*=\s*(\d+)/);
-      const m5 = question.match(/^(\d+)x\s*\+\s*(\d+)\s*=\s*(\d+)x\s*\+\s*(\d+)/);
-      if (m5) {
-        const [,a,b,c,d] = m5.map(Number);
-        return { steps:[
-          {text:"Variables on both sides:", math:`${a}x + ${b} = ${c}x + ${d}`},
-          {text:`Move x terms: subtract ${c}x from both sides:`, math:`${a-c}x + ${b} = ${d}`},
-          {text:`Subtract ${b} from both sides:`, math:`${a-c}x = ${d-b}`},
-          {text:`Divide by ${a-c}:`, math:`x = ${(d-b)/(a-c)}`}
-        ], tip:"When x is on both sides, collect x terms on one side first." };
-      }
-      if (m2) {
-        const [,a,b,c] = m2.map(Number);
-        return { steps:[
-          {text:"Equation:", math:`${a}x + ${b} = ${c}`},
-          {text:`Step 1 — Subtract ${b} from both sides:`, math:`${a}x = ${c} - ${b} = ${c-b}`},
-          {text:`Step 2 — Divide both sides by ${a}:`, math:`x = ${c-b} ÷ ${a} = ${(c-b)/a}`},
-          {text:"Check: substitute back:", math:`${a}(${(c-b)/a}) + ${b} = ${c} ✓`}
-        ], tip:"Solve in two steps: (1) move constants, (2) divide by coefficient of x." };
-      }
-      if (m3) {
-        const [,a,b,c] = m3.map(Number);
-        return { steps:[
-          {text:"Equation:", math:`${a}x - ${b} = ${c}`},
-          {text:`Step 1 — Add ${b} to both sides:`, math:`${a}x = ${c+b}`},
-          {text:`Step 2 — Divide by ${a}:`, math:`x = ${(c+b)/a}`},
-          {text:"Check:", math:`${a}(${(c+b)/a}) - ${b} = ${c} ✓`}
-        ], tip:"Undo subtraction first by adding to both sides." };
-      }
-      if (m1) {
-        const [,a,b] = m1.map(Number);
-        return { steps:[
-          {text:"Equation:", math:`${a}x = ${b}`},
-          {text:`Divide both sides by ${a}:`, math:`x = ${b} ÷ ${a} = ${b/a}`},
-          {text:"Check:", math:`${a} × ${b/a} = ${b} ✓`}
-        ], tip:"When ax = b, divide both sides by a to isolate x." };
-      }
-      if (m4) {
-        const [,b,c] = m4.map(Number);
-        return { steps:[
-          {text:"Equation:", math:`x + ${b} = ${c}`},
-          {text:`Subtract ${b} from both sides:`, math:`x = ${c} - ${b} = ${c-b}`}
-        ], tip:"To isolate x, subtract the constant from both sides." };
-      }
-    }
-
-    if (unitName === "Functions") {
-      const mFn = question.match(/f\(x\)\s*=\s*(.+?)\.\s*Find f\((\d+)\)/);
-      const mFn2 = question.match(/f\(x\)\s*=\s*(.+?)\.?\s*find\s*f\((\d+)\)/i);
-      const match = mFn || mFn2;
-      if (match) {
-        const expr=match[1].trim(), xv=+match[2];
-        return { steps:[
-          {text:"The function:", math:`f(x) = ${expr}`},
-          {text:`Substitute x = ${xv}:`, math:`f(${xv}) = ${expr.replace(/x/g,`(${xv})`)}`},
-          {text:"Evaluate:", math:`= ${answer}`}
-        ], tip:"To evaluate a function, replace every x with the given value." };
-      }
-      // input/output table
-      if (question.includes("Input") || question.includes("table")) {
-        return { steps:[
-          {text:"Look at the pattern in the input/output table:", math:"1→3, 2→5, 3→7, 4→?"},
-          {text:"Each input increases by 1, output increases by 2:", math:"Pattern: f(x) = 2x + 1"},
-          {text:"f(4) = 2(4) + 1:", math:"= 9"}
-        ], tip:"Find the rule (pattern) first, then apply it to new inputs." };
-      }
-    }
-
-    if (unitName === "Systems") {
-      const m = question.match(/Solve:\s*(.+?),\s*(.+)/);
-      if (m) {
-        const eq1=m[1].trim(), eq2=m[2].trim();
-        const mx = answer.match(/x\s*=\s*(-?\d+)/), my = answer.match(/y\s*=\s*(-?\d+)/);
-        const xv = mx ? +mx[1] : '?', yv = my ? +my[1] : '?';
-        return { steps:[
-          {text:"System of equations — use elimination or substitution:", math:`(1) ${eq1}`},
-          {text:"Second equation:", math:`(2) ${eq2}`},
-          {text:"Add or subtract equations to eliminate a variable:", math:`Sum gives 2x or 2y`},
-          {text:"Solve for one variable, then substitute back:", math:`x = ${xv}, y = ${yv}`},
-          {text:"Check in BOTH equations:", math:`Substitute (${xv}, ${yv}) into both — should both be true ✓`}
-        ], tip:"Elimination: add/subtract equations to cancel one variable. Then solve for the other." };
-      }
-    }
-
-    if (unitName === "Pythagorean Theorem") {
-      const m = question.match(/(\d+)²\s*\+\s*(\d+)²\s*=\s*c²/);
-      const mLadder = question.match(/ladder.*?(\d+).*?base.*?(\d+)/i);
-      const mHyp = question.match(/legs.*?(\d+).*?and.*?(\d+)/i);
-      const useM = m || mHyp;
-      if (useM) {
-        const a=+useM[1], b=+useM[2], cSq=a*a+b*b, c=Math.sqrt(cSq);
-        return { steps:[
-          {text:"Pythagorean Theorem:", math:`a² + b² = c²`},
-          {text:"Plug in known legs:", math:`${a}² + ${b}² = c²`},
-          {text:"Square the legs:", math:`${a*a} + ${b*b} = c²`},
-          {text:"Add:", math:`c² = ${cSq}`},
-          {text:"Take square root:", math:`c = √${cSq} = ${c}`}
-        ], tip:"Only for RIGHT triangles! c is always the longest side (hypotenuse)." };
-      }
-      if (mLadder) {
-        const hyp=+mLadder[1], base=+mLadder[2];
-        const heightSq=hyp*hyp-base*base;
-        return { steps:[
-          {text:"Pythagorean Theorem:", math:`a² + b² = c²`},
-          {text:"We know hypotenuse and one leg:", math:`${base}² + h² = ${hyp}²`},
-          {text:"Solve for h²:", math:`h² = ${hyp*hyp} - ${base*base} = ${heightSq}`},
-          {text:"Take square root:", math:`h = ${Math.sqrt(heightSq)}`}
-        ], tip:"Rearrange: if you know c and one leg, use b² = c² − a²." };
-      }
-    }
-
-    if (unitName === "Scientific Notation") {
-      const mStd = question.match(/(\d+)\s*×\s*10\^(\d+)/);
-      const mPow = question.match(/10\^(\d+)/);
-      if (mStd) {
-        const coef=+mStd[1], exp=+mStd[2];
-        return { steps:[
-          {text:"Scientific notation format:", math:`a × 10^n means move decimal n places right`},
-          {text:`Start with ${coef}, shift decimal ${exp} places right:`, math:`${coef} × 10^${exp}`},
-          {text:"Standard form:", math:`${coef * Math.pow(10,exp)}`}
-        ], tip:"10^3 = 1000, 10^4 = 10,000. Count the zeros!" };
-      }
-      if (mPow) {
-        const exp=+mPow[1];
-        return { steps:[
-          {text:"Power of 10:", math:`10^${exp}`},
-          {text:"Write as 1 followed by zeros:", math:`10^${exp} = 1${'0'.repeat(exp)}`}
-        ], tip:"10^n = 1 followed by n zeros." };
-      }
-    }
-  }
-
-  /* ─── Algebra 1 ─────────────────────────────────────────── */
-  if (grade === "Algebra 1") {
-    if (unitName === "Linear Equations") {
-      const m2 = question.match(/^(\d+)x\s*\+\s*(\d+)\s*=\s*(\d+)/);
-      const m3 = question.match(/^(\d+)x\s*-\s*(\d+)\s*=\s*(\d+)/);
-      const m1 = question.match(/^(\d+)x\s*=\s*(\d+)/);
-      if (m2) {
-        const [,a,b,c] = m2.map(Number);
-        return { steps:[
-          {text:"Equation:", math:`${a}x + ${b} = ${c}`},
-          {text:`Subtract ${b} from both sides:`, math:`${a}x = ${c-b}`},
-          {text:`Divide both sides by ${a}:`, math:`x = ${(c-b)/a}`},
-          {text:"Verify:", math:`${a}(${(c-b)/a}) + ${b} = ${c} ✓`}
-        ], tip:"GOAL: isolate x. Undo + or − first, then undo × or ÷." };
-      }
-      if (m3) {
-        const [,a,b,c] = m3.map(Number);
-        return { steps:[
-          {text:"Equation:", math:`${a}x - ${b} = ${c}`},
-          {text:`Add ${b} to both sides:`, math:`${a}x = ${c+b}`},
-          {text:`Divide by ${a}:`, math:`x = ${(c+b)/a}`}
-        ], tip:"Undo subtraction by adding the same value to both sides." };
-      }
-      if (m1) {
-        const [,a,b] = m1.map(Number);
-        return { steps:[
-          {text:"Equation:", math:`${a}x = ${b}`},
-          {text:`Divide both sides by ${a}:`, math:`x = ${b/a}`}
-        ], tip:"Divide both sides by the coefficient to solve for x." };
-      }
-    }
-    if (unitName === "Quadratics") {
-      const mEq = question.match(/x²\s*=\s*(\d+)/);
-      if (mEq) {
-        const sq=+mEq[1], root=Math.sqrt(sq);
-        return { steps:[
-          {text:"Take the square root of both sides:", math:`√x² = ±√${sq}`},
-          {text:"Don't forget ±:", math:`x = ±${root}`},
-          {text:"Two solutions:", math:`x = ${root} or x = -${root}`}
-        ], tip:"Square root both sides. Always include ± since (−n)² = n²." };
-      }
-      const mFact = question.match(/x²\s*\+\s*(\d+)x\s*\+\s*(\d+)\s*=\s*0/);
-      if (mFact) {
-        const [,b,c] = mFact.map(Number);
-        return { steps:[
-          {text:"Factor the quadratic:", math:`x² + ${b}x + ${c} = 0`},
-          {text:"Find two numbers that multiply to "+c+" and add to "+b+":", math:`? × ? = ${c}, ? + ? = ${b}`},
-          {text:"Factored form:", math:`(x + ${answer.match(/\d+/)?.[0]})(x + ${answer.match(/\d+/g)?.[1]}) = 0`},
-          {text:"Set each factor = 0:", math:`x = -${answer.match(/\d+/)?.[0]} or x = -${answer.match(/\d+/g)?.[1]}`}
-        ], tip:"For ax²+bx+c=0, find two numbers that multiply to c and sum to b." };
-      }
-    }
-    if (unitName === "Factoring") {
-      return { steps:[
-        {text:"To factor x² + bx + c:", math:question},
-        {text:"Find two numbers that multiply to c and add to b:", math:`Product = ${answer.match(/\d+/g)?.[0] * answer.match(/\d+/g)?.[1]}`},
-        {text:"Write in factored form:", math:`${answer}`}
-      ], tip:"Trial and error: list factor pairs of c and check which pair sums to b." };
-    }
-    if (unitName === "Inequalities") {
-      const m = question.match(/(\d+)x\s*([><≥≤])\s*(\d+)/);
-      if (m) {
-        const [,a,op,b] = m;
-        const n = +a, rhs=+b;
-        const flipOps = {'>':'<','<':'>','≥':'≤','≤':'≥'};
-        return { steps:[
-          {text:"Inequality:", math:`${n}x ${op} ${rhs}`},
-          {text:`Divide both sides by ${n}:`, math:`x ${op} ${rhs/n}`},
-          {text:"Note: dividing by a NEGATIVE flips the inequality sign", math:`(no flip here since ${n} > 0)`}
-        ], tip:"Flip the inequality symbol ONLY when multiplying or dividing by a negative number." };
-      }
-    }
-    if (unitName === "Functions") {
-      const mFn = question.match(/f\(x\)\s*=\s*(.+?)\.\s*Find f\((\d+)\)/i);
-      if (mFn) {
-        const expr=mFn[1], xv=+mFn[2];
-        return { steps:[
-          {text:"Function:", math:`f(x) = ${expr}`},
-          {text:`Substitute x = ${xv}:`, math:expr.replace(/x/g,`(${xv})`)},
-          {text:"Evaluate:", math:`= ${answer}`}
-        ], tip:"f(x) notation just means: plug in x and calculate the output." };
-      }
-    }
-  }
-
-  /* ─── Algebra 2 ─────────────────────────────────────────── */
-  if (grade === "Algebra 2") {
-    if (unitName === "Complex Quadratics") {
-      const m = question.match(/x²\s*-\s*(\d+)x\s*\+\s*(\d+)\s*=\s*0/);
-      if (m) {
-        const [,b,c] = m.map(Number);
-        const roots = answer.match(/-?\d+/g)?.map(Number) || [];
-        return { steps:[
-          {text:"Solve by factoring:", math:`x² - ${b}x + ${c} = 0`},
-          {text:`Find two numbers that multiply to ${c} and add to -${b}:`, math:`${roots[0]} × ${roots[1]} = ${c}, ${roots[0]} + ${roots[1]} = ${b}`},
-          {text:"Factored:", math:`(x - ${roots[0]})(x - ${roots[1]}) = 0`},
-          {text:"Set each factor to zero:", math:`x = ${roots[0]} or x = ${roots[1]}`}
-        ], tip:"For x²-bx+c=0 both roots positive, find factors of c that sum to b." };
-      }
-    }
-    if (unitName === "Polynomials") {
-      const mExpand = question.match(/Expand: \(x\+(\d+)\)²/);
-      const mMult = question.match(/Multiply: \(x\+(\d+)\)\(x-(\d+)\)/);
-      const mFactor = question.match(/Factor: x²\s*\+\s*(\d+)x\s*\+\s*(\d+)/);
-      if (mExpand) {
-        const p=+mExpand[1];
-        return { steps:[
-          {text:"Use the perfect square formula: (x+p)² = x² + 2px + p²", math:`(x+${p})²`},
-          {text:"First term:", math:`x²`},
-          {text:"Middle term: 2 × x × p:", math:`2(${p})x = ${2*p}x`},
-          {text:"Last term: p²:", math:`${p}² = ${p*p}`},
-          {text:"Answer:", math:`x² + ${2*p}x + ${p*p}`}
-        ], tip:"(a+b)² = a² + 2ab + b². Never forget the middle term!" };
-      }
-      if (mMult) {
-        const [,p,q] = mMult.map(Number);
-        return { steps:[
-          {text:"Use FOIL (First, Outside, Inside, Last):", math:`(x+${p})(x-${q})`},
-          {text:`First: x × x =`, math:`x²`},
-          {text:`Outside: x × (-${q}) =`, math:`-${q}x`},
-          {text:`Inside: ${p} × x =`, math:`+${p}x`},
-          {text:`Last: ${p} × (-${q}) =`, math:`-${p*q}`},
-          {text:"Combine:", math:`x² + ${p-q}x - ${p*q}`}
-        ], tip:"FOIL: multiply each term in the first bracket by each in the second." };
-      }
-      if (mFactor) {
-        const [,b,c] = mFactor.map(Number);
-        return { steps:[
-          {text:"Find factors of "+c+" that add to "+b+":", math:`x² + ${b}x + ${c}`},
-          {text:"Test pairs:", math:`List factor pairs of ${c}`},
-          {text:"Answer:", math:`${answer}`}
-        ], tip:"Factor by finding two numbers: product = c, sum = b." };
-      }
-    }
-    if (unitName === "Exponents") {
-      const m = question.match(/^(\d+)\^(\d+)/);
-      if (m) {
-        const base=+m[1], exp=+m[2];
-        const steps_arr = [{text:"Evaluate the exponent:", math:`${base}^${exp}`}];
-        let product = 1, calc = '';
-        for (let i=0;i<exp;i++) { product *= base; calc += (calc?` × ${base}`:`${base}`); }
-        steps_arr.push({text:"Repeated multiplication:", math:`${calc} = ${product}`});
-        return { steps: steps_arr, tip:`${base}^${exp} means multiply ${base} by itself ${exp} times.` };
-      }
-      const mProd = question.match(/(\d+)\^(\d+)\s*×\s*\1\^(\d+)/);
-      if (mProd) {
-        const [,b,e1,e2] = mProd.map(Number);
-        return { steps:[
-          {text:"Product of Powers rule:", math:`b^m × b^n = b^(m+n)`},
-          {text:"Same base — add exponents:", math:`${b}^${e1} × ${b}^${e2} = ${b}^${e1+e2}`}
-        ], tip:"Same base? Add the exponents when multiplying." };
-      }
-    }
-    if (unitName === "Logarithms") {
-      const m1 = question.match(/log₂\(2\^(\d+)\)/);
-      const m2 = question.match(/log₁₀\(10\^(\d+)\)/);
-      const m3 = question.match(/log₁₀\(1000\)/);
-      if (m1) {
-        const p=+m1[1];
-        return { steps:[
-          {text:"log₂(2^p) asks: '2 to what power gives 2^p?'", math:`log₂(2^${p}) = ?`},
-          {text:"By definition: log_b(b^p) = p", math:`log₂(2^${p}) = ${p}`}
-        ], tip:"log_b(b^p) = p. The log base b of b to a power just equals that power." };
-      }
-      if (m2) {
-        const p=+m2[1];
-        return { steps:[
-          {text:"log₁₀(10^p) = p by definition:", math:`log₁₀(10^${p}) = ${p}`}
-        ], tip:"Common log (base 10): log(10^n) = n." };
-      }
-      if (m3) {
-        return { steps:[
-          {text:"log₁₀(1000) = log₁₀(10³):", math:`10³ = 1000`},
-          {text:"So log₁₀(1000) = 3", math:""}
-        ], tip:"log₁₀(1000) = 3 because 10³ = 1000." };
-      }
-      return { steps:[
-        {text:"Logarithm definition: log_b(x) = y means b^y = x", math:question},
-        {text:"Answer:", math:`${answer}`}
-      ], tip:"Logs are the inverse of exponents: log_b(b^x) = x." };
-    }
-    if (unitName === "Rational Functions") {
-      const mEval = question.match(/f\(x\)\s*=\s*\(x\+1\)\/\(x-1\)\.\s*Find f\((\d+)\)/);
-      const mSimple = question.match(/f\(x\)\s*=\s*1\/\(x-2\),?\s*find f\((\d+)\)/i);
-      const mUndef = question.match(/undefined/i);
-      if (mEval) {
-        const xv=+mEval[1];
-        return { steps:[
-          {text:"Substitute x:", math:`f(${xv}) = (${xv}+1)/(${xv}-1)`},
-          {text:"Evaluate numerator:", math:`${xv}+1 = ${xv+1}`},
-          {text:"Evaluate denominator:", math:`${xv}-1 = ${xv-1}`},
-          {text:"Divide:", math:`${xv+1}/${xv-1} = ${round2((xv+1)/(xv-1))}`}
-        ], tip:"Evaluate numerator and denominator separately, then divide." };
-      }
-      if (mSimple) {
-        const xv=+mSimple[1];
-        return { steps:[
-          {text:"Substitute x:", math:`f(${xv}) = 1/(${xv}-2)`},
-          {text:"Denominator:", math:`${xv}-2 = ${xv-2}`},
-          {text:"Result:", math:`1/${xv-2} = ${round2(1/(xv-2))}`}
-        ], tip:"Always check if the denominator equals zero (undefined) before substituting." };
-      }
-      if (mUndef) {
-        return { steps:[
-          {text:"A rational function is undefined when denominator = 0:", math:"denominator = 0"},
-          {text:"Set x-3 = 0:", math:"x = 3"},
-          {text:"The function is undefined at:", math:"x = 3"}
-        ], tip:"Vertical asymptotes occur where the denominator equals zero." };
-      }
-    }
-  }
-
-  /* ─── Geometry ───────────────────────────────────────────── */
-  if (grade === "Geometry") {
-    if (unitName === "Area") {
-      const mSq = question.match(/Area of square with side (\d+)/);
-      const mRect = question.match(/Area of rectangle:\s*(\d+)\s*cm\s*×\s*(\d+)\s*cm/);
-      const mTri = question.match(/Area of triangle: base (\d+), height (\d+)/);
-      const mCirc = question.match(/Area of circle radius (\d+)/);
-      if (mSq) {
-        const s=+mSq[1];
-        return { steps:[
-          {text:"Area of square = side²", math:`A = s² = ${s}²`},
-          {text:"Calculate:", math:`${s} × ${s} = ${s*s}`},
-          {text:"Area:", math:`${s*s} cm²`}
-        ], tip:"A square's area = side × side. Always use square units." };
-      }
-      if (mRect) {
-        const [,l,w] = mRect.map(Number);
-        return { steps:[
-          {text:"Area of rectangle = length × width", math:`A = l × w`},
-          {text:"Plug in:", math:`A = ${l} × ${w}`},
-          {text:"Area:", math:`${l*w} cm²`}
-        ], tip:"Area = base × height for any parallelogram, including rectangles." };
-      }
-      if (mTri) {
-        const [,b,h] = mTri.map(Number);
-        return { steps:[
-          {text:"Area of triangle = ½ × base × height", math:`A = ½ × ${b} × ${h}`},
-          {text:"Multiply:", math:`${b} × ${h} = ${b*h}`},
-          {text:"Divide by 2:", math:`${b*h}/2 = ${b*h/2}`}
-        ], tip:"A triangle is half a rectangle with the same base and height." };
-      }
-      if (mCirc) {
-        const rad=+mCirc[1];
-        return { steps:[
-          {text:"Area of circle = π × r²", math:`A = π × ${rad}²`},
-          {text:"Square the radius:", math:`${rad}² = ${rad*rad}`},
-          {text:"Multiply by π (≈3.14):", math:`3.14 × ${rad*rad} = ${round2(3.14*rad*rad)}`}
-        ], tip:"π ≈ 3.14159. Area uses r², circumference uses r." };
-      }
-    }
-    if (unitName === "Perimeter") {
-      const mSq = question.match(/Perimeter of square with side (\d+)/);
-      const mRect = question.match(/Perimeter of rectangle:\s*(\d+)\s*cm\s*×\s*(\d+)\s*cm/);
-      const mTri = question.match(/Perimeter of triangle with sides (\d+), (\d+), (\d+)/);
-      const mCirc = question.match(/Circumference of circle radius (\d+)/);
-      if (mSq) {
-        const s=+mSq[1];
-        return { steps:[
-          {text:"Perimeter of square = 4 × side", math:`P = 4 × ${s}`},
-          {text:"Calculate:", math:`4 × ${s} = ${4*s}`}
-        ], tip:"All 4 sides of a square are equal. P = 4s." };
-      }
-      if (mRect) {
-        const [,l,w] = mRect.map(Number);
-        return { steps:[
-          {text:"Perimeter = 2 × (length + width)", math:`P = 2(${l} + ${w})`},
-          {text:"Add l + w:", math:`${l} + ${w} = ${l+w}`},
-          {text:"Multiply by 2:", math:`2 × ${l+w} = ${2*(l+w)}`}
-        ], tip:"Rectangles have 2 pairs of equal sides: P = 2l + 2w." };
-      }
-      if (mTri) {
-        const [,a,b,c_] = mTri.map(Number);
-        return { steps:[
-          {text:"Perimeter = sum of all sides", math:`P = ${a} + ${b} + ${c_}`},
-          {text:"Add:", math:`= ${a+b+c_}`}
-        ], tip:"Perimeter of any polygon = sum of all side lengths." };
-      }
-      if (mCirc) {
-        const rad=+mCirc[1];
-        return { steps:[
-          {text:"Circumference = 2πr", math:`C = 2 × 3.14 × ${rad}`},
-          {text:"Calculate:", math:`2 × 3.14 = 6.28, then 6.28 × ${rad} = ${round2(6.28*rad)}`}
-        ], tip:"C = 2πr or C = πd (diameter = 2r)." };
-      }
-    }
-    if (unitName === "Angles") {
-      const mSupp = question.match(/supplement.*?(\d+)°/i) || question.match(/(\d+)°.*supplement/i);
-      const mComp = question.match(/complement.*?(\d+)°/i) || question.match(/(\d+)°.*complement/i);
-      const mTri  = question.match(/(\d+)°.*?(\d+)°.*?third/i);
-      if (mSupp) {
-        const a=+(mSupp[1]);
-        return { steps:[
-          {text:"Supplementary angles sum to 180°:", math:`${a}° + x = 180°`},
-          {text:"Subtract:", math:`x = 180 - ${a} = ${180-a}°`}
-        ], tip:"Supplementary = two angles summing to 180° (a straight line)." };
-      }
-      if (mComp) {
-        const a=+(mComp[1]);
-        return { steps:[
-          {text:"Complementary angles sum to 90°:", math:`${a}° + x = 90°`},
-          {text:"Subtract:", math:`x = 90 - ${a} = ${90-a}°`}
-        ], tip:"Complementary = two angles summing to 90° (a right angle)." };
-      }
-      if (mTri) {
-        const a=+mTri[1], b=+mTri[2];
-        return { steps:[
-          {text:"Triangle Angle Sum Theorem: all angles = 180°", math:`${a}° + ${b}° + x = 180°`},
-          {text:"Known sum:", math:`${a+b}°`},
-          {text:"Third angle:", math:`180 - ${a+b} = ${180-a-b}°`}
-        ], tip:"Every triangle has angles that add up to exactly 180°." };
-      }
-    }
-    if (unitName === "Triangles") {
-      const mHyp = question.match(/legs.*?(\d+).*?and.*?(\d+)/i);
-      const mArea = question.match(/Area of triangle: base (\d+), height (\d+)/);
-      if (mHyp) {
-        const [,a,b] = mHyp.map(Number);
-        return { steps:[
-          {text:"Pythagorean Theorem: a² + b² = c²", math:`${a}² + ${b}² = c²`},
-          {text:"Square the legs:", math:`${a*a} + ${b*b} = ${a*a+b*b}`},
-          {text:"Take square root:", math:`c = √${a*a+b*b} = ${Math.sqrt(a*a+b*b)}`}
-        ], tip:"Only for right triangles: the hypotenuse is the longest side, opposite the right angle." };
-      }
-      if (mArea) {
-        const [,base,h] = mArea.map(Number);
-        return { steps:[
-          {text:"Area = ½ × base × height", math:`A = ½ × ${base} × ${h}`},
-          {text:"Multiply:", math:`${base} × ${h} = ${base*h}`},
-          {text:"Halve:", math:`${base*h}/2 = ${base*h/2}`}
-        ], tip:"The height must be perpendicular to the base." };
-      }
-    }
-    if (unitName === "Circles") {
-      const mArea = question.match(/Area of circle radius (\d+)/);
-      const mCirc = question.match(/Circumference of circle radius (\d+)/);
-      const mDiam = question.match(/Diameter is (\d+)/);
-      const mRad  = question.match(/radius (\d+).*?Diameter/);
-      if (mArea) {
-        const rad=+mArea[1];
-        return { steps:[
-          {text:"Area formula:", math:`A = πr²`},
-          {text:"r² =", math:`${rad}² = ${rad*rad}`},
-          {text:"Multiply by π:", math:`3.14 × ${rad*rad} = ${round2(3.14*rad*rad)}`}
-        ], tip:"Area = πr². Circumference = 2πr. Don't mix them up!" };
-      }
-      if (mCirc) {
-        const rad=+mCirc[1];
-        return { steps:[
-          {text:"Circumference formula:", math:`C = 2πr`},
-          {text:"Plug in r:", math:`C = 2 × 3.14 × ${rad}`},
-          {text:"Calculate:", math:`= ${round2(2*3.14*rad)}`}
-        ], tip:"C = 2πr = πd where d = diameter." };
-      }
-      if (mDiam) {
-        const d=+mDiam[1];
-        return { steps:[
-          {text:"Diameter = 2 × radius, so radius = diameter ÷ 2", math:`r = ${d} ÷ 2 = ${d/2}`}
-        ], tip:"The diameter passes through the center. The radius goes halfway." };
-      }
-      if (mRad) {
-        const rad=+mRad[1];
-        return { steps:[
-          {text:"Diameter = 2 × radius:", math:`d = 2 × ${rad} = ${2*rad}`}
-        ], tip:"Diameter is twice the radius." };
-      }
-    }
-  }
-
-  /* ─── Pre-Calc ───────────────────────────────────────────── */
-  if (grade === "Pre-Calc") {
-    if (unitName === "Trig Basics") {
-      const trigFacts = {
-        "sin(0°)":   {ratio:"0/1 = 0", triangle:"opposite = 0, hypotenuse = 1"},
-        "cos(0°)":   {ratio:"1/1 = 1", triangle:"adjacent = 1, hypotenuse = 1"},
-        "sin(30°)":  {ratio:"1/2 = 0.5", triangle:"In 30-60-90: opposite = 1, hyp = 2"},
-        "cos(60°)":  {ratio:"1/2 = 0.5", triangle:"In 30-60-90: adjacent = 1, hyp = 2"},
-        "sin(60°)":  {ratio:"√3/2 ≈ 0.866", triangle:"In 30-60-90: opposite = √3, hyp = 2"},
-        "cos(30°)":  {ratio:"√3/2 ≈ 0.866", triangle:"In 30-60-90: adjacent = √3, hyp = 2"},
-        "tan(0°)":   {ratio:"0/1 = 0", triangle:"sin/cos = 0/1 = 0"},
-        "tan(45°)":  {ratio:"1/1 = 1",  triangle:"In 45-45-90: opposite = adjacent"},
-        "sin(90°)":  {ratio:"1/1 = 1",  triangle:"opposite = hypotenuse at 90°"},
-        "cos(90°)":  {ratio:"0/1 = 0",  triangle:"adjacent = 0 at 90°"}
-      };
-      const key = Object.keys(trigFacts).find(k => question.includes(k));
-      if (key) {
-        const fact = trigFacts[key];
-        return { steps:[
-          {text:"Recall SOHCAHTOA:", math:"sin=Opp/Hyp, cos=Adj/Hyp, tan=Opp/Adj"},
-          {text:`For ${key} — ${fact.triangle}`, math:""},
-          {text:"Evaluate the ratio:", math:`${fact.ratio}`}
-        ], tip:"Memorize the unit circle values for 0°, 30°, 45°, 60°, 90°." };
-      }
-    }
-    if (unitName === "Sequences") {
-      const mGauss = question.match(/1 \+ 2 \+ \.\.\. \+ (\d+)/);
-      const mArith = question.match(/first term (\d+), common diff (\d+), (\d+)th term/);
-      const mGeo   = question.match(/first term (\d+), ratio (\d+), (\d+)th term/);
-      if (mGauss) {
-        const n=+mGauss[1];
-        return { steps:[
-          {text:"Gauss's formula for sum of 1 to n:", math:`S = n(n+1)/2`},
-          {text:"Plug in n:", math:`S = ${n}(${n+1})/2`},
-          {text:"Calculate:", math:`${n*(n+1)}/2 = ${n*(n+1)/2}`}
-        ], tip:"Gauss paired the smallest and largest: 1+n, 2+(n-1),... each sum = n+1." };
-      }
-      if (mArith) {
-        const [,a,d,n] = mArith.map(Number);
-        return { steps:[
-          {text:"Arithmetic sequence formula: aₙ = a₁ + (n-1)d", math:`a₁=${a}, d=${d}, n=${n}`},
-          {text:"Plug in:", math:`a${n} = ${a} + (${n}-1)(${d})`},
-          {text:"Simplify:", math:`= ${a} + ${(n-1)*d} = ${a+(n-1)*d}`}
-        ], tip:"Each term increases by the common difference d." };
-      }
-      if (mGeo) {
-        const [,a,ratio,n] = mGeo.map(Number);
-        return { steps:[
-          {text:"Geometric sequence formula: aₙ = a₁ × r^(n-1)", math:`a₁=${a}, r=${ratio}, n=${n}`},
-          {text:"Plug in:", math:`a${n} = ${a} × ${ratio}^${n-1}`},
-          {text:"Calculate:", math:`= ${a} × ${Math.pow(ratio,n-1)} = ${a*Math.pow(ratio,n-1)}`}
-        ], tip:"Each term is multiplied by the common ratio r." };
-      }
-    }
-    if (unitName === "Advanced Functions") {
-      const mFn = question.match(/f\(x\)\s*=\s*x²\s*\+\s*2\.\s*Find f\((\d+)\)/);
-      const mFn2 = question.match(/g\(x\)\s*=\s*2x²\s*-\s*3\.\s*Find g\((\d+)\)/);
-      const mAsym = question.match(/asymptote/i);
-      if (mFn) {
-        const x=+mFn[1];
-        return { steps:[
-          {text:"Function:", math:`f(x) = x² + 2`},
-          {text:`Substitute x = ${x}:`, math:`f(${x}) = ${x}² + 2`},
-          {text:"Square:", math:`${x*x} + 2 = ${x*x+2}`}
-        ], tip:"Evaluate functions by replacing x with the given value." };
-      }
-      if (mFn2) {
-        const x=+mFn2[1];
-        return { steps:[
-          {text:"Function:", math:`g(x) = 2x² - 3`},
-          {text:`Substitute x = ${x}:`, math:`g(${x}) = 2(${x})² - 3`},
-          {text:"Square, then multiply:", math:`2(${x*x}) - 3 = ${2*x*x} - 3 = ${2*x*x-3}`}
-        ], tip:"Remember order of operations: exponents before multiplication." };
-      }
-      if (mAsym) {
-        return { steps:[
-          {text:"Find where denominator = 0:", math:"x - 3 = 0"},
-          {text:"Solve:", math:"x = 3"},
-          {text:"Vertical asymptote at:", math:"x = 3"}
-        ], tip:"Vertical asymptote = x-value that makes denominator = 0." };
-      }
-    }
-    if (unitName === "Exponentials") {
-      const m = question.match(/^(\d+)\^(\d+)/);
-      const mSolve = question.match(/Solve: (\d+)\^x = (\d+)/);
-      if (m) {
-        const base=+m[1], exp=+m[2];
-        const product = Math.pow(base,exp);
-        return { steps:[
-          {text:`Evaluate ${base}^${exp}:`, math:`${base} × itself ${exp} times`},
-          {text:"Expand:", math:Array.from({length:exp},()=>base).join(' × ') + ` = ${product}`}
-        ], tip:`Exponential growth: each step multiplies by ${base}.` };
-      }
-      if (mSolve) {
-        const base=+mSolve[1], val=+mSolve[2];
-        const exp=Math.round(Math.log(val)/Math.log(base));
-        return { steps:[
-          {text:"Ask: what power gives this value?", math:`${base}^x = ${val}`},
-          {text:`Test: ${base}^${exp} = ?`, math:`${base}^${exp} = ${Math.pow(base,exp)}`},
-          {text:"Answer:", math:`x = ${exp}`}
-        ], tip:"To solve b^x = n, ask: 'b to what power equals n?'" };
-      }
-    }
-    if (unitName === "Polar Coords") {
-      return { steps:[
-        {text:"Polar coordinates use (r, θ) instead of (x, y).", math:"r = distance from origin, θ = angle"},
-        {text:"Question:", math:question},
-        {text:"Answer:", math:`${answer}`}
-      ], tip:"Cartesian to Polar: r = √(x²+y²), θ = arctan(y/x). Polar to Cartesian: x=r·cos θ, y=r·sin θ" };
-    }
-  }
-
-  /* ─── Calculus ───────────────────────────────────────────── */
-  if (grade === "Calculus") {
-    if (unitName === "Limits") {
-      const m = question.match(/lim x→(\d+) of (.+)/);
-      if (m) {
-        const xv=+m[1], expr=m[2].trim();
-        return { steps:[
-          {text:"For a continuous function, use direct substitution:", math:`lim x→${xv} of ${expr}`},
-          {text:`Substitute x = ${xv}:`, math:expr.replace(/x/g,`(${xv})`)},
-          {text:"Evaluate:", math:`= ${answer}`}
-        ], tip:"Direct substitution works when the function is continuous at the limit point." };
-      }
-    }
-    if (unitName === "Derivatives") {
-      const m1 = question.match(/d\/dx of (\d+)x\^(\d+)/);
-      const m2 = question.match(/d\/dx of x\^(\d+)/);
-      const m3 = question.match(/d\/dx of (\d+)x$/);
-      const m4 = question.match(/d\/dx of (\d+)$/);
-      if (m1) {
-        const [,coef,exp] = m1.map(Number);
-        return { steps:[
-          {text:"Power Rule: d/dx[cxⁿ] = c·n·xⁿ⁻¹", math:`d/dx[${coef}x^${exp}]`},
-          {text:"Multiply coefficient by exponent:", math:`${coef} × ${exp} = ${coef*exp}`},
-          {text:"Subtract 1 from exponent:", math:`new exponent = ${exp-1}`},
-          {text:"Result:", math:`${coef*exp}x^${exp-1}`}
-        ], tip:"Power rule: bring exponent down as multiplier, subtract 1 from exponent." };
-      }
-      if (m2) {
-        const exp=+m2[1];
-        return { steps:[
-          {text:"Power Rule: d/dx[xⁿ] = n·xⁿ⁻¹", math:`d/dx[x^${exp}]`},
-          {text:"Bring down the exponent:", math:`${exp} × x^(${exp}-1)`},
-          {text:"Simplify:", math:`${exp}x^${exp-1}`}
-        ], tip:"Bring the exponent down, reduce the exponent by 1." };
-      }
-      if (m3) {
-        const c=+m3[1];
-        return { steps:[
-          {text:"Constant multiple rule:", math:`d/dx[${c}x] = ${c} × d/dx[x]`},
-          {text:"d/dx[x] = 1:", math:`${c} × 1 = ${c}`}
-        ], tip:"The derivative of cx is just c (a horizontal slope change)." };
-      }
-      if (m4) {
-        const c=+m4[1];
-        return { steps:[
-          {text:"Constant rule: d/dx[constant] = 0", math:`d/dx[${c}] = 0`},
-          {text:"A constant never changes, so its rate of change is 0.", math:""}
-        ], tip:"The derivative of any constant is 0." };
-      }
-    }
-    if (unitName === "Chain Rule") {
-      const m1 = question.match(/d\/dx of \(x\+(\d+)\)\^(\d+)/);
-      const m2 = question.match(/d\/dx of \(2x\+(\d+)\)\^(\d+)/);
-      const m3 = question.match(/d\/dx of \(3x\)\^(\d+)/);
-      if (m1) {
-        const [,a,p] = m1.map(Number);
-        return { steps:[
-          {text:"Chain Rule: d/dx[f(g(x))] = f'(g(x)) · g'(x)", math:`outer = u^${p}, inner = x+${a}`},
-          {text:`Derivative of outer: ${p}u^${p-1}`, math:`= ${p}(x+${a})^${p-1}`},
-          {text:`Derivative of inner (x+${a}) = 1`, math:`× 1`},
-          {text:"Result:", math:`${p}(x+${a})^${p-1}`}
-        ], tip:"Chain rule: (outer derivative)(inner derivative). Always multiply by the inner derivative." };
-      }
-      if (m2) {
-        const [,a,p] = m2.map(Number);
-        return { steps:[
-          {text:"Chain Rule:", math:`outer = u^${p}, inner = 2x+${a}`},
-          {text:`Outer derivative: ${p}(2x+${a})^${p-1}`, math:""},
-          {text:`Inner derivative: d/dx[2x+${a}] = 2`, math:""},
-          {text:"Multiply:", math:`${2*p}(2x+${a})^${p-1}`}
-        ], tip:"Chain rule: don't forget to multiply by the derivative of the inside function." };
-      }
-      if (m3) {
-        const p=+m3[1];
-        return { steps:[
-          {text:"Chain Rule:", math:`outer = u^${p}, inner = 3x`},
-          {text:`Outer: ${p}(3x)^${p-1}`, math:""},
-          {text:"Inner: d/dx[3x] = 3", math:""},
-          {text:"Multiply:", math:`${3*p}(3x)^${p-1}`}
-        ], tip:"Always find the outer derivative, then multiply by the inner derivative." };
-      }
-    }
-    if (unitName === "Integrals") {
-      const m1 = question.match(/∫ x\^(\d+) dx/);
-      const m2 = question.match(/∫ (\d+) dx/);
-      const m3 = question.match(/∫ (\d+)x\^(\d+) dx/);
-      if (m1) {
-        const p=+m1[1];
-        return { steps:[
-          {text:"Power Rule for Integration: ∫xⁿ dx = xⁿ⁺¹/(n+1) + C", math:`n = ${p}`},
-          {text:"Add 1 to exponent:", math:`new exponent = ${p+1}`},
-          {text:"Divide by new exponent:", math:`x^${p+1}/${p+1}`},
-          {text:"Don't forget +C:", math:`x^${p+1}/${p+1} + C`}
-        ], tip:"+C is the constant of integration — always include it for indefinite integrals." };
-      }
-      if (m2) {
-        const c=+m2[1];
-        return { steps:[
-          {text:"Integral of a constant:", math:`∫${c} dx = ${c}x + C`},
-          {text:"Think of it as:", math:`∫${c}·x⁰ dx = ${c}·x¹/1 = ${c}x`},
-          {text:"Add +C:", math:`${c}x + C`}
-        ], tip:"∫c dx = cx + C. The integral of a constant is the constant times x." };
-      }
-      if (m3) {
-        const [,c,p] = m3.map(Number);
-        return { steps:[
-          {text:"Pull out the constant:", math:`${c} ∫x^${p} dx`},
-          {text:"Apply power rule:", math:`x^${p+1}/${p+1}`},
-          {text:"Multiply by constant:", math:`${c}x^${p+1}/${p+1} + C`}
-        ], tip:"Constant multiplier rule: ∫c·f(x) dx = c·∫f(x) dx" };
-      }
-    }
-    if (unitName === "Applications") {
-      const mDy = question.match(/y = x²\.\s*Find dy\/dx at x = (\d+)/);
-      const mCDy = question.match(/y = (\d+)x²\.\s*Find dy\/dx at x = (\d+)/);
-      const mSlope = question.match(/y = (\d+)x\.\s*Find the slope/);
-      const mGen = question.match(/y = x³/);
-      if (mDy) {
-        const xv=+mDy[1];
-        return { steps:[
-          {text:"Differentiate y = x² using power rule:", math:`dy/dx = 2x`},
-          {text:`Evaluate at x = ${xv}:`, math:`dy/dx = 2(${xv}) = ${2*xv}`}
-        ], tip:"dy/dx at a point gives the slope of the tangent line at that point." };
-      }
-      if (mCDy) {
-        const [,c,xv] = mCDy.map(Number);
-        return { steps:[
-          {text:`Differentiate y = ${c}x²:`, math:`dy/dx = ${c} × 2x = ${2*c}x`},
-          {text:`Evaluate at x = ${xv}:`, math:`${2*c}(${xv}) = ${2*c*xv}`}
-        ], tip:"Constant multiplier rule: d/dx[cx²] = 2cx." };
-      }
-      if (mSlope) {
-        const c=+mSlope[1];
-        return { steps:[
-          {text:`y = ${c}x is a straight line.`, math:`slope = ${c}`},
-          {text:"Derivative of cx = c:", math:`dy/dx = ${c}`}
-        ], tip:"For a linear function y = mx + b, the slope is always m." };
-      }
-      if (mGen) {
-        return { steps:[
-          {text:"Differentiate y = x³ using power rule:", math:`dy/dx = 3x^(3-1) = 3x²`}
-        ], tip:"Power rule: bring down the exponent, subtract 1 from it." };
-      }
-    }
-  }
-
-  // ── Final fallback (generic but still useful) ──────────────
+  /* ─── Generic fallback for remaining grades ──────────────── */
   return {
     steps:[
       {text:"Problem:", math:question},
@@ -2330,7 +1468,13 @@ const curriculum = {
   "Algebra 2":  [{name:"Complex Quadratics",icon:"📊"},{name:"Polynomials",icon:"🌊"},{name:"Exponents",icon:"⚡"},{name:"Logarithms",icon:"🔬"},{name:"Rational Functions",icon:"🔄"}],
   "Geometry":   [{name:"Area",icon:"🟦"},{name:"Perimeter",icon:"📏"},{name:"Angles",icon:"📐"},{name:"Triangles",icon:"🔺"},{name:"Circles",icon:"⭕"}],
   "Pre-Calc":   [{name:"Trig Basics",icon:"📡"},{name:"Sequences",icon:"🔗"},{name:"Advanced Functions",icon:"🎢"},{name:"Exponentials",icon:"🚀"},{name:"Polar Coords",icon:"🧭"}],
-  "Calculus":   [{name:"Limits",icon:"🎯"},{name:"Derivatives",icon:"📉"},{name:"Chain Rule",icon:"⛓️"},{name:"Integrals",icon:"∫"},{name:"Applications",icon:"🏗️"}]
+  "Calculus":   [{name:"Limits",icon:"🎯"},{name:"Derivatives",icon:"📉"},{name:"Chain Rule",icon:"⛓️"},{name:"Integrals",icon:"∫"},{name:"Applications",icon:"🏗️"}],
+  // SAT subjects — each subject name IS the unit name (used for routing to generator)
+  "Algebra":            [{name:"Algebra",icon:"🔢"}],
+  "Problem Solving":    [{name:"Problem Solving",icon:"🧮"}],
+  "Advanced Math":      [{name:"Advanced Math",icon:"🚀"}],
+  "Data Analysis":      [{name:"Data Analysis",icon:"📊"}],
+  "Additional Topics":  [{name:"Additional Topics",icon:"📐"}]
 };
 
 // ======================== QUIZ STATE ========================
@@ -2368,16 +1512,19 @@ function shuffle(arr) {
 }
 
 function startQuiz(idx, mode) {
-  const unit = curriculum[currentSubject][idx];
+  const units = curriculum[currentSubject];
+  const unit = units[idx];
   if (mode==='test' && !isPracticePassed(currentSubject,idx)) {
     alert("⚠️ You must pass Practice (70%) before attempting the Test!"); return;
   }
   const maxQ = mode==='practice' ? 20 : 10;
-  quizState = { idx, mode, unitName:unit.name, grade:currentSubject, hearts:mode==='test'?3:999,
+  const gradeForGen = currentSubject;
+
+  quizState = { idx, mode, unitName:unit.name, grade:gradeForGen, hearts:mode==='test'?3:999,
                 correct:0, total:0, maxQ, questions:[], currentIndex:0 };
   for (let i=0; i<maxQ; i++) {
     let difficulty = i < Math.floor(maxQ*0.4) ? 'easy' : (i < Math.floor(maxQ*0.75) ? 'medium' : 'hard');
-    const [question, answer] = generateQuestionForGrade(currentSubject, unit.name, difficulty);
+    const [question, answer] = generateQuestionForGrade(gradeForGen, unit.name, difficulty);
     quizState.questions.push({ question, answer, difficulty });
   }
   renderQuestion(); showScreen('quiz-screen');
@@ -2531,7 +1678,8 @@ function showMap() {
 }
 
 function openUnit(idx) {
-  const unit = curriculum[currentSubject][idx];
+  const units = curriculum[currentSubject];
+  const unit = units[idx];
   const practicePassed = isPracticePassed(currentSubject, idx);
   const testPassed     = isUnitComplete(currentSubject, idx);
   const ms = document.getElementById('map-screen');
