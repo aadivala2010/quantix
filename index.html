@@ -1489,8 +1489,15 @@ function getStarCount(s,i)       { const st=getUnitStatus(s,i); return st==='tes
 function isPracticePassed(s,i)   { const st=getUnitStatus(s,i); return st==='practicePass'||st==='testPass'; }
 
 function resetAllProgress() {
-  if (confirm('Reset ALL progress for current level?')) {
-    progress = {}; saveProgressToLevel(progress); showMap(); updateStreakDisplay();
+  if (confirm('Reset EVERYTHING? All progress, streaks, and settings will be lost.')) {
+    // Clear ALL app data from localStorage
+    localStorage.clear();
+    
+    // Reset global progress variable
+    progress = {};
+    
+    // Show level selector
+    showLevelSelector();
   }
 }
 function switchSubject(s) {
