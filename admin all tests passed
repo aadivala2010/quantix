@@ -1,7 +1,6 @@
-// ADMIN CODE: Complete ALL levels (Elementary, Middle, High, SAT)
-// ================================================================
+// ADMIN CODE: Complete ALL levels (No fake streak)
+// =================================================
 
-// Define all levels and their subjects
 const allLevels = {
   Elementary: ['1st Grade','2nd Grade','3rd Grade','4th Grade','5th Grade'],
   Middle: ['6th Grade','7th Grade','8th Grade'],
@@ -9,13 +8,11 @@ const allLevels = {
   SAT: ['Algebra','Problem Solving','Advanced Math','Data Analysis','Additional Topics']
 };
 
-// Complete every level
 for (const [level, subjects] of Object.entries(allLevels)) {
   const progressKey = `qx_progress_${level.toLowerCase()}`;
   let prog = JSON.parse(localStorage.getItem(progressKey) || '{}');
   
   subjects.forEach(sub => {
-    // Each subject has 5 units (curriculum length)
     for(let i = 0; i < 5; i++) {
       prog[`${sub}::unit_${i}`] = 'testPass';
     }
@@ -24,21 +21,11 @@ for (const [level, subjects] of Object.entries(allLevels)) {
   localStorage.setItem(progressKey, JSON.stringify(prog));
 }
 
-// Also set a default level (Elementary) so you see something
 if (!localStorage.getItem('qx_current_level')) {
   localStorage.setItem('qx_current_level', 'Elementary');
   localStorage.setItem('qx_current_subject', '1st Grade');
 }
 
-// Add a 30-day streak for good measure
-localStorage.setItem('qx_streak', '30');
-localStorage.setItem('qx_streak_last_date', Date.now());
-
-console.log('✅ ALL LEVELS COMPLETED!');
-console.log('   - Elementary (Grades 1-5)');
-console.log('   - Middle School (Grades 6-8)');
-console.log('   - High School (Algebra 1 to Calculus)');
-console.log('   - SAT Prep (All 5 topics)');
-console.log('\n🔄 Refreshing page...');
-
+// DON'T touch the streak - leave it as is
+console.log('✅ ALL LEVELS COMPLETED! (Streak untouched)');
 location.reload();
