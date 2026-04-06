@@ -4,7 +4,7 @@
 const allLevels = {
   Elementary: ['1st Grade','2nd Grade','3rd Grade','4th Grade','5th Grade'],
   Middle: ['6th Grade','7th Grade','8th Grade'],
-  High: ['Algebra 1','Algebra 2','Geometry','Pre-Calc','Calculus'],
+  High: ['Algebra 1','Algebra 2','Geometry','Pre-Calculus','Calculus'],
   SAT: ['Algebra','Problem Solving','Advanced Math','Data Analysis','Additional Topics']
 };
 
@@ -27,5 +27,5 @@ if (!localStorage.getItem('qx_current_level')) {
 }
 
 // DON'T touch the streak - leave it as is
-console.log('✅ ALL LEVELS COMPLETED! (Streak untouched)');
+console.log('✅ ALL LEVELS COMPLETED!');
 location.reload();
