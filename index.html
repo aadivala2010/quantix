@@ -175,7 +175,7 @@ const levelSubjects = {
   "Elementary": ["1st Grade","2nd Grade","3rd Grade","4th Grade","5th Grade"],
   "Middle":     ["6th Grade","7th Grade","8th Grade"],
   "High":       ["Algebra 1","Algebra 2","Geometry","Pre-Calc","Calculus"],
-  "SAT":        ["Algebra","Problem Solving","Advanced Math","Data Analysis","Additional Topics"]
+  "SAT":        ["Algebra","Problem Solving","Advanced Math","Data Analysis","SAT Geometry"]
 };
 
 let currentLevel   = localStorage.getItem('qx_current_level')   || null;
@@ -195,7 +195,7 @@ function rebuildSidebar() {
     '1st Grade':'🌟','2nd Grade':'🐧','3rd Grade':'🦊','4th Grade':'🦁','5th Grade':'🚀',
     '6th Grade':'⚡','7th Grade':'🔬','8th Grade':'🎯',
     'Algebra 1':'📐','Algebra 2':'📊','Geometry':'🔺','Pre-Calc':'📡','Calculus':'∫',
-    'Algebra':'🔢','Problem Solving':'🧮','Advanced Math':'🚀','Data Analysis':'📊','Additional Topics':'📐'
+    'Algebra':'🔢','Problem Solving':'🧮','Advanced Math':'🚀','Data Analysis':'📊','SAT Geometry':'📐'
   };
   levelSubjects[currentLevel].forEach(sub => {
     const btn = document.createElement('button');
@@ -376,7 +376,7 @@ function generateWrongAnswers(correct, unitName, grade) {
 // NOTE: Internal generator functions use the canonical topic names as keys.
 // "Algebra" maps to the old "Heart of Algebra" logic.
 // "Advanced Math" maps to the old "Passport to Adv. Math" logic.
-// "Data Analysis" and "Additional Topics" are swapped in order only (sidebar/curriculum),
+// "Data Analysis" and "SAT Geometry" are swapped in order only (sidebar/curriculum),
 // but their generator logic remains identical.
 
 function generateSATQuestion(unitName, difficulty) {
@@ -599,10 +599,10 @@ function generateSATQuestion(unitName, difficulty) {
     return pick(pool)();
   }
 
-  /* ─── Additional Topics in Math ──────────────────────────────────────
+  /* ─── SAT Geometry in Math ──────────────────────────────────────
      Topics: geometry (area, volume, similarity), trigonometry, complex
      numbers, circles (arcs, sectors), coordinate geometry           */
-  if (unitName === "Additional Topics") {
+  if (unitName === "SAT Geometry") {
 
     const easyTemplates = [
       () => { const rad=r(2,8); return [`Area of circle with radius ${rad}? (π ≈ 3.14)`, `${round2(3.14*rad*rad)}`]; },
@@ -745,7 +745,7 @@ function generateQuestionForGrade(grade, unitName, difficulty) {
 
   // SAT routing — map new display names to generator logic
   if (grade === "Algebra" || grade === "Problem Solving" ||
-      grade === "Advanced Math" || grade === "Additional Topics" ||
+      grade === "Advanced Math" || grade === "SAT Geometry" ||
       grade === "Data Analysis") {
     return generateSATQuestion(grade, difficulty);
   }
@@ -1191,7 +1191,7 @@ function getSATExplanation(unitName, question, answer, difficulty) {
     }
   }
 
-  if (unitName === "Additional Topics") {
+  if (unitName === "SAT Geometry") {
     const mCircleArea = question.match(/Area of circle with radius (\d+)/);
     const mCircumf = question.match(/Circumference of circle with radius (\d+)/);
     const mPyth = question.match(/legs (\d+) and (\d+)\. Hypotenuse/);
@@ -1406,7 +1406,7 @@ function getSATExplanation(unitName, question, answer, difficulty) {
 
 // ======================== STEP-BY-STEP EXPLANATION ENGINE (ALL GRADES) ========================
 function getDetailedExplanation(grade, unitName, question, answer, difficulty) {
-  const satGrades = ["Algebra","Problem Solving","Advanced Math","Additional Topics","Data Analysis"];
+  const satGrades = ["Algebra","Problem Solving","Advanced Math","SAT Geometry","Data Analysis"];
   if (satGrades.includes(grade)) {
     return getSATExplanation(grade, question, answer, difficulty);
   }
@@ -1474,7 +1474,7 @@ const curriculum = {
   "Problem Solving":    [{name:"Problem Solving",icon:"🧮"}],
   "Advanced Math":      [{name:"Advanced Math",icon:"🚀"}],
   "Data Analysis":      [{name:"Data Analysis",icon:"📊"}],
-  "Additional Topics":  [{name:"Additional Topics",icon:"📐"}]
+  "SAT Geometry":  [{name:"SAT Geometry",icon:"📐"}]
 };
 
 // ======================== QUIZ STATE ========================
