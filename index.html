@@ -174,7 +174,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 const levelSubjects = {
   "Elementary": ["1st Grade","2nd Grade","3rd Grade","4th Grade","5th Grade"],
   "Middle":     ["6th Grade","7th Grade","8th Grade"],
-  "High":       ["Algebra 1","Algebra 2","Geometry","Pre-Calc","Calculus"],
+  "High":       ["Algebra 1","Algebra 2","Geometry","Pre-Calculus","Calculus"],
   "SAT":        ["Algebra","Problem Solving","Advanced Math","Data Analysis","SAT Geometry"]
 };
 
@@ -194,7 +194,7 @@ function rebuildSidebar() {
   const icons = {
     '1st Grade':'🌟','2nd Grade':'🐧','3rd Grade':'🦊','4th Grade':'🦁','5th Grade':'🚀',
     '6th Grade':'⚡','7th Grade':'🔬','8th Grade':'🎯',
-    'Algebra 1':'📐','Algebra 2':'📊','Geometry':'🔺','Pre-Calc':'📡','Calculus':'∫',
+    'Algebra 1':'📐','Algebra 2':'📊','Geometry':'🔺','Pre-Calculus':'📡','Calculus':'∫',
     'Algebra':'🔢','Problem Solving':'🧮','Advanced Math':'🚀','Data Analysis':'📊','SAT Geometry':'📐'
   };
   levelSubjects[currentLevel].forEach(sub => {
@@ -854,13 +854,13 @@ function generateQuestionForGrade(grade, unitName, difficulty) {
     if (unitName === "Triangles") { const [a,b,c]=pick([[3,4,5],[5,12,13]]); return [`Right triangle legs: ${a} and ${b}. Find hypotenuse.`,`${c}`]; }
     if (unitName === "Circles") { const rad=r(2,10); return [`Area of circle radius ${rad}? (π≈3.14)`,`${round2(3.14*rad*rad)}`]; }
   }
-  /* ─── Pre-Calc ───────────────────────────────────────────── */
-  if (grade === "Pre-Calc") {
+  /* ─── Pre-Calculus ───────────────────────────────────────────── */
+  if (grade === "Pre-Calculus") {
     if (unitName === "Trig Basics") { return pick([["sin(30°)","0.5"],["cos(60°)","0.5"],["tan(45°)","1"],["sin(90°)","1"]]); }
     if (unitName === "Sequences") { const n=r(5,15); return [`Sum: 1 + 2 + ... + ${n} = ?`,`${n*(n+1)/2}`]; }
     if (unitName === "Advanced Functions") { const x=r(2,8); return [`f(x) = x² + 2. Find f(${x}).`,`${x*x+2}`]; }
     if (unitName === "Exponentials") { const p=r(2,5); return [`2^${p} = ?`,`${Math.pow(2,p)}`]; }
-    if (unitName === "Polar Coords") { const a=r(2,8); return [`Cartesian (${a}, 0) in polar form?`,`(${a}, 0°)`]; }
+    if (unitName === "Polar Coordinates") { const a=r(2,8); return [`Cartesian (${a}, 0) in polar form?`,`(${a}, 0°)`]; }
   }
   /* ─── Calculus ───────────────────────────────────────────── */
   if (grade === "Calculus") {
@@ -1467,7 +1467,7 @@ const curriculum = {
   "Algebra 1":  [{name:"Linear Equations",icon:"📐"},{name:"Quadratics",icon:"📈"},{name:"Factoring",icon:"🔢"},{name:"Inequalities",icon:"⚖️"},{name:"Functions",icon:"🎯"}],
   "Algebra 2":  [{name:"Complex Quadratics",icon:"📊"},{name:"Polynomials",icon:"🌊"},{name:"Exponents",icon:"⚡"},{name:"Logarithms",icon:"🔬"},{name:"Rational Functions",icon:"🔄"}],
   "Geometry":   [{name:"Area",icon:"🟦"},{name:"Perimeter",icon:"📏"},{name:"Angles",icon:"📐"},{name:"Triangles",icon:"🔺"},{name:"Circles",icon:"⭕"}],
-  "Pre-Calc":   [{name:"Trig Basics",icon:"📡"},{name:"Sequences",icon:"🔗"},{name:"Advanced Functions",icon:"🎢"},{name:"Exponentials",icon:"🚀"},{name:"Polar Coords",icon:"🧭"}],
+  "Pre-Calculus":   [{name:"Trig Basics",icon:"📡"},{name:"Sequences",icon:"🔗"},{name:"Advanced Functions",icon:"🎢"},{name:"Exponentials",icon:"🚀"},{name:"Polar Coordinates",icon:"🧭"}],
   "Calculus":   [{name:"Limits",icon:"🎯"},{name:"Derivatives",icon:"📉"},{name:"Chain Rule",icon:"⛓️"},{name:"Integrals",icon:"∫"},{name:"Applications",icon:"🏗️"}],
   // SAT subjects — each subject name IS the unit name (used for routing to generator)
   "Algebra":            [{name:"Algebra",icon:"🔢"}],
