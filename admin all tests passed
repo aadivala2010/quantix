@@ -5,7 +5,7 @@ const allLevels = {
   Elementary: ['1st Grade','2nd Grade','3rd Grade','4th Grade','5th Grade'],
   Middle: ['6th Grade','7th Grade','8th Grade'],
   High: ['Algebra 1','Algebra 2','Geometry','Pre-Calculus','Calculus'],
-  SAT: ['Algebra','Problem Solving','Advanced Math','Data Analysis','Additional Topics']
+  SAT: ['Algebra','Problem Solving','Advanced Math','Data Analysis','SAT Geometry']
 };
 
 for (const [level, subjects] of Object.entries(allLevels)) {
