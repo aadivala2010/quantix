@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -86,6 +86,9 @@ body::after{
 body::before{top:-70px;right:-60px;background:rgba(59,130,246,0.22)}
 body::after{bottom:-90px;left:-50px;background:rgba(245,158,11,0.18)}
 .app{display:flex;min-height:100vh;position:relative;z-index:1}
+body.landing-mode .app{display:block}
+body.landing-mode .sidebar{display:none}
+body.landing-mode .main{padding:0;max-width:none}
 .sidebar{
   width:280px;
   background:linear-gradient(180deg,var(--sidebar),var(--sidebar-accent));
@@ -249,6 +252,170 @@ html[data-theme="dark"] .theme-toggle-thumb{
 .main{flex:1;padding:34px 28px 48px;overflow-y:auto}
 .screen{display:none}
 .screen.active{display:block}
+.landing-screen{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:36px 24px;
+}
+.landing-shell{
+  width:min(1120px,100%);
+  display:grid;
+  grid-template-columns:minmax(0,1.15fr) minmax(320px,420px);
+  gap:26px;
+  align-items:stretch;
+}
+.hero-card,.entry-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:34px;
+  box-shadow:var(--shadow);
+  backdrop-filter:blur(18px);
+}
+.hero-card{
+  position:relative;
+  overflow:hidden;
+  padding:40px 38px;
+}
+.hero-card::before{
+  content:"";
+  position:absolute;
+  inset:auto auto -80px -70px;
+  width:260px;
+  height:260px;
+  border-radius:50%;
+  background:radial-gradient(circle, rgba(59,130,246,0.18), transparent 70%);
+}
+.hero-card::after{
+  content:"";
+  position:absolute;
+  inset:-60px -50px auto auto;
+  width:220px;
+  height:220px;
+  border-radius:50%;
+  background:radial-gradient(circle, rgba(245,158,11,0.18), transparent 68%);
+}
+.landing-content{position:relative;z-index:1}
+.landing-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 12px;
+  border-radius:999px;
+  background:rgba(59,130,246,0.1);
+  border:1px solid rgba(59,130,246,0.14);
+  color:var(--blue);
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+.landing-title{
+  margin-top:18px;
+  font-size:56px;
+  line-height:1.02;
+  letter-spacing:-1.6px;
+  color:var(--text);
+  font-weight:800;
+  max-width:9ch;
+}
+.landing-copy{
+  margin-top:18px;
+  max-width:560px;
+  font-size:17px;
+  line-height:1.75;
+  color:var(--text2);
+}
+.landing-highlights{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:14px;
+  margin-top:28px;
+}
+.landing-highlight{
+  padding:18px 16px;
+  border-radius:22px;
+  background:var(--surface2);
+  border:1px solid var(--border);
+}
+.landing-highlight strong{
+  display:block;
+  color:var(--text);
+  font-size:15px;
+  margin-bottom:6px;
+}
+.landing-highlight span{
+  color:var(--text2);
+  font-size:13px;
+  line-height:1.55;
+}
+.entry-card{
+  padding:24px 22px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+.entry-eyebrow{
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--text3);
+}
+.entry-title{
+  margin-top:10px;
+  font-size:28px;
+  letter-spacing:-0.8px;
+  color:var(--text);
+  font-weight:800;
+}
+.entry-copy{
+  margin-top:10px;
+  color:var(--text2);
+  font-size:14px;
+  line-height:1.7;
+}
+.level-select-grid{
+  display:grid;
+  gap:12px;
+  margin-top:20px;
+}
+.landing-level-btn{
+  width:100%;
+  border:none;
+  border-radius:22px;
+  font-family:var(--font);
+  font-weight:800;
+  cursor:pointer;
+  transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease, background .16s ease;
+}
+.landing-level-btn{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:16px 18px;
+  text-align:left;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  color:var(--text);
+}
+.landing-level-btn:hover{transform:translateY(-1px)}
+.landing-level-main{display:flex;align-items:center;gap:12px}
+.landing-level-icon{
+  width:42px;
+  height:42px;
+  border-radius:14px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:20px;
+  background:rgba(59,130,246,0.1);
+}
+.landing-level-meta strong{display:block;font-size:15px;color:var(--text)}
+.landing-level-meta span{display:block;margin-top:3px;font-size:12px;color:var(--text2)}
+.landing-level-arrow{color:var(--text3);font-size:18px}
 .map-header,.q-screen,.result-screen-inner,.level-selector-card,.unit-panel,.loading-state{
   backdrop-filter:blur(18px);
 }
@@ -513,6 +680,11 @@ html[data-theme="dark"] .level-choice-btn{color:#10203a}
 }
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @media(max-width:860px){
+  body.landing-mode .main{padding:0}
+  .landing-shell{grid-template-columns:1fr}
+  .hero-card,.entry-card{padding:24px 22px}
+  .landing-title{font-size:42px;max-width:11ch}
+  .landing-highlights{grid-template-columns:1fr}
   .app{flex-direction:column}
   .sidebar{
     width:100%;
@@ -523,19 +695,114 @@ html[data-theme="dark"] .level-choice-btn{color:#10203a}
     border-bottom:1px solid rgba(255,255,255,0.06);
     box-shadow:none;
   }
-  .subject-list{flex-direction:row;flex-wrap:wrap}
-  .subject-btn,.reset-btn,.switch-level-btn{flex:1 1 180px}
+  .subject-list{
+    flex-direction:row;
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    overflow-y:hidden;
+    padding-bottom:4px;
+    margin:2px -2px 0;
+    scroll-snap-type:x proximity;
+  }
+  .subject-list::-webkit-scrollbar{height:6px}
+  .subject-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.18);border-radius:999px}
+  .subject-btn{
+    flex:0 0 auto;
+    min-width:170px;
+    scroll-snap-align:start;
+  }
+  .switch-level-btn,.reset-btn{
+    width:100%;
+  }
   .main{padding:18px 14px 32px}
 }
 @media(max-width:700px){
+  .landing-screen{padding:20px 14px}
+  .landing-title{font-size:34px;max-width:none}
+  .landing-copy{font-size:15px}
+  .entry-title{font-size:24px}
+  .landing-level-btn{padding:14px 15px}
+  .landing-level-icon{width:38px;height:38px;font-size:18px}
   .sidebar-header{align-items:center}
   .logo{font-size:22px}
   .theme-toggle{width:70px;height:36px}
+  .sidebar{padding:16px 12px 14px;gap:12px}
+  .streak-badge{justify-content:center}
+  .subject-btn{min-width:152px;padding:11px 12px}
+  .subject-icon{min-width:30px;height:30px}
   .map-header,.result-screen-inner,.loading-state,.unit-panel,.q-card{padding:22px 18px}
   .map-title,.loading-title,.result-title{font-size:26px}
-  .q-text{font-size:18px}
-  .opt-btn{font-size:14px;padding:14px 16px}
-  .panel-actions,.result-stats{flex-direction:column}
+  .map-meta{gap:8px}
+  .meta-pill{width:100%;justify-content:center;text-align:center}
+  .trail{max-width:280px}
+  .checkpoint-btn{width:78px;height:78px;font-size:22px}
+  .cp-label{max-width:96px;font-size:11px}
+  .unit-panel{padding:20px 18px}
+  .panel-actions{flex-direction:column}
+  .btn-practice,.btn-test,.next-btn,.result-btn{width:100%}
+  .quiz-header-actions{
+    flex-direction:column;
+    align-items:stretch;
+    gap:10px;
+  }
+  .quiz-stats,.quit-quiz-btn{width:100%;text-align:center}
+  .quiz-top{align-items:flex-start;gap:10px}
+  .hearts{min-width:74px}
+  .q-text{font-size:18px;line-height:1.55}
+  .opt-btn{font-size:14px;padding:14px 16px;align-items:flex-start}
+  .opt-letter{width:32px;height:32px}
+  .feedback-bar{padding:14px 15px;align-items:flex-start}
+  .expl-header{flex-wrap:wrap}
+  .step{gap:10px}
+  .result-stats{flex-direction:column}
+  .stat-card{width:100%}
+  .level-selector-card{
+    width:min(92vw,560px);
+    padding:30px 20px 22px;
+    border-radius:28px;
+  }
+  .level-selector-card h2{font-size:28px}
+  .level-selector-card p{font-size:15px;margin-bottom:24px}
+  .level-grid{gap:12px}
+  .level-choice-btn{
+    padding:16px 14px;
+    font-size:18px;
+    border-radius:20px;
+  }
+}
+@media(max-width:520px){
+  .landing-screen{padding:14px 10px}
+  .hero-card,.entry-card{padding:20px 16px;border-radius:26px}
+  .landing-badge{font-size:11px}
+  .landing-title{font-size:28px}
+  .landing-copy{font-size:14px}
+  .landing-highlight{padding:15px 14px}
+  .entry-title{font-size:22px}
+  .landing-level-meta strong{font-size:14px}
+  body::before,
+  body::after{width:220px;height:220px}
+  .main{padding:14px 10px 24px}
+  .sidebar-header{gap:10px}
+  .logo{font-size:20px}
+  .logo-mark{width:36px;height:36px;border-radius:12px}
+  .theme-toggle{width:66px;height:34px}
+  .theme-toggle-thumb{width:26px;height:26px}
+  html[data-theme="dark"] .theme-toggle-thumb{left:36px}
+  .map-header,.result-screen-inner,.loading-state,.unit-panel,.q-card{padding:18px 14px}
+  .map-title,.loading-title,.result-title{font-size:22px}
+  .q-card{border-radius:24px}
+  .q-topic{font-size:10px}
+  .q-text{font-size:17px}
+  .trail{max-width:250px}
+  .checkpoint-btn{width:72px;height:72px;font-size:20px}
+  .connector{height:28px}
+  .unit-panel-title{font-size:18px}
+  .unit-panel-sub,.loading-copy,.result-sub{font-size:14px}
+  .opt-btn{padding:13px 14px;border-radius:18px}
+  .expl-body{padding:12px 14px;font-size:13px}
+  .math{font-size:12px;word-break:break-word}
+  .result-icon{font-size:54px}
+  .stat-val{font-size:22px}
 }
 </style>
 </head>
@@ -559,6 +826,7 @@ html[data-theme="dark"] .level-choice-btn{color:#10203a}
     <button class="reset-btn" type="button" onclick="resetAllProgress()">Reset Progress</button>
   </div>
   <div class="main">
+    <div id="landing-screen" class="screen"></div>
     <div id="map-screen" class="screen active"></div>
     <div id="quiz-screen" class="screen"></div>
     <div id="result-screen" class="screen"></div>
@@ -594,6 +862,29 @@ const subjectIcons = {
 const GEMINI_CONFIG = {
   model: "gemini-2.5-flash-lite",
   endpoint: "/api/generate-questions"
+};
+
+const levelMeta = {
+  Elementary: {
+    icon: '🌱',
+    title: 'Elementary School',
+    blurb: 'Grades 1-5 with core arithmetic, fractions, and foundations.'
+  },
+  Middle: {
+    icon: '⚡',
+    title: 'Middle School',
+    blurb: 'Grades 6-8 with ratios, equations, probability, and systems.'
+  },
+  High: {
+    icon: '🎓',
+    title: 'High School',
+    blurb: 'Algebra through calculus with full course-based practice.'
+  },
+  SAT: {
+    icon: '🚀',
+    title: 'SAT Track',
+    blurb: 'Focused SAT math prep across 10 targeted units.'
+  }
 };
 
 function readJSON(key, fallback) {
@@ -645,6 +936,79 @@ function rebuildSidebar() {
   });
 }
 
+function applyAppMode(mode) {
+  document.body.classList.toggle('landing-mode', mode !== 'app');
+}
+
+function setLevelAndEnter(level, source = 'manual') {
+  currentLevel = level;
+  currentSubject = getDefaultSubjectForLevel(level);
+  localStorage.setItem('qx_current_level', level);
+  localStorage.setItem('qx_current_subject', currentSubject);
+  localStorage.setItem('qx_entry_mode', source);
+  progress = loadProgress();
+  rebuildSidebar();
+  applyAppMode('app');
+  showMap();
+  updateStreakDisplay();
+}
+
+function renderLandingPage() {
+  const landing = document.getElementById('landing-screen');
+  if (!landing) return;
+  landing.innerHTML = `
+    <div class="landing-screen">
+      <div class="landing-shell">
+        <section class="hero-card">
+          <div class="landing-content">
+            <div class="landing-badge">Quantix Math Path</div>
+            <h1 class="landing-title">Find your level and start sharp.</h1>
+            <p class="landing-copy">Choose a track and jump straight into a clean, structured math path with AI-generated practice and focused progression once you’re in.</p>
+            <div class="landing-highlights">
+              <div class="landing-highlight">
+                <strong>Direct entry</strong>
+                <span>Jump into Elementary, Middle, High School, or SAT in one tap.</span>
+              </div>
+              <div class="landing-highlight">
+                <strong>Focused paths</strong>
+                <span>Each track is organized into clear units with practice and tests.</span>
+              </div>
+              <div class="landing-highlight">
+                <strong>Clean progress</strong>
+                <span>Practice, test, and keep your path organized across devices.</span>
+              </div>
+            </div>
+          </div>
+        </section>
+        <aside class="entry-card">
+          <div>
+            <div class="entry-eyebrow">Start here</div>
+            <div class="entry-title">Pick a path</div>
+            <div class="entry-copy">Choose the level that fits best and enter the app immediately.</div>
+            <div class="level-select-grid">
+              ${Object.entries(levelMeta).map(([level, meta]) => `
+                <button class="landing-level-btn" type="button" data-level="${level}">
+                  <span class="landing-level-main">
+                    <span class="landing-level-icon">${meta.icon}</span>
+                    <span class="landing-level-meta">
+                      <strong>${meta.title}</strong>
+                      <span>${meta.blurb}</span>
+                    </span>
+                  </span>
+                  <span class="landing-level-arrow">›</span>
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>`;
+
+  landing.querySelectorAll('.landing-level-btn').forEach(btn => {
+    btn.onclick = () => setLevelAndEnter(btn.dataset.level, 'manual');
+  });
+}
+
 function showLevelSelector() {
   const existing = document.getElementById('level-selector');
   if (existing) existing.remove();
@@ -663,15 +1027,16 @@ function showLevelSelector() {
   overlay.querySelectorAll('.level-choice-btn').forEach(btn => {
     btn.onclick = () => {
       const level = btn.getAttribute('data-level');
-      currentLevel   = level;
-      currentSubject = getDefaultSubjectForLevel(level);
-      localStorage.setItem('qx_current_level',   level);
-      localStorage.setItem('qx_current_subject', currentSubject);
-      progress = loadProgress();
       overlay.remove();
-      rebuildSidebar(); showMap(); updateStreakDisplay();
+      setLevelAndEnter(level, 'manual');
     };
   });
+}
+
+function showLanding() {
+  renderLandingPage();
+  applyAppMode('landing');
+  showScreen('landing-screen');
 }
 
 // ======================== UTILITIES ========================
@@ -1395,10 +1760,11 @@ function showResult() {
 
 function showMap() {
   if (!currentLevel) {
-    showLevelSelector();
+    showLanding();
     return;
   }
 
+  applyAppMode('app');
   currentSubject = normalizeSubjectForLevel(currentLevel, currentSubject);
   const units = curriculum[currentSubject] || [];
   const ms = document.getElementById('map-screen');
@@ -1506,6 +1872,11 @@ function selectAnswerByIndex(i) { updateActiveOptions(); if (currentActiveOption
 function triggerContinue()      { const b=document.getElementById('next-btn'); if (b && b.classList.contains('show')) b.click(); }
 
 document.addEventListener('keydown', e => {
+  if (e.shiftKey && e.key === 'L' && (e.code === 'KeyL' || e.key === 'L')) {
+    e.preventDefault();
+    showLanding();
+    return;
+  }
   if (document.querySelector('.screen.active')?.id !== 'quiz-screen') return;
   const k = e.key;
   if      (k==='1'||k==='a'||k==='A') { e.preventDefault(); selectAnswerByIndex(0); }
@@ -1520,11 +1891,16 @@ document.addEventListener('keydown', e => {
 window.addEventListener('load', () => {
   applyTheme(preferredTheme);
   setAIStatus('Ready');
-  if (!currentLevel) showLevelSelector();
-  else { rebuildSidebar(); showMap(); updateStreakDisplay(); }
+  renderLandingPage();
+  if (!currentLevel) showLanding();
+  else { rebuildSidebar(); applyAppMode('app'); showMap(); updateStreakDisplay(); }
 });
 </script>
 </body>
 </html>
+
+
+
+
 
 

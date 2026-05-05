@@ -4,6 +4,8 @@ const path = require('path');
 
 const ROOT = __dirname;
 const INDEX_PATH = path.join(ROOT, 'index.html');
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const RATE_LIMIT_MAX_REQUESTS = 12;
 
 function loadEnv() {
   const envPath = path.join(ROOT, '.env');
@@ -23,10 +25,53 @@ function loadEnv() {
   return env;
 }
 
-const ENV = loadEnv();
+const ENV = { ...loadEnv(), ...process.env };
 const PORT = Number(ENV.PORT || 3000);
 const GEMINI_API_KEY = ENV.GEMINI_API_KEY || '';
 const GEMINI_MODEL = ENV.GEMINI_MODEL || 'gemini-2.5-flash-lite';
+const requestBuckets = new Map();
+
+function getClientIp(req) {
+  const forwarded = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+  const socketIp = req.socket?.remoteAddress || '';
+  return forwarded || socketIp || 'unknown';
+}
+
+function cleanupExpiredRateLimits(now = Date.now()) {
+  for (const [ip, bucket] of requestBuckets.entries()) {
+    if (now - bucket.startedAt >= RATE_LIMIT_WINDOW_MS) requestBuckets.delete(ip);
+  }
+}
+
+function getRateLimitState(req) {
+  const now = Date.now();
+  cleanupExpiredRateLimits(now);
+  const ip = getClientIp(req);
+  const existing = requestBuckets.get(ip);
+  if (!existing || now - existing.startedAt >= RATE_LIMIT_WINDOW_MS) {
+    const next = { count: 0, startedAt: now };
+    requestBuckets.set(ip, next);
+    return { ip, bucket: next };
+  }
+  return { ip, bucket: existing };
+}
+
+function applyRateLimit(req, res) {
+  const { bucket } = getRateLimitState(req);
+  bucket.count += 1;
+  const retryAfterSeconds = Math.max(1, Math.ceil((bucket.startedAt + RATE_LIMIT_WINDOW_MS - Date.now()) / 1000));
+  res.setHeader('X-RateLimit-Limit', String(RATE_LIMIT_MAX_REQUESTS));
+  res.setHeader('X-RateLimit-Remaining', String(Math.max(0, RATE_LIMIT_MAX_REQUESTS - bucket.count)));
+  res.setHeader('X-RateLimit-Reset', String(Math.ceil((bucket.startedAt + RATE_LIMIT_WINDOW_MS) / 1000)));
+  if (bucket.count > RATE_LIMIT_MAX_REQUESTS) {
+    res.setHeader('Retry-After', String(retryAfterSeconds));
+    sendJson(res, 429, {
+      error: 'Too many quiz generation requests. Please wait a minute and try again.'
+    });
+    return false;
+  }
+  return true;
+}
 
 function sanitizeJsonValue(value) {
   if (typeof value === 'string') {
@@ -112,7 +157,7 @@ function readBody(req) {
 
 async function handleGenerateQuestions(req, res) {
   if (!GEMINI_API_KEY) {
-    sendJson(res, 500, { error: 'Missing GEMINI_API_KEY in .env' });
+    sendJson(res, 500, { error: 'Missing GEMINI_API_KEY environment variable.' });
     return;
   }
 
@@ -192,12 +237,18 @@ async function handleGenerateQuestions(req, res) {
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
 
+  if (req.method === 'GET' && url.pathname === '/health') {
+    sendJson(res, 200, { ok: true });
+    return;
+  }
+
   if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) {
     sendFile(res, INDEX_PATH);
     return;
   }
 
   if (req.method === 'POST' && url.pathname === '/api/generate-questions') {
+    if (!applyRateLimit(req, res)) return;
     await handleGenerateQuestions(req, res);
     return;
   }
