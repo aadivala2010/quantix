@@ -957,6 +957,7 @@ const authState = {
     const value = String(FIREBASE_WEB_CONFIG[key] || '').trim();
     return value && !value.startsWith('YOUR_');
   }),
+  initializing: !IS_FILE_PROTOCOL,
   loading: false,
   user: null,
   message: ''
@@ -1421,6 +1422,15 @@ function renderAuthCard(mode) {
     `;
   }
 
+  if (authState.initializing && !authState.user) {
+    return `
+      <div class="auth-card-title">Google sign-in</div>
+      <div class="auth-card-copy">Restoring your saved session...</div>
+      <button class="auth-button" type="button" disabled>Checking sign-in</button>
+      <div class="auth-status">You should stay signed in until you switch accounts or sign out.</div>
+    `;
+  }
+
   const buttonLabel = authState.loading ? 'Connecting...' : 'Continue with Google';
   return `
     <div class="auth-card-title">Google sign-in</div>
@@ -1487,6 +1497,7 @@ async function signOutUser() {
 window.addEventListener('quantix-auth-ready', event => {
   authState.available = !!event.detail?.available;
   authState.message = event.detail?.message || authState.message;
+  if (!authState.available) authState.initializing = false;
   renderAuthUI();
 });
 
@@ -1495,6 +1506,7 @@ window.addEventListener('quantix-auth-state', event => {
   authState.user = event.detail?.user || null;
   authState.message = event.detail?.message || '';
   authState.loading = false;
+  authState.initializing = false;
   renderAuthUI();
 });
 // ======================== WRONG ANSWER GENERATOR ========================
@@ -2289,11 +2301,13 @@ if (window.location.protocol === 'file:') {
   try {
     const { initializeApp } = await import('https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js');
     const {
+      browserPopupRedirectResolver,
       browserLocalPersistence,
+      indexedDBLocalPersistence,
       getAuth,
       GoogleAuthProvider,
+      initializeAuth,
       onAuthStateChanged,
-      setPersistence,
       signInWithPopup,
       signOut
     } = await import('https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js');
@@ -2305,11 +2319,13 @@ if (window.location.protocol === 'file:') {
     } = await import('https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js');
 
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+    const auth = initializeAuth(app, {
+      persistence: [indexedDBLocalPersistence, browserLocalPersistence],
+      popupRedirectResolver: browserPopupRedirectResolver
+    });
     const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
-    await setPersistence(auth, browserLocalPersistence);
 
     window.quantixAuth = {
       async signIn() {
@@ -2329,6 +2345,10 @@ if (window.location.protocol === 'file:') {
         await setDoc(doc(db, 'quantixUsers', auth.currentUser.uid), state, { merge: true });
       }
     };
+
+    if (typeof auth.authStateReady === 'function') {
+      auth.authStateReady().catch(() => {});
+    }
 
     onAuthStateChanged(auth, async user => {
       try {
