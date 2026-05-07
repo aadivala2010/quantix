@@ -6,6 +6,15 @@ const ROOT = __dirname;
 const INDEX_PATH = path.join(ROOT, 'index.html');
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 12;
+const MIME_TYPES = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'application/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.svg': 'image/svg+xml; charset=utf-8',
+  '.ico': 'image/x-icon',
+  '.png': 'image/png'
+};
 
 function loadEnv() {
   const envPath = path.join(ROOT, '.env');
@@ -94,12 +103,26 @@ function sendJson(res, statusCode, payload) {
 function sendFile(res, filePath) {
   fs.readFile(filePath, (err, data) => {
     if (err) {
-      sendJson(res, 500, { error: 'Failed to read index.html' });
+      sendJson(res, 500, { error: `Failed to read ${path.basename(filePath)}` });
       return;
     }
-    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    const ext = path.extname(filePath).toLowerCase();
+    const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+    res.writeHead(200, { 'Content-Type': contentType });
     res.end(data);
   });
+}
+
+function tryServeRootAsset(urlPath, res) {
+  const trimmedPath = String(urlPath || '').replace(/^\/+/, '');
+  if (!trimmedPath || trimmedPath.includes('..') || trimmedPath.includes('/') || trimmedPath.includes('\\')) {
+    return false;
+  }
+  const assetPath = path.join(ROOT, trimmedPath);
+  if (!fs.existsSync(assetPath)) return false;
+  if (!fs.statSync(assetPath).isFile()) return false;
+  sendFile(res, assetPath);
+  return true;
 }
 
 function extractGeminiText(data) {
@@ -244,6 +267,10 @@ const server = http.createServer(async (req, res) => {
 
   if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) {
     sendFile(res, INDEX_PATH);
+    return;
+  }
+
+  if (req.method === 'GET' && tryServeRootAsset(url.pathname, res)) {
     return;
   }
 

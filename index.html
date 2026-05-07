@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <title>Quantix | Math Mastery 1-12</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%233b82f6'/%3E%3Ctext x='50%25' y='56%25' text-anchor='middle' font-size='34' font-family='Arial' fill='white'%3EQ%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -249,6 +250,87 @@ html[data-theme="dark"] .theme-toggle-thumb{
   font-weight:800;
   padding:12px 14px;
 }
+.auth-sidebar-card{
+  margin-top:10px;
+  padding:14px;
+  border-radius:20px;
+  background:linear-gradient(180deg,rgba(255,255,255,0.14),rgba(255,255,255,0.07));
+  border:1px solid rgba(255,255,255,0.09);
+  color:#fff;
+  box-shadow:var(--shadow-soft);
+}
+.auth-card-title{font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+.auth-card-copy{margin-top:6px;font-size:12px;line-height:1.5;color:rgba(255,255,255,0.76)}
+.auth-button,
+.auth-signout-btn{
+  width:100%;
+  border:none;
+  border-radius:16px;
+  font-family:var(--font);
+  font-weight:800;
+  cursor:pointer;
+  transition:transform .16s ease,opacity .16s ease,background .16s ease;
+}
+.auth-button{
+  margin-top:12px;
+  padding:12px 14px;
+  background:linear-gradient(135deg,#ffffff,#dbeafe);
+  color:#10203a;
+  box-shadow:0 16px 28px rgba(59,130,246,0.18);
+}
+.auth-button:hover,
+.auth-signout-btn:hover{transform:translateY(-1px)}
+.auth-button:disabled,
+.auth-signout-btn:disabled{cursor:not-allowed;opacity:.6;transform:none}
+.auth-signout-btn{
+  margin-top:10px;
+  padding:10px 12px;
+  background:rgba(255,255,255,0.1);
+  color:#fff;
+  border:1px solid rgba(255,255,255,0.1);
+}
+.auth-user{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-top:12px;
+}
+.auth-user-name{font-size:14px;font-weight:800;color:#fff}
+.auth-status{
+  margin-top:10px;
+  font-size:11px;
+  line-height:1.4;
+  color:rgba(255,255,255,0.72);
+}
+.landing-auth{
+  margin-top:18px;
+  padding:16px;
+  border-radius:22px;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  box-shadow:var(--shadow-soft);
+}
+.landing-auth-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.landing-auth-title{font-size:14px;font-weight:800;color:var(--text)}
+.landing-auth-copy{margin-top:6px;font-size:13px;line-height:1.55;color:var(--text2)}
+.landing-auth .auth-button{
+  margin-top:14px;
+  background:linear-gradient(135deg,#2563eb,#7c3aed);
+  color:#fff;
+  box-shadow:0 18px 30px rgba(37,99,235,0.2);
+}
+.landing-auth .auth-signout-btn{
+  margin-top:12px;
+  background:transparent;
+  color:var(--text);
+  border:1px solid var(--border);
+}
+.auth-inline-note{margin-top:10px;font-size:12px;color:var(--text3)}
 .main{flex:1;padding:34px 28px 48px;overflow-y:auto}
 .screen{display:none}
 .screen.active{display:block}
@@ -821,6 +903,7 @@ html[data-theme="dark"] .level-choice-btn{color:#10203a}
     </div>
     <div class="streak-badge" id="streak-display">Streak <span id="streak-count">0</span> days</div>
     <button class="switch-level-btn" id="switch-level-btn" type="button" onclick="showLevelSelector()">Switch Level</button>
+    <div id="sidebar-auth-slot" class="auth-sidebar-card"></div>
     <div id="subject-buttons-container" class="subject-list"></div>
     <div class="sidebar-spacer"></div>
     <button class="reset-btn" type="button" onclick="resetAllProgress()">Reset Progress</button>
@@ -833,6 +916,7 @@ html[data-theme="dark"] .level-choice-btn{color:#10203a}
   </div>
 </div>
 
+<script src="firebase-config.js"></script>
 <script>
 // ======================== SHUFFLE FUNCTION ========================
 function shuffle(arr) {
@@ -863,6 +947,27 @@ const GEMINI_CONFIG = {
   model: "gemini-2.5-flash-lite",
   endpoint: "/api/generate-questions"
 };
+
+const FIREBASE_WEB_CONFIG = window.QUANTIX_FIREBASE_CONFIG || {};
+const FIREBASE_REQUIRED_KEYS = ['apiKey', 'authDomain', 'projectId', 'appId'];
+const IS_FILE_PROTOCOL = window.location.protocol === 'file:';
+const authState = {
+  available: false,
+  configured: FIREBASE_REQUIRED_KEYS.every(key => {
+    const value = String(FIREBASE_WEB_CONFIG[key] || '').trim();
+    return value && !value.startsWith('YOUR_');
+  }),
+  loading: false,
+  user: null,
+  message: ''
+};
+const GUEST_ENTRY_KEY = 'qx_entry_mode';
+const GUEST_STREAK_KEY = 'qx_streak';
+const GUEST_STREAK_LAST_KEY = 'qx_streak_last_date';
+var cloudUserState = null;
+var cloudSyncReady = false;
+var cloudSyncPromise = Promise.resolve();
+var isApplyingRemoteState = false;
 
 const levelMeta = {
   Elementary: {
@@ -914,9 +1019,162 @@ let currentSubject = currentLevel
   ? normalizeSubjectForLevel(currentLevel, localStorage.getItem('qx_current_subject'))
   : "1st Grade";
 
-function getProgressKey()         { return `qx_progress_${currentLevel ? currentLevel.toLowerCase() : 'elem'}`; }
-function loadProgress()           { return readJSON(getProgressKey(), {}); }
-function saveProgressToLevel(obj) { localStorage.setItem(getProgressKey(), JSON.stringify(obj)); }
+function getProgressKey(level = currentLevel) { return `qx_progress_${level ? level.toLowerCase() : 'elem'}`; }
+function createEmptyCloudState() {
+  return {
+    currentLevel: null,
+    currentSubject: null,
+    entryMode: 'manual',
+    progressByLevel: {},
+    streakCount: 0,
+    streakLastDate: null
+  };
+}
+function normalizeCloudState(raw) {
+  const base = createEmptyCloudState();
+  if (!raw || typeof raw !== 'object') return base;
+  const next = { ...base };
+  next.currentLevel = normalizeLevel(raw.currentLevel) || null;
+  next.currentSubject = next.currentLevel
+    ? normalizeSubjectForLevel(next.currentLevel, raw.currentSubject)
+    : null;
+  next.entryMode = normalizeString(raw.entryMode || 'manual') || 'manual';
+  next.streakCount = Math.max(0, parseInt(raw.streakCount || 0, 10) || 0);
+  next.streakLastDate = raw.streakLastDate ? Number(raw.streakLastDate) : null;
+  if (raw.progressByLevel && typeof raw.progressByLevel === 'object') {
+    Object.entries(raw.progressByLevel).forEach(([key, value]) => {
+      next.progressByLevel[key] = value && typeof value === 'object' ? value : {};
+    });
+  }
+  return next;
+}
+function readGuestState() {
+  return normalizeCloudState({
+    currentLevel: localStorage.getItem('qx_current_level'),
+    currentSubject: localStorage.getItem('qx_current_subject'),
+    entryMode: localStorage.getItem(GUEST_ENTRY_KEY) || 'manual',
+    streakCount: parseInt(localStorage.getItem(GUEST_STREAK_KEY) || '0', 10) || 0,
+    streakLastDate: localStorage.getItem(GUEST_STREAK_LAST_KEY),
+    progressByLevel: Object.fromEntries(
+      Object.keys(levelSubjects).map(level => [getProgressKey(level), readJSON(getProgressKey(level), {})])
+    )
+  });
+}
+function writeGuestState(state) {
+  const next = normalizeCloudState(state);
+  if (next.currentLevel) localStorage.setItem('qx_current_level', next.currentLevel);
+  else localStorage.removeItem('qx_current_level');
+  if (next.currentSubject) localStorage.setItem('qx_current_subject', next.currentSubject);
+  else localStorage.removeItem('qx_current_subject');
+  localStorage.setItem(GUEST_ENTRY_KEY, next.entryMode || 'manual');
+  localStorage.setItem(GUEST_STREAK_KEY, String(next.streakCount || 0));
+  if (next.streakLastDate) localStorage.setItem(GUEST_STREAK_LAST_KEY, String(next.streakLastDate));
+  else localStorage.removeItem(GUEST_STREAK_LAST_KEY);
+  Object.keys(levelSubjects).forEach(level => {
+    localStorage.setItem(getProgressKey(level), JSON.stringify(next.progressByLevel[getProgressKey(level)] || {}));
+  });
+}
+function getCurrentStateSnapshot() {
+  const progressByLevel = authState.user && cloudUserState
+    ? { ...cloudUserState.progressByLevel, [getProgressKey()]: { ...progress } }
+    : Object.fromEntries(
+        Object.keys(levelSubjects).map(level => [getProgressKey(level), readJSON(getProgressKey(level), {})])
+      );
+  if (currentLevel) progressByLevel[getProgressKey()] = { ...progress };
+  return normalizeCloudState({
+    currentLevel,
+    currentSubject,
+    entryMode: localStorage.getItem(GUEST_ENTRY_KEY) || 'manual',
+    progressByLevel,
+    streakCount: getStoredStreakCount(),
+    streakLastDate: getStoredStreakLastDate()
+  });
+}
+function loadProgress() {
+  if (authState.user && cloudUserState) {
+    return { ...(cloudUserState.progressByLevel[getProgressKey()] || {}) };
+  }
+  return readJSON(getProgressKey(), {});
+}
+function scheduleCloudSave() {
+  if (!authState.user || !cloudUserState || !window.quantixCloud?.saveUserState) return;
+  const snapshot = normalizeCloudState(cloudUserState);
+  cloudSyncPromise = cloudSyncPromise
+    .then(() => window.quantixCloud.saveUserState(snapshot))
+    .catch(error => {
+      console.error('Cloud state save failed.', error);
+      authState.message = 'Cloud sync hit a problem. Your next save will retry.';
+      renderAuthUI();
+    });
+}
+function saveProgressToLevel(obj) {
+  if (authState.user) {
+    cloudUserState = normalizeCloudState(cloudUserState || createEmptyCloudState());
+    cloudUserState.progressByLevel[getProgressKey()] = { ...(obj || {}) };
+    scheduleCloudSave();
+    return;
+  }
+  localStorage.setItem(getProgressKey(), JSON.stringify(obj));
+}
+function setStoredSelection(level, subject, source) {
+  if (authState.user) {
+    cloudUserState = normalizeCloudState(cloudUserState || createEmptyCloudState());
+    cloudUserState.currentLevel = normalizeLevel(level) || null;
+    cloudUserState.currentSubject = cloudUserState.currentLevel
+      ? normalizeSubjectForLevel(cloudUserState.currentLevel, subject)
+      : null;
+    cloudUserState.entryMode = source || cloudUserState.entryMode || 'manual';
+    scheduleCloudSave();
+    return;
+  }
+  if (level) localStorage.setItem('qx_current_level', level);
+  else localStorage.removeItem('qx_current_level');
+  if (subject) localStorage.setItem('qx_current_subject', subject);
+  else localStorage.removeItem('qx_current_subject');
+  localStorage.setItem(GUEST_ENTRY_KEY, source || 'manual');
+}
+function getStoredStreakCount() {
+  if (authState.user && cloudUserState) return parseInt(cloudUserState.streakCount || '0', 10) || 0;
+  return parseInt(localStorage.getItem(GUEST_STREAK_KEY) || '0', 10) || 0;
+}
+function getStoredStreakLastDate() {
+  if (authState.user && cloudUserState) return cloudUserState.streakLastDate ? Number(cloudUserState.streakLastDate) : null;
+  const raw = localStorage.getItem(GUEST_STREAK_LAST_KEY);
+  return raw ? Number(raw) : null;
+}
+function setStoredStreak(count, lastDate) {
+  if (authState.user) {
+    cloudUserState = normalizeCloudState(cloudUserState || createEmptyCloudState());
+    cloudUserState.streakCount = Math.max(0, parseInt(count || 0, 10) || 0);
+    cloudUserState.streakLastDate = lastDate ? Number(lastDate) : null;
+    scheduleCloudSave();
+    return;
+  }
+  localStorage.setItem(GUEST_STREAK_KEY, String(Math.max(0, parseInt(count || 0, 10) || 0)));
+  if (lastDate) localStorage.setItem(GUEST_STREAK_LAST_KEY, String(lastDate));
+  else localStorage.removeItem(GUEST_STREAK_LAST_KEY);
+}
+function applyUserState(state, mode = 'cloud') {
+  isApplyingRemoteState = true;
+  const next = normalizeCloudState(state);
+  if (mode === 'cloud') cloudUserState = next;
+  currentLevel = next.currentLevel;
+  currentSubject = currentLevel
+    ? normalizeSubjectForLevel(currentLevel, next.currentSubject)
+    : "1st Grade";
+  progress = currentLevel ? { ...(next.progressByLevel[getProgressKey()] || {}) } : {};
+  if (mode === 'guest') writeGuestState(next);
+  if (!currentLevel) {
+    renderLandingPage();
+    showLanding();
+  } else {
+    rebuildSidebar();
+    applyAppMode('app');
+    showMap();
+    updateStreakDisplay();
+  }
+  isApplyingRemoteState = false;
+}
 let progress = loadProgress();
 
 function rebuildSidebar() {
@@ -925,7 +1183,7 @@ function rebuildSidebar() {
   container.innerHTML = '';
   if (!currentLevel) return;
   currentSubject = normalizeSubjectForLevel(currentLevel, currentSubject);
-  localStorage.setItem('qx_current_subject', currentSubject);
+  setStoredSelection(currentLevel, currentSubject, authState.user && cloudUserState ? cloudUserState.entryMode : 'manual');
   levelSubjects[currentLevel].forEach(sub => {
     const btn = document.createElement('button');
     btn.className = 'subject-btn' + (currentSubject === sub ? ' active' : '');
@@ -934,6 +1192,7 @@ function rebuildSidebar() {
     btn.onclick = () => switchSubject(sub);
     container.appendChild(btn);
   });
+  renderAuthUI();
 }
 
 function applyAppMode(mode) {
@@ -943,9 +1202,7 @@ function applyAppMode(mode) {
 function setLevelAndEnter(level, source = 'manual') {
   currentLevel = level;
   currentSubject = getDefaultSubjectForLevel(level);
-  localStorage.setItem('qx_current_level', level);
-  localStorage.setItem('qx_current_subject', currentSubject);
-  localStorage.setItem('qx_entry_mode', source);
+  setStoredSelection(level, currentSubject, source);
   progress = loadProgress();
   rebuildSidebar();
   applyAppMode('app');
@@ -975,7 +1232,7 @@ function renderLandingPage() {
               </div>
               <div class="landing-highlight">
                 <strong>Clean progress</strong>
-                <span>Practice, test, and keep your path organized across devices.</span>
+                <span>Practice, test, and keep your path organized in one clean flow.</span>
               </div>
             </div>
           </div>
@@ -1000,6 +1257,7 @@ function renderLandingPage() {
               `).join('')}
             </div>
           </div>
+          <div id="landing-auth-slot" class="landing-auth"></div>
         </aside>
       </div>
     </div>`;
@@ -1007,6 +1265,7 @@ function renderLandingPage() {
   landing.querySelectorAll('.landing-level-btn').forEach(btn => {
     btn.onclick = () => setLevelAndEnter(btn.dataset.level, 'manual');
   });
+  renderAuthUI();
 }
 
 function showLevelSelector() {
@@ -1130,6 +1389,114 @@ function setAIStatus(text) {
   const el = document.getElementById('ai-status');
   if (el) el.textContent = text;
 }
+
+function renderAuthCard(mode) {
+  const user = authState.user;
+  if (user) {
+    return `
+      <div class="auth-card-title">${mode === 'landing' ? 'Google sign-in' : 'Signed in'}</div>
+      <div class="auth-user">
+        <div class="auth-user-name">${esc(user.displayName || 'Quantix user')}</div>
+      </div>
+      <div class="auth-status">${mode === 'landing' ? 'Your progress now follows this Google account instead of staying on one device.' : 'Your progress is linked to this Google account.'}</div>
+      <button class="auth-signout-btn" type="button" onclick="signOutUser()">Sign out</button>
+    `;
+  }
+
+  if (!authState.configured) {
+    return `
+      <div class="auth-card-title">Google sign-in</div>
+      <div class="auth-card-copy">Add your Firebase web app settings in <code>firebase-config.js</code> to turn on Google login.</div>
+      <button class="auth-button" type="button" disabled>Setup needed</button>
+      <div class="auth-status">Guest mode is still fully available right now.</div>
+    `;
+  }
+
+  if (IS_FILE_PROTOCOL) {
+    return `
+      <div class="auth-card-title">Google sign-in</div>
+      <div class="auth-card-copy">Open Quantix through <code>http://localhost:3000</code> or your deployed site. Firebase sign-in should not be used from a <code>file://</code> page.</div>
+      <button class="auth-button" type="button" disabled>Open via localhost</button>
+      <div class="auth-status">Your Google session will not stick correctly on a local file tab.</div>
+    `;
+  }
+
+  const buttonLabel = authState.loading ? 'Connecting...' : 'Continue with Google';
+  return `
+    <div class="auth-card-title">Google sign-in</div>
+    <div class="auth-card-copy">${mode === 'landing' ? 'Optional account sign-in for a cleaner personal experience before you pick a path.' : 'Sign in with Google if you want a personal Quantix session on this browser.'}</div>
+    <button class="auth-button" type="button" onclick="signInWithGoogle()" ${authState.loading ? 'disabled' : ''}>${buttonLabel}</button>
+    <div class="auth-status">${esc(authState.message || 'Guest mode stays available if you do not want to sign in.')}</div>
+  `;
+}
+
+function renderAuthUI() {
+  const sidebarSlot = document.getElementById('sidebar-auth-slot');
+  const landingSlot = document.getElementById('landing-auth-slot');
+  if (sidebarSlot) sidebarSlot.innerHTML = renderAuthCard('sidebar');
+  if (landingSlot) landingSlot.innerHTML = renderAuthCard('landing');
+}
+
+async function signInWithGoogle() {
+  if (!window.quantixAuth?.signIn || authState.loading || IS_FILE_PROTOCOL) return;
+  authState.loading = true;
+  authState.message = 'Opening Google sign-in...';
+  renderAuthUI();
+  try {
+    const result = await window.quantixAuth.signIn();
+    const user = result?.user || null;
+    if (user) {
+      window.dispatchEvent(new CustomEvent('quantix-auth-state', {
+        detail: {
+          available: true,
+          user: {
+            uid: user.uid,
+            displayName: user.displayName || 'Quantix user'
+          },
+          message: 'Signed in.'
+        }
+      }));
+    }
+    authState.message = '';
+  } catch (error) {
+    console.error('Google sign-in failed.', error);
+    authState.message = 'Google sign-in could not finish. Please try again.';
+  } finally {
+    authState.loading = false;
+    renderAuthUI();
+  }
+}
+
+async function signOutUser() {
+  if (!window.quantixAuth?.signOut || authState.loading) return;
+  authState.loading = true;
+  authState.message = 'Signing out...';
+  renderAuthUI();
+  try {
+    await window.quantixAuth.signOut();
+    authState.message = '';
+  } catch (error) {
+    console.error('Google sign-out failed.', error);
+    authState.message = 'Google sign-out could not finish. Please try again.';
+  } finally {
+    authState.loading = false;
+    renderAuthUI();
+  }
+}
+
+window.addEventListener('quantix-auth-ready', event => {
+  authState.available = !!event.detail?.available;
+  authState.message = event.detail?.message || authState.message;
+  renderAuthUI();
+});
+
+window.addEventListener('quantix-auth-state', event => {
+  authState.available = !!event.detail?.available;
+  authState.user = event.detail?.user || null;
+  authState.message = event.detail?.message || '';
+  authState.loading = false;
+  renderAuthUI();
+});
 // ======================== WRONG ANSWER GENERATOR ========================
 function generateWrongAnswers(correct, unitName, grade) {
   const wrongs = new Set();
@@ -1558,7 +1925,7 @@ function resetAllProgress() {
 }
 function switchSubject(s) {
   currentSubject = normalizeSubjectForLevel(currentLevel, s);
-  localStorage.setItem('qx_current_subject', currentSubject);
+  setStoredSelection(currentLevel, currentSubject, authState.user && cloudUserState ? cloudUserState.entryMode : 'manual');
   rebuildSidebar();
   showMap();
 }
@@ -1843,24 +2210,23 @@ function updateStreakDisplay() {
   if (sc) sc.textContent = getCurrentStreak();
 }
 function getCurrentStreak() {
-  const last = localStorage.getItem('qx_streak_last_date');
-  const streak = parseInt(localStorage.getItem('qx_streak') || '0');
+  const last = getStoredStreakLastDate();
+  const streak = getStoredStreakCount();
   if (!last) return 0;
-  const hoursDiff = (Date.now() - parseInt(last)) / (1000*60*60);
+  const hoursDiff = (Date.now() - Number(last)) / (1000*60*60);
   return hoursDiff > 48 ? 0 : streak;
 }
 function recordStreakOnPass() {
   const now = Date.now();
-  const last = localStorage.getItem('qx_streak_last_date');
-  const current = parseInt(localStorage.getItem('qx_streak') || '0');
+  const last = getStoredStreakLastDate();
+  const current = getStoredStreakCount();
   if (!last) {
-    localStorage.setItem('qx_streak','1');
-    localStorage.setItem('qx_streak_last_date', now);
+    setStoredStreak(1, now);
   } else {
-    const h = (now - parseInt(last)) / (1000*60*60);
-    if (h >= 24 && h < 48)      { localStorage.setItem('qx_streak', current+1); localStorage.setItem('qx_streak_last_date', now); }
-    else if (h < 24)             { localStorage.setItem('qx_streak_last_date', now); }
-    else                         { localStorage.setItem('qx_streak','1'); localStorage.setItem('qx_streak_last_date', now); }
+    const h = (now - Number(last)) / (1000*60*60);
+    if (h >= 24 && h < 48)      { setStoredStreak(current + 1, now); }
+    else if (h < 24)            { setStoredStreak(current, now); }
+    else                        { setStoredStreak(1, now); }
   }
   updateStreakDisplay();
 }
@@ -1892,9 +2258,131 @@ window.addEventListener('load', () => {
   applyTheme(preferredTheme);
   setAIStatus('Ready');
   renderLandingPage();
+  renderAuthUI();
   if (!currentLevel) showLanding();
   else { rebuildSidebar(); applyAppMode('app'); showMap(); updateStreakDisplay(); }
 });
+</script>
+<script type="module">
+const firebaseConfig = window.QUANTIX_FIREBASE_CONFIG || {};
+const requiredKeys = ['apiKey', 'authDomain', 'projectId', 'appId'];
+const configured = requiredKeys.every(key => {
+  const value = String(firebaseConfig[key] || '').trim();
+  return value && !value.startsWith('YOUR_');
+});
+
+if (window.location.protocol === 'file:') {
+  window.dispatchEvent(new CustomEvent('quantix-auth-ready', {
+    detail: {
+      available: false,
+      message: 'Open Quantix on localhost or Vercel to use Google sign-in.'
+    }
+  }));
+} else if (!configured) {
+  window.dispatchEvent(new CustomEvent('quantix-auth-ready', {
+    detail: {
+      available: false,
+      message: 'Add Firebase web config to enable Google sign-in.'
+    }
+  }));
+} else {
+  try {
+    const { initializeApp } = await import('https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js');
+    const {
+      browserLocalPersistence,
+      getAuth,
+      GoogleAuthProvider,
+      onAuthStateChanged,
+      setPersistence,
+      signInWithPopup,
+      signOut
+    } = await import('https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js');
+    const {
+      doc,
+      getDoc,
+      getFirestore,
+      setDoc
+    } = await import('https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js');
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    await setPersistence(auth, browserLocalPersistence);
+
+    window.quantixAuth = {
+      async signIn() {
+        return signInWithPopup(auth, provider);
+      },
+      async signOut() {
+        return signOut(auth);
+      }
+    };
+    window.quantixCloud = {
+      async loadUserState(uid) {
+        const snap = await getDoc(doc(db, 'quantixUsers', uid));
+        return snap.exists() ? snap.data() : null;
+      },
+      async saveUserState(state) {
+        if (!auth.currentUser?.uid) return;
+        await setDoc(doc(db, 'quantixUsers', auth.currentUser.uid), state, { merge: true });
+      }
+    };
+
+    onAuthStateChanged(auth, async user => {
+      try {
+        if (user) {
+          const guestState = window.readGuestState ? window.readGuestState() : null;
+          const remote = await window.quantixCloud.loadUserState(user.uid);
+          const nextState = remote ? window.normalizeCloudState(remote) : (guestState ? window.normalizeCloudState(guestState) : window.createEmptyCloudState());
+          if (!remote) await window.quantixCloud.saveUserState(nextState);
+          window.cloudUserState = nextState;
+          window.cloudSyncReady = true;
+          if (window.applyUserState) window.applyUserState(nextState, 'cloud');
+        } else {
+          const guestState = window.readGuestState ? window.readGuestState() : window.createEmptyCloudState();
+          window.cloudUserState = null;
+          window.cloudSyncReady = false;
+          if (window.applyUserState && !window.isApplyingRemoteState) window.applyUserState(guestState, 'guest');
+        }
+      } catch (error) {
+        console.error('Cloud sync setup failed.', error);
+        window.dispatchEvent(new CustomEvent('quantix-auth-ready', {
+          detail: {
+            available: false,
+            message: 'Google sign-in is on, but Firestore still needs setup.'
+          }
+        }));
+      }
+
+      window.dispatchEvent(new CustomEvent('quantix-auth-state', {
+        detail: {
+          available: true,
+          user: user ? {
+            uid: user.uid,
+            displayName: user.displayName || ''
+          } : null
+        }
+      }));
+    });
+
+    window.dispatchEvent(new CustomEvent('quantix-auth-ready', {
+      detail: {
+        available: true,
+        message: 'Google sign-in is ready.'
+      }
+    }));
+  } catch (error) {
+    console.error('Firebase auth setup failed.', error);
+    window.dispatchEvent(new CustomEvent('quantix-auth-ready', {
+      detail: {
+        available: false,
+        message: 'Google sign-in is unavailable right now.'
+      }
+    }));
+  }
+}
 </script>
 </body>
 </html>
