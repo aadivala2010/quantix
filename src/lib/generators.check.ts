@@ -8,6 +8,7 @@
 
 import { GENERATORS, isCorrect } from './generators.ts';
 import { COURSES, courseSkills } from './courses.ts';
+import { SAT_BANK } from './satBank.ts';
 
 const RUNS = 200;
 /** Questions whose full option set is only three wide. */
@@ -93,6 +94,14 @@ for (const [id, gen] of Object.entries(GENERATORS)) {
   }
 }
 
+// Bank: a repeated prompt would trip drawQuestions' duplicate filter for nothing.
+let bankSize = 0;
+for (const [key, { items }] of Object.entries(SAT_BANK)) {
+  bankSize += items.length;
+  if (new Set(items.map((i) => i[0])).size !== items.length) fail(`bank.${key}`, 'duplicate prompt');
+  for (const it of items) if (it.length !== 5) fail(`bank.${key}`, `${it.length - 2} distractors, want 3: ${it[0]}`);
+}
+
 // Curriculum wiring
 const seen = new Set<string>();
 for (const course of Object.values(COURSES)) {
@@ -112,4 +121,4 @@ if (failures.length) {
   console.error(`FAIL — ${failures.length} problem(s):\n` + failures.map((f) => '  • ' + f).join('\n'));
   process.exit(1);
 }
-console.log(`OK — ${genCount} generators × ${RUNS} runs, ${skillCount} skills across ${Object.keys(COURSES).length} courses.`);
+console.log(`OK — ${genCount} generators × ${RUNS} runs, ${bankSize} bank items, ${skillCount} skills across ${Object.keys(COURSES).length} courses.`);

@@ -2,8 +2,11 @@
  * Procedural question generators.
  * Every skill in the app points at one generator id here. A generator returns a
  * fresh question each call, so lessons never repeat and there is no content file
- * to hand-author.
+ * to hand-author. The one exception is satBank.ts: hand-written SAT-style
+ * items, exposed here as `bank.<key>` generators that pick a random item.
  */
+
+import { SAT_BANK } from './satBank.ts';
 
 export type Question = {
   /** Small grey line above the question, e.g. "Solve for x". */
@@ -1563,6 +1566,16 @@ const safe = (gen: Gen): Gen => {
   };
 };
 
+const bank: Record<string, Gen> = Object.fromEntries(
+  Object.entries(SAT_BANK).map(([key, { instruction, items }]) => [
+    `bank.${key}`,
+    () => {
+      const [prompt, answer, ...distractors] = P(items);
+      return mc(instruction, prompt, answer, distractors);
+    },
+  ]),
+);
+
 export const GENERATORS: Record<string, Gen> = Object.fromEntries(
   Object.entries({
     ...elementary,
@@ -1574,6 +1587,7 @@ export const GENERATORS: Record<string, Gen> = Object.fromEntries(
     ...calculus,
     ...statistics,
     ...sat,
+    ...bank,
   }).map(([id, gen]) => [id, safe(gen)]),
 );
 
@@ -1608,8 +1622,10 @@ export function isCorrect(given: string, answer: string): boolean {
 export function drawQuestions(genIds: string[], n: number): Question[] {
   const out: Question[] = [];
   let guard = 0;
-  while (out.length < n && guard++ < n * 40) {
-    const gen = GENERATORS[genIds[out.length % genIds.length]];
+  // Index by attempt, not by count, so a small fixed bank that runs dry hands
+  // the slot to the next generator instead of re-drawing its own duplicates.
+  while (out.length < n && guard < n * 40) {
+    const gen = GENERATORS[genIds[guard++ % genIds.length]];
     if (!gen) break;
     const q = gen();
     if (out.some((p) => p.prompt === q.prompt)) continue;

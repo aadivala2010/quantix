@@ -408,6 +408,10 @@ const satCourse: Course = {
   ],
 };
 
+// Every SAT skill also draws from the hand-written bank (satBank.ts), round-robin
+// with its procedural generator. The check script fails on any skill the bank lacks.
+for (const u of satCourse.units) for (const s of u.skills) s.gens.push(`bank.${s.gens[0]}`);
+
 /* ------------------------------------------------------------------ export */
 
 export const COURSES: Record<string, Course> = Object.fromEntries(
