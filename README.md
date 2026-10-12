@@ -7,8 +7,10 @@ no accounts, no server — progress and streak live in `localStorage`.
 npm install
 npm run dev     # http://localhost:5173
 npm run check   # self-checks: question bank + streak/unlock logic
-npm run build   # static site in dist/ — deploy anywhere
+npm run build   # static site in dist/ — deploy anywhere (main auto-deploys to https://aadivala2010.github.io/quantix/)
 ```
+
+Skipping ahead while developing: see [DEV.md](DEV.md) — `qx.help()` in the console.
 
 ## Structure
 
