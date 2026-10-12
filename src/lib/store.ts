@@ -17,6 +17,11 @@ export type State = {
   days: string[];
   totalLessons: number;
   xp: number;
+  /** Longest streak ever, so streak badges stay earned after a break. */
+  best: number;
+  /** XP earned on `xpDay`, for the daily goal ring. */
+  todayXp: number;
+  xpDay: string | null;
   /** Last course opened, so Learn reopens where you left off. */
   lastCourse: string | null;
 };
@@ -30,6 +35,9 @@ const EMPTY: State = {
   days: [],
   totalLessons: 0,
   xp: 0,
+  best: 0,
+  todayXp: 0,
+  xpDay: null,
   lastCourse: null,
 };
 
@@ -99,6 +107,8 @@ export function nextStreak(lastDay: string | null, streak: number, today: string
 
 export const practicedToday = (s: State = state) => s.lastDay === dayKey();
 
+export const xpToday = (s: State = state) => (s.xpDay === dayKey() ? s.todayXp : 0);
+
 /* ---------------------------------------------------------------- progress */
 
 export const skillProgress = (skillId: string, s: State = state) => s.progress[skillId] ?? 0;
@@ -138,9 +148,13 @@ export const startedSkillIds = (s: State = state) =>
 /** Shared by every "you did something today" action. */
 function dayUpdate(xp: number): Partial<State> {
   const today = dayKey();
+  const streak = nextStreak(state.lastDay, state.streak, today);
   return {
     xp: state.xp + xp,
-    streak: nextStreak(state.lastDay, state.streak, today),
+    todayXp: xpToday() + xp,
+    xpDay: today,
+    streak,
+    best: Math.max(state.best, streak),
     days: state.lastDay === today ? state.days : [...state.days, today].slice(-400),
     lastDay: today,
     totalLessons: state.totalLessons + 1,

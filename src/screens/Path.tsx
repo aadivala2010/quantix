@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { COURSES, LESSON_XP, LESSONS_PER_SKILL, type Skill, type Unit } from '../lib/courses';
 import { activeSkillId, isSkillComplete, isSkillUnlocked, skillProgress, useStore, type State } from '../lib/store';
-import { cx } from '../lib/ui';
+import { cx, tilt } from '../lib/ui';
 import { StatsBar } from '../components/StreakPill';
 import { Icon } from '../components/Icon';
 import { BackButton } from './Home';
@@ -15,7 +15,7 @@ export function Path({
   onBack,
 }: {
   courseId: string;
-  onStart: (skill: Skill, unit: Unit) => void;
+  onStart: (skill: Skill, unit: Unit, from?: Element | null) => void;
   onBack: () => void;
 }) {
   const state = useStore((s) => s);
@@ -55,7 +55,9 @@ export function Path({
   let nodeIndex = 0;
 
   return (
-    <div className="relative flex h-full flex-col">
+    <div className="accent relative isolate flex h-full flex-col" style={{ '--accent': unit.color } as React.CSSProperties}>
+      {/* the screen takes on the colour of the unit you are scrolled into */}
+      <div className="wash" />
       <StatsBar
         left={
           <div className="flex items-center gap-2.5">
@@ -67,10 +69,13 @@ export function Path({
 
       {/* ---- unit card, floats over the path */}
       <div className="absolute inset-x-0 top-[3.9rem] z-10 px-4">
-        <div className="glass glass-strong flex items-center gap-3 rounded-[24px] py-3 pr-3 pl-4">
-          <span className="h-9 w-1.5 shrink-0 rounded-full transition-colors duration-500" style={{ background: unit.color }} />
+        <div
+          className="glass glass-strong flex items-center gap-3 rounded-[24px] py-3 pr-3 pl-4"
+          style={{ backgroundColor: 'color-mix(in srgb, var(--accent) 16%, var(--glass-strong))' }}
+        >
+          <span className="h-9 w-1.5 shrink-0 rounded-full bg-(--accent) shadow-[0_0_10px_var(--accent)]" />
           <div className="min-w-0 flex-1">
-            <p className="text-[0.75rem] font-semibold tracking-wide uppercase transition-colors duration-500" style={{ color: unit.color }}>
+            <p className="text-[0.75rem] font-semibold tracking-wide text-(--accent) uppercase">
               {unit.title}
             </p>
             <p className="truncate text-[1.1rem] leading-tight font-bold">{unit.subtitle}</p>
@@ -79,9 +84,9 @@ export function Path({
             <svg viewBox="0 0 44 44" className="absolute inset-0 -rotate-90" aria-hidden="true">
               <circle cx="22" cy="22" r="19" fill="none" stroke="var(--color-swan)" strokeWidth="4" />
               <circle
-                cx="22" cy="22" r="19" fill="none" stroke={unit.color} strokeWidth="4" strokeLinecap="round"
+                cx="22" cy="22" r="19" fill="none" stroke="var(--accent)" strokeWidth="4" strokeLinecap="round"
                 pathLength={1} strokeDasharray={`${frac} 1`} opacity={frac ? 1 : 0}
-                className="transition-[stroke-dasharray,stroke] duration-700"
+                className="transition-[stroke-dasharray] duration-700"
               />
             </svg>
             <span className="text-[0.72rem] font-semibold tabular-nums">
@@ -119,9 +124,9 @@ export function Path({
                     open={openId === skill.id}
                     onToggle={() => setOpenId(openId === skill.id ? null : skill.id)}
                     delay={Math.min(si, 5) * 60}
-                    onStart={() => {
+                    onStart={(from) => {
                       setOpenId(null);
-                      onStart(skill, u);
+                      onStart(skill, u, from);
                     }}
                   />
                 ))}
@@ -163,8 +168,9 @@ function Node({
   open: boolean;
   onToggle: () => void;
   delay: number;
-  onStart: () => void;
+  onStart: (from: Element | null) => void;
 }) {
+  const orb = useRef<HTMLButtonElement>(null);
   const done = skillProgress(skill.id, state);
   const unlocked = isSkillUnlocked(skill.id, state);
   const complete = isSkillComplete(skill.id, state);
@@ -198,6 +204,8 @@ function Node({
           )}
 
           <button
+            ref={orb}
+            {...tilt}
             className="orb"
             data-locked={unlocked ? undefined : ''}
             onClick={(e) => {
@@ -216,7 +224,7 @@ function Node({
           </button>
         </div>
 
-        {open && <Popover skill={skill} color={color} offset={offset} unlocked={unlocked} complete={complete} done={done} onStart={onStart} />}
+        {open && <Popover skill={skill} color={color} offset={offset} unlocked={unlocked} complete={complete} done={done} onStart={() => onStart(orb.current)} />}
       </div>
     </div>
   );

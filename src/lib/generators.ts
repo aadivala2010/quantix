@@ -16,9 +16,21 @@ export type Question = {
   answer: string;
   /** Present => multiple choice. Absent => typed input. */
   choices?: string[];
+  /** Optional diagram drawn above the choices (components/MathVisual.tsx). */
+  visual?: Visual;
 };
 
+export type Visual =
+  | { kind: 'fractions'; items: [num: number, den: number][] }
+  | { kind: 'rect'; w: number; h: number }
+  | { kind: 'triangle'; a: number; b: number; c: number; missing: 'b' | 'c' }
+  | { kind: 'clock'; h: number; m: number }
+  | { kind: 'numberLine'; from: number; to: number; mark: number }
+  | { kind: 'points'; pts: [x: number, y: number][] };
+
 export type Gen = () => Question;
+
+const drawn = (q: Question, visual: Visual): Question => ({ ...q, visual });
 
 /* ---------------------------------------------------------------- helpers */
 
@@ -257,11 +269,12 @@ const elementary: Record<string, Gen> = {
     const d = P([2, 3, 4, 5, 6]);
     const n = R(1, d - 1);
     const k = R(2, 4);
-    return mc(`Which fraction is equal to ${fr(n, d)}?`, `${fr(n, d)}  =  ?`, `${n * k}/${d * k}`, [
+    const q = mc(`Which fraction is equal to ${fr(n, d)}?`, `${fr(n, d)}  =  ?`, `${n * k}/${d * k}`, [
       `${n * k}/${d * k + 1}`,
       `${n + k}/${d + k}`,
       `${n * k + 1}/${d * k}`,
     ]);
+    return drawn(q, { kind: 'fractions', items: [[n, d]] });
   },
 
   fracAdd: () => {
@@ -270,11 +283,12 @@ const elementary: Record<string, Gen> = {
     const b = R(1, d - a - 1);
     // Distractors must not merely be the answer left unreduced — (a+b)/d is the
     // same number as the reduced answer, so it would mark a right answer wrong.
-    return mc('Add the fractions', `${a}/${d} + ${b}/${d}`, fr(a + b, d), [
+    const q = mc('Add the fractions', `${a}/${d} + ${b}/${d}`, fr(a + b, d), [
       `${a + b}/${d * 2}`,
       fr(a + b + 1, d),
       fr(Math.abs(a - b), d),
     ]);
+    return drawn(q, { kind: 'fractions', items: [[a, d], [b, d]] });
   },
 
   fracCompare: () => {
@@ -284,12 +298,13 @@ const elementary: Record<string, Gen> = {
     const n2 = R(1, d2 - 1);
     const v1 = n1 / d1;
     const v2 = n2 / d2;
-    return mc(
+    const q = mc(
       'Which sign makes this true?',
       `${n1}/${d1}  ⬜  ${n2}/${d2}`,
       v1 > v2 ? '>' : v1 < v2 ? '<' : '=',
       ['>', '<', '='],
     );
+    return drawn(q, { kind: 'fractions', items: [[n1, d1], [n2, d2]] });
   },
 
   decAdd: () => {
@@ -318,7 +333,13 @@ const elementary: Record<string, Gen> = {
     const n = R(120, 9899);
     const place = P([10, 100, 1000]);
     const word = place === 10 ? 'ten' : place === 100 ? 'hundred' : 'thousand';
-    return numMC(`Round to the nearest ${word}`, `${n}`, Math.round(n / place) * place);
+    const from = Math.floor(n / place) * place;
+    return drawn(numMC(`Round to the nearest ${word}`, `${n}`, Math.round(n / place) * place), {
+      kind: 'numberLine',
+      from,
+      to: from + place,
+      mark: n,
+    });
   },
 
   clock: () => {
@@ -328,23 +349,24 @@ const elementary: Record<string, Gen> = {
     const t = h * 60 + m + add;
     const H = Math.floor(t / 60) % 12 || 12;
     const M = t % 60;
-    return typed(
+    const q = typed(
       'Word problem',
       `It is ${h}:${String(m).padStart(2, '0')}. What time will it be in ${add} minutes?`,
       `${H}:${String(M).padStart(2, '0')}`,
     );
+    return drawn(q, { kind: 'clock', h, m });
   },
 
   perimeter: () => {
     const w = R(3, 20);
     const h = R(3, 20);
-    return numMC('Find the perimeter', `A rectangle is ${w} cm by ${h} cm.`, 2 * (w + h));
+    return drawn(numMC('Find the perimeter', `A rectangle is ${w} cm by ${h} cm.`, 2 * (w + h)), { kind: 'rect', w, h });
   },
 
   areaRect: () => {
     const w = R(3, 20);
     const h = R(3, 20);
-    return numMC('Find the area (cm²)', `A rectangle is ${w} cm by ${h} cm.`, w * h);
+    return drawn(numMC('Find the area (cm²)', `A rectangle is ${w} cm by ${h} cm.`, w * h), { kind: 'rect', w, h });
   },
 };
 
@@ -481,11 +503,12 @@ const middle: Record<string, Gen> = {
     const y1 = R(-6, 6);
     const dx = P([1, 2, 3, 4]);
     const m = R(-4, 4) || 2;
-    return mc('Find the slope', `Through (${x1}, ${y1}) and (${x1 + dx}, ${y1 + m * dx})`, `${m}`, [
+    const q = mc('Find the slope', `Through (${x1}, ${y1}) and (${x1 + dx}, ${y1 + m * dx})`, `${m}`, [
       `${-m}`,
       fr(dx, m * dx || 1),
       `${m + 1}`,
     ]);
+    return drawn(q, { kind: 'points', pts: [[x1, y1], [x1 + dx, y1 + m * dx]] });
   },
 
   lineEval: () => {
@@ -515,8 +538,8 @@ const middle: Record<string, Gen> = {
       [7, 24, 25],
     ]);
     return Math.random() < 0.6
-      ? numMC('Find the hypotenuse', `Legs of ${a} and ${b}.`, c)
-      : numMC('Find the missing leg', `Hypotenuse ${c}, one leg ${a}.`, b);
+      ? drawn(numMC('Find the hypotenuse', `Legs of ${a} and ${b}.`, c), { kind: 'triangle', a, b, c, missing: 'c' })
+      : drawn(numMC('Find the missing leg', `Hypotenuse ${c}, one leg ${a}.`, b), { kind: 'triangle', a, b, c, missing: 'b' });
   },
 
   angleRules: () => {
@@ -996,12 +1019,18 @@ const geometry: Record<string, Gen> = {
     const x1 = R(-6, 6);
     const y1 = R(-6, 6);
     return Math.random() < 0.5
-      ? numMC('Find the distance', `Between (${x1}, ${y1}) and (${x1 + a}, ${y1 + b})`, c)
-      : mc(
-          'Find the midpoint',
-          `Between (${x1}, ${y1}) and (${x1 + 2 * a}, ${y1 + 2 * b})`,
-          `(${x1 + a}, ${y1 + b})`,
-          [`(${x1 + b}, ${y1 + a})`, `(${a}, ${b})`, `(${x1 + 2 * a}, ${y1 + 2 * b})`],
+      ? drawn(numMC('Find the distance', `Between (${x1}, ${y1}) and (${x1 + a}, ${y1 + b})`, c), {
+          kind: 'points',
+          pts: [[x1, y1], [x1 + a, y1 + b]],
+        })
+      : drawn(
+          mc(
+            'Find the midpoint',
+            `Between (${x1}, ${y1}) and (${x1 + 2 * a}, ${y1 + 2 * b})`,
+            `(${x1 + a}, ${y1 + b})`,
+            [`(${x1 + b}, ${y1 + a})`, `(${a}, ${b})`, `(${x1 + 2 * a}, ${y1 + 2 * b})`],
+          ),
+          { kind: 'points', pts: [[x1, y1], [x1 + 2 * a, y1 + 2 * b]] },
         );
   },
 

@@ -33,6 +33,8 @@ export const LESSONS_PER_SKILL = 4;
 export const QUESTIONS_PER_LESSON = 8;
 /** XP for finishing a lesson (+5 more for a flawless one). */
 export const LESSON_XP = 10;
+/** XP that closes the daily goal ring — two or three lessons. */
+export const DAILY_GOAL = 30;
 
 const C = {
   green: '#34C759',

@@ -25,7 +25,8 @@ export function Practice({ onStart }: { onStart: (p: PracticeStart) => void }) {
   }
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="accent relative isolate flex h-full flex-col" style={{ '--accent': BLUE } as React.CSSProperties}>
+      <div className="wash" />
       <StatsBar />
       <div className="no-scrollbar flex-1 overflow-y-auto px-5 pb-32">
         <h1 className="mt-1 mb-6 text-[2.125rem] leading-tight font-bold">Practice</h1>

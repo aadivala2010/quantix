@@ -5,6 +5,8 @@ import { cx } from '../lib/ui';
 import { Bolt, Flame } from '../components/StreakPill';
 import { Icon, IconTile } from '../components/Icon';
 import { fx, isMuted, setMuted } from '../lib/fx';
+import { BADGES, earnedIds } from '../lib/badges';
+import { BadgeMedal } from '../components/BadgeMedal';
 
 const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
@@ -33,9 +35,11 @@ export function Profile() {
   const mastered = Object.values(state.progress).filter((n) => n >= LESSONS_PER_SKILL).length;
   const days = new Set(state.days);
   const todayKey = dayKey();
+  const earned = earnedIds(state);
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="accent relative isolate flex h-full flex-col" style={{ '--accent': '#ff9500' } as React.CSSProperties}>
+      <div className="wash" />
       <div className="no-scrollbar pt-safe flex-1 overflow-y-auto px-5 pb-32">
         <h1 className="mt-1 mb-6 text-[2.125rem] leading-tight font-bold">Profile</h1>
 
@@ -47,7 +51,9 @@ export function Profile() {
           </div>
           <div className="min-w-0">
             <p className="text-[2.6rem] leading-none font-bold tabular-nums">{streak}</p>
-            <p className="mt-1 font-semibold">day streak</p>
+            <p className="mt-1 font-semibold">
+              day streak{state.best > streak && <span className="font-normal text-wolf"> · best {state.best}</span>}
+            </p>
             <p className="text-[0.85rem] text-wolf">
               {today ? 'Done for today. See you tomorrow!' : 'Finish one lesson today to keep it alive.'}
             </p>
@@ -60,6 +66,23 @@ export function Profile() {
           <Tile label="Lessons done" value={state.totalLessons} icon={<Icon name="book" className="h-6 w-6 text-macaw" strokeWidth={2.2} />} />
           <Tile label="Skills mastered" value={mastered} icon={<Icon name="crown" className="h-6 w-6 text-bee-dark" strokeWidth={2.2} />} />
           <Tile label="Days practiced" value={state.days.length} icon={<Icon name="clock" className="h-6 w-6 text-grass-dark" strokeWidth={2.2} />} />
+        </div>
+
+        {/* trophy case */}
+        <p className="section-label mt-8">
+          Badges · {earned.length} of {BADGES.length}
+        </p>
+        <div className="glass grid grid-cols-4 gap-x-2 gap-y-4 rounded-[26px] px-3 py-5">
+          {BADGES.map((b) => {
+            const has = earned.includes(b.id);
+            return (
+              <div key={b.id} className="flex flex-col items-center text-center">
+                <BadgeMedal badge={b} earned={has} size={58} />
+                <p className={cx('mt-1.5 text-[0.75rem] leading-tight font-semibold', !has && 'text-wolf')}>{b.title}</p>
+                <p className="text-[0.65rem] leading-tight text-wolf">{b.detail}</p>
+              </div>
+            );
+          })}
         </div>
 
         {/* calendar */}

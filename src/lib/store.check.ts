@@ -22,7 +22,10 @@ const {
   nextStreak,
   resetAll,
   activeSkillId,
+  set,
+  xpToday,
 } = await import('./store.ts');
+const { earnedIds } = await import('./badges.ts');
 
 const failures: string[] = [];
 const eq = (label: string, got: unknown, want: unknown) => {
@@ -69,6 +72,24 @@ eq('no duplicate day', getState().days, [TODAY]);
 
 for (let i = 0; i < 5; i++) completeLesson('elem.count');
 eq('progress caps at mastery', getState().progress['elem.count'], 4);
+
+/* ---- daily goal XP resets each day; best streak survives a break */
+resetAll();
+completeLesson('elem.count', 10);
+completeLesson('elem.count', 15);
+eq('xp today adds up', xpToday(), 25);
+set({ xpDay: shift(-1) });
+eq('xp today resets tomorrow', xpToday(), 0);
+completeLesson('elem.count', 10);
+eq('new day starts from zero', xpToday(), 10);
+set({ streak: 7, best: 7, lastDay: shift(-3) });
+completeLesson('elem.count', 10);
+eq('streak broke', getState().streak, 1);
+eq('best kept', getState().best, 7);
+eq('streak badge kept', earnedIds(getState()).includes('streak7'), true);
+
+resetAll();
+for (let i = 0; i < 7; i++) completeLesson('elem.count');
 
 /* ---- unlocking follows the path order */
 eq('first skill always open', isSkillUnlocked('elem.count'), true);
