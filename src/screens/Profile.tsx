@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { LESSONS_PER_SKILL } from '../lib/courses';
 import { currentStreak, dayKey, practicedToday, resetAll, useStore } from '../lib/store';
 import { cx } from '../lib/ui';
-import { Flame } from '../components/StreakPill';
-import { Icon } from '../components/Icon';
+import { Bolt, Flame } from '../components/StreakPill';
+import { Icon, IconTile } from '../components/Icon';
 import { fx, isMuted, setMuted } from '../lib/fx';
 
 const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -36,36 +36,36 @@ export function Profile() {
 
   return (
     <div className="flex h-full flex-col">
-      <header className="pt-safe px-5 pb-2">
-        <h1 className="text-2xl font-extrabold">Profile</h1>
-      </header>
+      <div className="no-scrollbar pt-safe flex-1 overflow-y-auto px-5 pb-32">
+        <h1 className="mt-1 mb-6 text-[2.125rem] leading-tight font-bold">Profile</h1>
 
-      <div className="flex-1 overflow-y-auto px-5 pb-8">
         {/* streak hero */}
-        <div
-          className="mt-4 flex items-center gap-4 rounded-2xl p-5 text-white"
-          style={{ background: today ? '#ff9600' : '#afafaf', boxShadow: `0 5px 0 ${today ? '#e08600' : '#9a9a9a'}` }}
-        >
-          <Flame className="h-14 w-14 drop-shadow" onColor />
-          <div>
-            <p className="text-4xl leading-none font-extrabold">{streak}</p>
-            <p className="mt-1 font-extrabold">day streak</p>
+        <div className="glass flex items-center gap-4 overflow-hidden rounded-[28px] p-5">
+          <div className="relative">
+            <div className="absolute inset-0 rounded-full bg-fox opacity-40 blur-xl" hidden={!today} />
+            <Flame className="animate-float relative h-16 w-16" lit={today} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[2.6rem] leading-none font-bold tabular-nums">{streak}</p>
+            <p className="mt-1 font-semibold">day streak</p>
+            <p className="text-[0.85rem] text-wolf">
+              {today ? 'Done for today. See you tomorrow!' : 'Finish one lesson today to keep it alive.'}
+            </p>
           </div>
         </div>
-        <p className="mt-2 text-center text-sm font-bold text-wolf">
-          {today ? 'Done for today — see you tomorrow!' : 'Finish one lesson today to keep it alive.'}
-        </p>
 
         {/* stats */}
-        <div className="mt-6 grid grid-cols-2 gap-3">
-          <Tile label="Lessons done" value={state.totalLessons} icon="book" color="#1cb0f6" />
-          <Tile label="Skills mastered" value={mastered} icon="crown" color="#ffc800" />
+        <div className="mt-3 grid grid-cols-2 gap-3">
+          <Tile label="Total XP" value={state.xp} icon={<Bolt className="h-6 w-6" />} />
+          <Tile label="Lessons done" value={state.totalLessons} icon={<Icon name="book" className="h-6 w-6 text-macaw" strokeWidth={2.2} />} />
+          <Tile label="Skills mastered" value={mastered} icon={<Icon name="crown" className="h-6 w-6 text-bee-dark" strokeWidth={2.2} />} />
+          <Tile label="Days practiced" value={state.days.length} icon={<Icon name="clock" className="h-6 w-6 text-grass-dark" strokeWidth={2.2} />} />
         </div>
 
         {/* calendar */}
-        <h2 className="mt-8 mb-3 text-lg font-extrabold">Last 5 weeks</h2>
-        <div className="rounded-2xl border-2 border-swan p-4">
-          <div className="mb-2 grid grid-cols-7 gap-1.5 text-center text-[0.65rem] font-extrabold text-hare">
+        <p className="section-label mt-8">Last 5 weeks</p>
+        <div className="glass rounded-[26px] p-4">
+          <div className="mb-2 grid grid-cols-7 gap-1.5 text-center text-[0.7rem] font-semibold text-wolf">
             {WEEKDAYS.map((d, i) => (
               <span key={i}>{d}</span>
             ))}
@@ -79,12 +79,12 @@ export function Profile() {
                   key={d.key}
                   title={d.key}
                   className={cx(
-                    'aspect-square rounded-lg border-2',
+                    'aspect-square rounded-full',
                     days.has(d.key)
-                      ? 'border-fox bg-fox'
+                      ? 'bg-gradient-to-b from-[#ffb340] to-fox shadow-[0_4px_10px_-4px_var(--color-fox)]'
                       : d.key === todayKey
-                        ? 'border-hare border-dashed bg-white'
-                        : 'border-transparent bg-polar',
+                        ? 'shadow-[inset_0_0_0_2px_var(--color-macaw)]'
+                        : 'bg-polar',
                   )}
                 />
               ),
@@ -93,59 +93,58 @@ export function Profile() {
         </div>
 
         {/* settings */}
-        <h2 className="mt-8 mb-3 text-lg font-extrabold">Settings</h2>
-        <button
-          onClick={() => {
-            const next = !sound;
-            setSound(next);
-            setMuted(!next);
-            if (next) fx.tap();
-          }}
-          role="switch"
-          aria-checked={sound}
-          className="flex w-full items-center gap-3 rounded-2xl border-2 border-swan p-4 text-left transition-transform active:translate-y-[2px]"
-        >
-          <Icon name={sound ? 'volumeOn' : 'volumeOff'} className={cx('h-6 w-6', sound ? 'text-macaw' : 'text-hare')} strokeWidth={2.3} />
-          <span className="flex-1 font-extrabold">Sound effects</span>
-          <span
-            className={cx(
-              'relative h-7 w-12 rounded-full transition-colors',
-              sound ? 'bg-grass' : 'bg-swan',
-            )}
+        <p className="section-label mt-8">Settings</p>
+        <div className="glass overflow-hidden rounded-[26px]">
+          <button
+            onClick={() => {
+              const next = !sound;
+              setSound(next);
+              setMuted(!next);
+              if (next) fx.tap();
+            }}
+            role="switch"
+            aria-checked={sound}
+            className="flex w-full items-center gap-3.5 py-2.5 pr-4 pl-4 text-left transition-colors active:bg-swan"
           >
-            <span
-              className="absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-[left] duration-200"
-              style={{ left: sound ? '1.625rem' : '0.25rem' }}
-            />
-          </span>
-        </button>
-
-        {/* reset */}
-        <button className="btn btn-white mt-4" onClick={() => setConfirmReset(true)}>
-          Reset all progress
-        </button>
-        <p className="mt-2 text-center text-xs font-bold text-hare">
-          Progress is stored on this device only.
-        </p>
+            <IconTile name={sound ? 'volumeOn' : 'volumeOff'} color="#ff2d55" size={30} />
+            <span className="flex-1">Sound effects</span>
+            {/* iOS switch */}
+            <span className={cx('relative h-[31px] w-[51px] rounded-full transition-colors duration-300', sound ? 'bg-grass' : 'bg-swan')}>
+              <span
+                className="absolute top-[2px] left-[2px] h-[27px] w-[27px] rounded-full bg-white shadow-[0_3px_8px_rgb(0_0_0/0.15),0_1px_1px_rgb(0_0_0/0.16)] transition-transform duration-300 ease-[var(--ease-spring)]"
+                style={{ transform: sound ? 'translateX(20px)' : undefined }}
+              />
+            </span>
+          </button>
+          <button
+            onClick={() => setConfirmReset(true)}
+            className="flex w-full items-center gap-3.5 pl-4 text-left transition-colors active:bg-swan"
+          >
+            <IconTile name="refresh" color="#8e8e93" size={30} />
+            <span className="flex-1 border-t border-swan py-3.5 text-cardinal">Reset all progress</span>
+          </button>
+        </div>
+        <p className="mt-2 px-4 text-[0.8rem] text-wolf">Progress is stored on this device only.</p>
       </div>
 
       {confirmReset && (
-        <div className="absolute inset-0 z-40 grid place-items-end bg-black/40 sm:place-items-center">
-          <div className="animate-slide-up w-full rounded-t-3xl bg-white p-6 sm:max-w-sm sm:rounded-3xl">
-            <h2 className="text-center text-xl font-extrabold">Reset everything?</h2>
-            <p className="mt-2 mb-5 text-center font-bold text-wolf">
-              This clears your streak and every skill you've unlocked. It can't be undone.
+        <div className="absolute inset-0 z-40 grid place-items-end bg-black/30 p-3 sm:place-items-center">
+          <div className="glass glass-strong animate-slide-up w-full rounded-[34px] p-6 sm:max-w-sm" role="alertdialog" aria-label="Reset everything?">
+            <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-swan" />
+            <h2 className="text-center text-[1.35rem] font-bold">Reset everything?</h2>
+            <p className="mt-1.5 mb-6 text-center text-wolf">
+              This clears your streak, XP and every skill you&apos;ve unlocked. It can&apos;t be undone.
             </p>
             <button
-              className="btn btn-red"
+              className="btn btn-tint btn-red"
               onClick={() => {
                 resetAll();
                 setConfirmReset(false);
               }}
             >
-              Yes, reset
+              Reset
             </button>
-            <button className="btn btn-white mt-3" onClick={() => setConfirmReset(false)}>
+            <button className="btn mt-2 text-macaw" onClick={() => setConfirmReset(false)}>
               Cancel
             </button>
           </div>
@@ -155,14 +154,14 @@ export function Profile() {
   );
 }
 
-function Tile({ label, value, icon, color }: { label: string; value: number; icon: string; color: string }) {
+function Tile({ label, value, icon }: { label: string; value: number; icon: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border-2 border-swan p-4">
+    <div className="glass rounded-[24px] p-4">
       <div className="flex items-center gap-2">
-        <Icon name={icon} className="h-6 w-6" strokeWidth={2.3} style={{ color }} />
-        <span className="text-2xl font-extrabold tabular-nums">{value}</span>
+        {icon}
+        <span className="text-[1.6rem] font-bold tabular-nums">{value}</span>
       </div>
-      <p className="mt-1 text-sm font-bold text-wolf">{label}</p>
+      <p className="mt-0.5 text-[0.85rem] text-wolf">{label}</p>
     </div>
   );
 }

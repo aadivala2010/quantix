@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-const COLORS = ['#58cc02', '#1cb0f6', '#ffc800', '#ff9600', '#ce82ff', '#ff86d0'];
+const COLORS = ['#34c759', '#007aff', '#ffcc00', '#ff9500', '#af52de', '#ff2d55', '#5ac8fa'];
 
 /**
  * Particle burst for the finish screen. Positions are computed once in JS and

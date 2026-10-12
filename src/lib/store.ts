@@ -16,6 +16,7 @@ export type State = {
   /** Every day a lesson was finished, for the calendar. */
   days: string[];
   totalLessons: number;
+  xp: number;
   /** Last course opened, so Learn reopens where you left off. */
   lastCourse: string | null;
 };
@@ -28,6 +29,7 @@ const EMPTY: State = {
   lastDay: null,
   days: [],
   totalLessons: 0,
+  xp: 0,
   lastCourse: null,
 };
 
@@ -43,7 +45,7 @@ function load(): State {
 let state = load();
 const listeners = new Set<() => void>();
 
-function set(next: Partial<State>) {
+export function set(next: Partial<State>) {
   state = { ...state, ...next };
   try {
     localStorage.setItem(KEY, JSON.stringify(state));
@@ -134,9 +136,10 @@ export const startedSkillIds = (s: State = state) =>
 /* ----------------------------------------------------------------- actions */
 
 /** Shared by every "you did something today" action. */
-function dayUpdate(): Partial<State> {
+function dayUpdate(xp: number): Partial<State> {
   const today = dayKey();
   return {
+    xp: state.xp + xp,
     streak: nextStreak(state.lastDay, state.streak, today),
     days: state.lastDay === today ? state.days : [...state.days, today].slice(-400),
     lastDay: today,
@@ -144,9 +147,9 @@ function dayUpdate(): Partial<State> {
   };
 }
 
-export function completeLesson(skillId: string) {
+export function completeLesson(skillId: string, xp = 0) {
   set({
-    ...dayUpdate(),
+    ...dayUpdate(xp),
     progress: {
       ...state.progress,
       [skillId]: Math.min(skillProgress(skillId) + 1, LESSONS_PER_SKILL),
@@ -155,7 +158,7 @@ export function completeLesson(skillId: string) {
 }
 
 /** Practice sessions keep the streak alive but do not advance any skill. */
-export const recordPractice = () => set(dayUpdate());
+export const recordPractice = (xp = 0) => set(dayUpdate(xp));
 
 export const setLastCourse = (courseId: string) => set({ lastCourse: courseId });
 

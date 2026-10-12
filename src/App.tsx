@@ -50,7 +50,8 @@ export default function App() {
   return (
     // `relative` makes this the positioning context for the lesson overlay and
     // modals, so they stay inside the phone-width shell on desktop.
-    <div className="relative mx-auto flex h-[100dvh] max-w-[480px] flex-col overflow-hidden bg-white sm:border-x-2 sm:border-swan">
+    // On wider screens the app floats as a spatial window over the wallpaper.
+    <div className="relative mx-auto flex h-[100dvh] max-w-[480px] flex-col overflow-hidden sm:my-[3dvh] sm:h-[94dvh] sm:rounded-[44px] sm:bg-white/25 sm:shadow-[0_30px_80px_-20px_rgb(20_30_80/0.35),inset_0_0_0_1px_rgb(255_255_255/0.5)] dark:sm:bg-white/5 dark:sm:shadow-[0_30px_80px_-20px_rgb(0_0_0/0.8),inset_0_0_0_1px_rgb(255_255_255/0.12)]">
       <main className="min-h-0 flex-1">
         {tab === 'learn' &&
           (courseId ? (

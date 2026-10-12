@@ -1,48 +1,98 @@
 @import 'tailwindcss';
 
 /* ------------------------------------------------------------------ theme */
-/* Colours lifted from Duolingo's own palette naming. */
+/* Apple system colours. Token names are historical; values follow iOS. */
 @theme {
-  --color-grass: #58cc02;
-  --color-grass-dark: #58a700;
-  --color-mask: #89e219;
-  --color-macaw: #1cb0f6;
-  --color-whale: #1899d6;
-  --color-cardinal: #ff4b4b;
-  --color-cardinal-dark: #ea2b2b;
-  --color-fox: #ff9600;
-  --color-fox-dark: #e08600;
-  --color-bee: #ffc800;
-  --color-bee-dark: #e0a800;
-  --color-beetle: #ce82ff;
-  --color-humpback: #084d6b;
-  --color-sea: #00cd9c;
+  --color-grass: #34c759;
+  --color-grass-dark: #248a3d;
+  --color-mask: #30d158;
+  --color-macaw: #007aff;
+  --color-whale: #0062cc;
+  --color-cardinal: #ff3b30;
+  --color-cardinal-dark: #d70015;
+  --color-fox: #ff9500;
+  --color-fox-dark: #c93400;
+  --color-bee: #ffcc00;
+  --color-bee-dark: #a05a00;
+  --color-beetle: #af52de;
+  --color-sea: #30b0c7;
 
-  --color-eel: #4b4b4b;
-  --color-wolf: #777777;
-  --color-hare: #afafaf;
-  --color-swan: #e5e5e5;
-  --color-polar: #f7f7f7;
+  /* label / secondaryLabel / tertiaryLabel / fill / quaternary fill */
+  --color-eel: #1c1c1e;
+  --color-wolf: rgb(60 60 67 / 0.64);
+  --color-hare: rgb(60 60 67 / 0.34);
+  --color-swan: rgb(120 120 128 / 0.18);
+  --color-polar: rgb(120 120 128 / 0.08);
 
-  --font-display: 'Nunito', 'Nunito Sans', ui-rounded, 'Segoe UI', system-ui, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', 'Segoe UI Variable', system-ui, sans-serif;
 
-  /* One spring curve and one glide curve, used everywhere, so the whole app
-     shares a rhythm instead of each component inventing its own. */
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --ease-glide: cubic-bezier(0.16, 1, 0.3, 1);
+  /* One spring, one glide — the whole app shares a rhythm. */
+  --ease-spring: cubic-bezier(0.3, 1.3, 0.5, 1);
+  --ease-glide: cubic-bezier(0.2, 0.9, 0.25, 1);
 
-  --animate-pop: pop 0.3s var(--ease-spring);
-  --animate-slide-up: slide-up 0.25s var(--ease-glide);
+  --animate-pop: pop 0.4s var(--ease-spring);
+  --animate-slide-up: slide-up 0.4s var(--ease-glide);
   --animate-shake: shake 0.4s ease-in-out;
-  --animate-drop-in: drop-in 0.4s var(--ease-spring) backwards;
-  --animate-rise: rise 0.45s var(--ease-spring) backwards;
-  --animate-burst: burst 0.9s cubic-bezier(0.12, 0.8, 0.3, 1) forwards;
-  --animate-breathe: breathe 2.4s ease-in-out infinite;
-  --animate-tick: tick 0.35s var(--ease-spring);
+  --animate-drop-in: drop-in 0.45s var(--ease-spring) backwards;
+  --animate-rise: rise 0.55s var(--ease-spring) backwards;
+  --animate-burst: burst 1s cubic-bezier(0.12, 0.8, 0.3, 1) forwards;
+  --animate-tick: tick 0.4s var(--ease-spring);
+  --animate-bob: bob 2.2s ease-in-out infinite;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-combo: combo 1s var(--ease-spring) forwards;
+}
+
+/* Dark appearance: same tokens, iOS dark values. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-grass-dark: #30d158;
+    --color-macaw: #0a84ff;
+    --color-whale: #409cff;
+    --color-cardinal-dark: #ff6961;
+    --color-fox-dark: #ffb340;
+    --color-bee-dark: #ffd60a;
+    --color-eel: #ffffff;
+    --color-wolf: rgb(235 235 245 / 0.62);
+    --color-hare: rgb(235 235 245 / 0.32);
+    --color-swan: rgb(120 120 128 / 0.36);
+    --color-polar: rgb(120 120 128 / 0.2);
+  }
+}
+
+/* Glass material, light. */
+:root {
+  --glass-bg: rgb(255 255 255 / 0.52);
+  --glass-strong: rgb(255 255 255 / 0.78);
+  --glass-rim: rgb(255 255 255 / 0.9);
+  --glass-rim-soft: rgb(255 255 255 / 0.2);
+  --glass-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 10px 30px -8px rgb(30 40 80 / 0.16);
+  --sheen: rgb(255 255 255 / 0.35);
+  --wallpaper:
+    radial-gradient(60% 45% at 8% 0%, rgb(120 170 255 / 0.55), transparent 70%),
+    radial-gradient(55% 40% at 100% 18%, rgb(200 140 255 / 0.45), transparent 70%),
+    radial-gradient(60% 45% at 0% 75%, rgb(110 220 200 / 0.4), transparent 70%),
+    radial-gradient(55% 45% at 100% 100%, rgb(255 170 150 / 0.4), transparent 70%),
+    #f2f2f7;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --glass-bg: rgb(44 44 50 / 0.5);
+    --glass-strong: rgb(36 36 42 / 0.82);
+    --glass-rim: rgb(255 255 255 / 0.32);
+    --glass-rim-soft: rgb(255 255 255 / 0.05);
+    --glass-shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 12px 32px -8px rgb(0 0 0 / 0.6);
+    --sheen: rgb(255 255 255 / 0.08);
+    --wallpaper:
+      radial-gradient(60% 45% at 8% 0%, rgb(40 80 200 / 0.55), transparent 70%),
+      radial-gradient(55% 40% at 100% 18%, rgb(120 50 190 / 0.45), transparent 70%),
+      radial-gradient(60% 45% at 0% 75%, rgb(0 120 110 / 0.4), transparent 70%),
+      radial-gradient(55% 45% at 100% 100%, rgb(170 60 60 / 0.35), transparent 70%),
+      #000;
+  }
 }
 
 @keyframes pop {
-  0% { transform: scale(0.85); opacity: 0; }
+  0% { transform: scale(0.88); opacity: 0; }
   100% { transform: scale(1); opacity: 1; }
 }
 @keyframes slide-up {
@@ -51,34 +101,53 @@
 }
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-8px); }
-  40% { transform: translateX(8px); }
-  60% { transform: translateX(-5px); }
-  80% { transform: translateX(5px); }
+  20% { transform: translateX(-7px); }
+  40% { transform: translateX(7px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
 }
 @keyframes drop-in {
-  0% { transform: translateY(-14px) scale(0.9); opacity: 0; }
+  0% { transform: translateY(-10px) scale(0.94); opacity: 0; }
   100% { transform: translateY(0) scale(1); opacity: 1; }
 }
-/* Path nodes settling into place as you scroll to a unit. */
 @keyframes rise {
-  0% { transform: translateY(18px) scale(0.86); opacity: 0; }
-  100% { transform: translateY(0) scale(1); opacity: 1; }
+  0% { transform: translateY(16px) scale(0.92); opacity: 0; filter: blur(6px); }
+  100% { transform: translateY(0) scale(1); opacity: 1; filter: blur(0); }
 }
 @keyframes burst {
   0% { transform: translate(0, 0) scale(0.2) rotate(0deg); opacity: 1; }
   70% { opacity: 1; }
   100% { transform: translate(var(--bx), var(--by)) scale(1) rotate(var(--spin)); opacity: 0; }
 }
-/* The "your turn" pulse on the active node. */
-@keyframes breathe {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.045); }
-}
 @keyframes tick {
   0% { transform: scale(1); }
-  45% { transform: scale(1.18); }
+  45% { transform: scale(1.15); }
   100% { transform: scale(1); }
+}
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+/* Slow drift for floating hero objects. */
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-10px) rotate(2deg); }
+}
+@keyframes blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.1); }
+}
+@keyframes combo {
+  0% { transform: translateY(6px) scale(0.7); opacity: 0; filter: blur(4px); }
+  25% { transform: translateY(0) scale(1.05); opacity: 1; filter: blur(0); }
+  40% { transform: scale(1); }
+  80% { opacity: 1; }
+  100% { transform: translateY(-4px); opacity: 0; }
+}
+.mascot-eye {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: blink 4s infinite;
 }
 
 /* ------------------------------------------------------------------- base */
@@ -87,30 +156,34 @@
   html {
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
+    color-scheme: light dark;
   }
 
   body {
     font-family: var(--font-display);
-    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: -0.01em;
     color: var(--color-eel);
-    background: #fff;
+    background: var(--wallpaper);
+    background-attachment: fixed;
     overscroll-behavior-y: none;
+    -webkit-font-smoothing: antialiased;
   }
 
-  /* Never let a stray drag select the question text. */
+  h1, h2 { letter-spacing: -0.025em; }
+
   button, .no-select {
     user-select: none;
     -webkit-user-select: none;
   }
+  button { cursor: pointer; }
 
-  /* Keyboard users get a real focus ring; pointer users never see it. */
   :focus-visible {
-    outline: 3px solid var(--color-macaw);
-    outline-offset: 3px;
-    border-radius: 12px;
+    outline: 3px solid color-mix(in srgb, var(--color-macaw) 60%, transparent);
+    outline-offset: 2px;
+    border-radius: 14px;
   }
 
-  /* Motion is decoration here, never information — safe to switch off wholesale. */
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       animation-duration: 0.01ms !important;
@@ -125,93 +198,108 @@
 
 @layer components {
   /**
-   * The Duolingo button: flat top face sitting on a 4px "side wall".
-   * Pressing pushes the face down onto the wall.
+   * Liquid glass: blurred, saturated backdrop + a light rim that is brighter
+   * on the top-left edge, like light catching a lens.
    */
+  .glass {
+    position: relative;
+    background: linear-gradient(180deg, var(--sheen), transparent 55%), var(--glass-bg);
+    -webkit-backdrop-filter: blur(24px) saturate(190%);
+    backdrop-filter: blur(24px) saturate(190%);
+    box-shadow: var(--glass-shadow);
+  }
+  .glass-strong {
+    background: linear-gradient(180deg, var(--sheen), transparent 55%), var(--glass-strong);
+  }
+  .glass::before, .orb::before, .btn-tint::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(150deg, var(--glass-rim), var(--glass-rim-soft) 35%, var(--glass-rim-soft) 65%, var(--glass-rim));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+    pointer-events: none;
+  }
+
+  /* Anything pressable: springs down a touch, never jumps. */
+  .press {
+    transition: transform 0.35s var(--ease-spring), background-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .press:active:not(:disabled) { transform: scale(0.96); transition-duration: 0.1s; }
+
+  /** Capsule button. */
   .btn {
-    --wall: var(--color-grass-dark);
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
     width: 100%;
-    padding: 0.85rem 1rem;
-    border-radius: 1rem;
+    height: 3.25rem;
+    padding: 0 1.25rem;
+    border-radius: 999px;
     border: none;
-    font-weight: 800;
-    font-size: 0.95rem;
-    letter-spacing: 0.8px;
-    text-transform: uppercase;
-    cursor: pointer;
-    box-shadow: 0 4px 0 var(--wall);
-    transition: filter 0.1s ease, transform 0.06s ease, box-shadow 0.06s ease;
+    font-size: 1.0625rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    transition: transform 0.35s var(--ease-spring), filter 0.2s ease, background-color 0.2s ease;
   }
-  .btn:active:not(:disabled) {
-    transform: translateY(4px);
-    box-shadow: none;
-  }
+  .btn:active:not(:disabled) { transform: scale(0.97); filter: brightness(0.94); transition-duration: 0.1s; }
   .btn:disabled {
     background: var(--color-swan);
     color: var(--color-hare);
-    box-shadow: none;
     cursor: not-allowed;
   }
 
-  .btn-green { background: var(--color-grass); color: #fff; --wall: var(--color-grass-dark); }
-  .btn-blue  { background: var(--color-macaw); color: #fff; --wall: var(--color-whale); }
-  .btn-red   { background: var(--color-cardinal); color: #fff; --wall: var(--color-cardinal-dark); }
-  .btn-purple{ background: #8b5cf6; color: #fff; --wall: #7343d4; }
-
-  /* Secondary: white face, grey wall + hairline border. */
-  .btn-white {
-    background: #fff;
-    color: var(--color-macaw);
-    --wall: var(--color-swan);
-    border: 2px solid var(--color-swan);
-    box-shadow: 0 4px 0 var(--wall);
+  /* Tinted glass: solid colour with the same rim + top sheen. */
+  .btn-tint {
+    color: #fff;
+    background: linear-gradient(180deg, rgb(255 255 255 / 0.28), rgb(255 255 255 / 0) 60%), var(--tint);
+    box-shadow: 0 8px 20px -8px var(--tint);
+    --glass-rim: rgb(255 255 255 / 0.6);
+    --glass-rim-soft: rgb(255 255 255 / 0.08);
   }
+  .btn-green { --tint: var(--color-grass); }
+  .btn-blue { --tint: var(--color-macaw); }
+  .btn-red { --tint: var(--color-cardinal); }
 
-  /**
-   * Selectable answer card. Same physics, 2px wall.
-   */
+  /* Secondary: plain glass, accent text. */
+  .btn-glass { color: var(--color-macaw); }
+
+  /** Selectable answer card. */
   .choice {
-    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
     padding: 1rem 0.75rem;
     min-height: 4.5rem;
-    border-radius: 1rem;
-    border: 2px solid var(--color-swan);
-    box-shadow: 0 2px 0 var(--color-swan);
-    background: #fff;
+    border-radius: 22px;
     color: var(--color-eel);
-    font-size: 1.05rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background 0.12s ease, border-color 0.12s ease, transform 0.06s ease;
+    font-size: 1.15rem;
+    font-weight: 600;
     white-space: pre-line;
     overflow-wrap: anywhere;
+    transition: transform 0.35s var(--ease-spring), background-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
   }
-  .choice:active { transform: translateY(2px); box-shadow: none; }
-
+  .choice:active:not(:disabled) { transform: scale(0.96); transition-duration: 0.1s; }
+  .choice[data-state] { --sheen: transparent; }
   .choice[data-state='selected'] {
-    background: #ddf4ff;
-    border-color: #84d8ff;
-    box-shadow: 0 2px 0 #84d8ff;
-    color: var(--color-whale);
+    background-color: color-mix(in srgb, var(--color-macaw) 16%, var(--glass-bg));
+    box-shadow: inset 0 0 0 2px var(--color-macaw), var(--glass-shadow);
+    color: var(--color-macaw);
   }
   .choice[data-state='correct'] {
-    background: #d7ffb8;
-    border-color: var(--color-mask);
-    box-shadow: 0 2px 0 var(--color-mask);
+    background-color: color-mix(in srgb, var(--color-grass) 20%, var(--glass-bg));
+    box-shadow: inset 0 0 0 2px var(--color-grass), var(--glass-shadow);
     color: var(--color-grass-dark);
   }
   .choice[data-state='wrong'] {
-    background: #ffdfe0;
-    border-color: #ffb2b2;
-    box-shadow: 0 2px 0 #ffb2b2;
+    background-color: color-mix(in srgb, var(--color-cardinal) 16%, var(--glass-bg));
+    box-shadow: inset 0 0 0 2px var(--color-cardinal), var(--glass-shadow);
     color: var(--color-cardinal-dark);
   }
   .choice:disabled { cursor: default; }
@@ -219,55 +307,88 @@
   /* Typed-answer field. */
   .answer-input {
     width: 100%;
-    padding: 1rem;
-    border-radius: 1rem;
-    border: 2px solid var(--color-swan);
-    background: #fff;
+    padding: 1.1rem;
+    border-radius: 22px;
+    border: none;
     font-family: inherit;
-    font-size: 1.35rem;
-    font-weight: 800;
+    font-size: 1.5rem;
+    font-weight: 600;
     text-align: center;
     color: var(--color-eel);
     outline: none;
-    transition: border-color 0.15s ease;
+    transition: box-shadow 0.2s ease;
   }
-  .answer-input:focus { border-color: #84d8ff; }
-  .answer-input::placeholder { color: var(--color-swan); font-weight: 700; }
+  .answer-input:focus { box-shadow: inset 0 0 0 2px var(--color-macaw), var(--glass-shadow); }
+  .answer-input::placeholder { color: var(--color-hare); font-weight: 500; }
 
-  /* Path node: circle with a thick bottom wall, same language as the buttons. */
-  .node {
-    width: 68px;
-    height: 68px;
+  /**
+   * Path node: a glossy orb. Specular highlight top-left, soft core shadow
+   * below, coloured glow on the ground. Lifts toward you on hover.
+   */
+  .orb {
+    position: relative;
+    width: 76px;
+    height: 76px;
     border-radius: 999px;
     display: grid;
     place-items: center;
-    font-size: 1.75rem;
-    line-height: 1;
     border: none;
-    cursor: pointer;
-    transition: transform 0.08s ease, box-shadow 0.08s ease;
+    color: #fff;
+    background:
+      radial-gradient(circle at 34% 24%, rgb(255 255 255 / 0.7), rgb(255 255 255 / 0) 34%),
+      radial-gradient(circle at 50% 115%, rgb(0 0 0 / 0.22), transparent 58%),
+      var(--tint);
+    box-shadow:
+      inset 0 -4px 10px rgb(0 0 0 / 0.12),
+      0 14px 26px -10px var(--tint),
+      0 3px 6px rgb(0 0 0 / 0.08);
+    --glass-rim: rgb(255 255 255 / 0.75);
+    --glass-rim-soft: rgb(255 255 255 / 0.05);
+    transition: transform 0.45s var(--ease-spring), box-shadow 0.3s ease;
   }
-  .node:active:not(:disabled) { transform: translateY(5px); box-shadow: none !important; }
-  .node:disabled { cursor: not-allowed; }
+  .orb:hover { transform: translateY(-3px) scale(1.05); }
+  .orb:active { transform: scale(0.94); transition-duration: 0.1s; }
+  /* Locked: frosted, colourless glass. */
+  .orb[data-locked] {
+    color: var(--color-hare);
+    background: linear-gradient(180deg, var(--sheen), transparent 60%), var(--glass-bg);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+    box-shadow: var(--glass-shadow);
+  }
 
   .divider {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    color: var(--color-hare);
-    font-size: 0.75rem;
-    letter-spacing: 1px;
-    text-transform: uppercase;
+    color: var(--color-wolf);
+    font-size: 0.8125rem;
+    font-weight: 600;
   }
   .divider::before, .divider::after {
     content: '';
     flex: 1;
-    height: 2px;
+    height: 1px;
     background: var(--color-swan);
-    border-radius: 2px;
+  }
+
+  /* iOS section header: small caps grey label above a grouped list. */
+  .section-label {
+    padding: 0 1rem 0.4rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--color-wolf);
   }
 }
+
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
 
 /* Safe areas for notched phones. */
 .pb-safe { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
 .pt-safe { padding-top: max(0.75rem, env(safe-area-inset-top)); }
+
+/* Full-screen layers (lesson, results) repaint the same wallpaper. */
+.wallpaper { background: var(--wallpaper); background-attachment: fixed; }

@@ -31,16 +31,18 @@ export type Course = {
 export const LESSONS_PER_SKILL = 4;
 /** Questions in one lesson. */
 export const QUESTIONS_PER_LESSON = 8;
+/** XP for finishing a lesson (+5 more for a flawless one). */
+export const LESSON_XP = 10;
 
 const C = {
-  green: '#58CC02',
-  blue: '#1CB0F6',
-  purple: '#CE82FF',
-  orange: '#FF9600',
-  red: '#FF4B4B',
-  teal: '#00CD9C',
-  yellow: '#FFC800',
-  pink: '#FF86D0',
+  green: '#34C759',
+  blue: '#007AFF',
+  purple: '#AF52DE',
+  orange: '#FF9500',
+  red: '#FF3B30',
+  teal: '#30B0C7',
+  indigo: '#5856D6',
+  pink: '#FF2D55',
 } as const;
 
 /** Terse skill builder. The icon is a name from components/Icon.tsx. */
@@ -103,7 +105,7 @@ const elementary: Course = {
       ['fracAdd', 'Adding Fractions', 'fraction'],
       ['fracCompare', 'Comparing Fractions', 'compare'],
     ]),
-    unit('elem', 'Unit 7', 'Decimals & money', C.yellow, [
+    unit('elem', 'Unit 7', 'Decimals & money', C.indigo, [
       ['decAdd', 'Adding Decimals', 'plusBox'],
       ['roundTo', 'Rounding', 'target'],
       ['money', 'Money & Change', 'coins'],
@@ -158,7 +160,7 @@ const middle: Course = {
       ['perfectSqrt', 'Square Roots', 'sqrt'],
       ['sciNotation', 'Scientific Notation', 'times'],
     ]),
-    unit('mid', 'Unit 7', 'Geometry', C.yellow, [
+    unit('mid', 'Unit 7', 'Geometry', C.indigo, [
       ['angleRules', 'Angle Pairs', 'angle'],
       ['pythag', 'Pythagorean Theorem', 'ruler'],
       ['circleAreaCirc', 'Circles', 'circleShape'],
@@ -343,7 +345,7 @@ const statsCourse: Course = {
   title: 'Statistics',
   subtitle: 'Data & probability',
   icon: 'chartBar',
-  color: C.yellow,
+  color: C.indigo,
   units: [
     unit('stat', 'Unit 1', 'Describing data', C.green, [
       ['centerSpread', 'Center & Spread', 'chartBar'],
@@ -374,7 +376,7 @@ const satCourse: Course = {
   title: 'SAT Prep',
   subtitle: 'Digital SAT math',
   icon: 'star',
-  color: '#8B5CF6',
+  color: '#5E5CE6',
   units: [
     unit('sat', 'Unit 1', 'Algebra', C.green, [
       ['satSolveLinear', 'Linear Equations', 'equals'],
@@ -448,7 +450,7 @@ export const SAT_LEVEL: Level = {
   title: 'SAT Prep',
   subtitle: 'Digital SAT math',
   icon: 'star',
-  color: '#8B5CF6',
+  color: '#5E5CE6',
   courses: ['sat'],
 };
 

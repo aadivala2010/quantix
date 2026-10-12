@@ -176,6 +176,8 @@ const I: Record<string, Paths> = {
   volumeOff: { d: 'M4 9.5h3.5L12 5v14l-4.5-4.5H4zM16 10l4 4M20 10l-4 4' },
   book: { d: 'M5 4.5h8a3 3 0 0 1 3 3V20H8a3 3 0 0 1-3-3zM16 7.5h3V20' },
   star: { d: 'M12 3.5l2.6 6.3 6.9.5-5.2 4.4 1.6 6.6L12 17.8 6.1 21.3l1.6-6.6L2.5 10.3l6.9-.5z' },
+  trophy: { d: 'M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v1.5A3.5 3.5 0 0 0 7.5 11M17 6h3v1.5a3.5 3.5 0 0 1-3.5 3.5M12 14v3M8 20.5h8M9.5 17h5l.5 3.5h-6z' },
+  timer: { d: 'M12 8.5v4.5l2.5 1.5M10 2.5h4M12 2.5v2.5', extra: <circle cx="12" cy="13.5" r="8" /> },
   refresh: { d: 'M20 12a8 8 0 1 1-2.6-5.9M20 4v4.5h-4.5' },
 };
 
@@ -209,5 +211,23 @@ export function Icon({
       {icon.d ? <path d={icon.d} /> : null}
       {icon.extra}
     </svg>
+  );
+}
+
+/** iOS app-icon tile: colour gradient, top gloss, glyph in white. */
+export function IconTile({ name, color, size = 44 }: { name: string; color: string; size?: number }) {
+  return (
+    <span
+      className="relative grid shrink-0 place-items-center overflow-hidden text-white"
+      style={{
+        width: size,
+        height: size,
+        borderRadius: size * 0.27,
+        background: `linear-gradient(160deg, color-mix(in srgb, ${color} 70%, white), ${color} 55%, color-mix(in srgb, ${color} 85%, black))`,
+        boxShadow: `0 6px 14px -6px ${color}, inset 0 1px 0 rgb(255 255 255 / 0.45)`,
+      }}
+    >
+      <Icon name={name} className="relative" style={{ width: size * 0.55, height: size * 0.55 }} strokeWidth={2.2} />
+    </span>
   );
 }
